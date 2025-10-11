@@ -2,7 +2,7 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { RusaintProvider } from '@/components/providers/RusaintProvider';
+import { RusaintApplicationProvider } from '@/components/providers/RusaintApplicationProvider';
 import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
 
@@ -25,8 +25,8 @@ export default function RootLayout() {
   }
 
   return (
-    <RusaintProvider>
+    <RusaintApplicationProvider>
       <Stack />
-    </RusaintProvider>
+    </RusaintApplicationProvider>
   );
 }
