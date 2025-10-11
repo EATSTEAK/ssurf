@@ -12,9 +12,9 @@ type ToObject<T> = T extends Record<string, unknown> | unknown[] ? T : never;
 type StorageInsertable<T> = T extends boolean | number | string ? T : ToObject<T>;
 
 // Handle storage change events
-const listeners = new Set<() => void>();
-const emitListeners = () => {
-  for (const l of listeners) {
+const listeners = new Map<string, Set<() => void>>();
+const emitListeners = (key: string) => {
+  for (const l of listeners.get(key) ?? []) {
     l();
   }
 };
@@ -32,9 +32,13 @@ export const useExpoSecureStore = <T>({ defaultValue, key }: Props<StorageInsert
 
   const storageState = useSyncExternalStore<StorageInsertable<T>>(
     (onStoreChange) => {
-      listeners.add(onStoreChange);
+      if (!listeners.has(key)) {
+        listeners.set(key, new Set([onStoreChange]));
+      } else {
+        listeners.get(key)?.add(onStoreChange);
+      }
       return () => {
-        listeners.delete(onStoreChange);
+        listeners.get(key)?.delete(onStoreChange);
       };
     },
     getSnapshot,
@@ -53,7 +57,7 @@ export const useExpoSecureStore = <T>({ defaultValue, key }: Props<StorageInsert
         cache.current.data = stringified;
         cache.current.parsed = nextValue;
       }
-      emitListeners();
+      emitListeners(key);
     },
     [getSnapshot, key],
   );
@@ -68,7 +72,7 @@ export const useExpoSecureStore = <T>({ defaultValue, key }: Props<StorageInsert
           cache.current.parsed = defaultValue;
         }
         cache.current.data = data;
-        emitListeners();
+        emitListeners(key);
       }
     })();
   }, [key, defaultValue]);
