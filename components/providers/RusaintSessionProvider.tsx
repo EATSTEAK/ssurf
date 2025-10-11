@@ -1,5 +1,5 @@
 import { USaintSessionBuilder, USaintSessionInterface } from '@rusaint/react-native';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { useExpoSecureStore } from '@/hooks/useExpoSecureStore';
 
@@ -34,6 +34,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     const session = await new USaintSessionBuilder()
       .withPassword(id, password)
       .catch(console.error);
+
     if (session) {
       setSession(session);
     }
@@ -46,17 +47,28 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     await setUserInfo({ id, password });
   };
 
-  const refreshSession = async () => {
+  const refreshSession = useCallback(async () => {
     if (!userInfo.id || !userInfo.password) {
       return;
     }
     await connectNewSession(userInfo.id, userInfo.password);
-  };
+  }, [userInfo.id, userInfo.password]);
 
   const logout = async () => {
     await setUserInfo({ id: null, password: null });
     setSession(null);
   };
+
+  /* 
+    세션 만료와는 상관 없이 앱이 시작될 때 저장된 아이디/비밀번호로 자동 로그인 시도
+  */
+  useEffect(() => {
+    (async () => {
+      if (userInfo.id && userInfo.password && !session) {
+        refreshSession();
+      }
+    })();
+  }, [refreshSession, session, userInfo.id, userInfo.password]);
 
   return (
     <RusaintSessionContext.Provider value={{ session, login, logout, refreshSession }}>

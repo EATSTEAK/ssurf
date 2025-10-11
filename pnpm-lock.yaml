@@ -21,8 +21,8 @@ importers:
         specifier: ^7.1.8
         version: 7.1.18(react-native@0.81.4(@babel/core@7.28.4)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       '@rusaint/react-native':
-        specifier: ^0.13.3
-        version: 0.13.3(react-native@0.81.4(@babel/core@7.28.4)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+        specifier: ^0.13.4
+        version: 0.13.4(react-native@0.81.4(@babel/core@7.28.4)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       babel-plugin-inline-import:
         specifier: ^3.0.0
         version: 3.0.0
@@ -1555,8 +1555,8 @@ packages:
   '@react-navigation/routers@7.5.1':
     resolution: {integrity: sha512-pxipMW/iEBSUrjxz2cDD7fNwkqR4xoi0E/PcfTQGCcdJwLoaxzab5kSadBLj1MTJyT0YRrOXL9umHpXtp+Dv4w==}
 
-  '@rusaint/react-native@0.13.3':
-    resolution: {integrity: sha512-uqcysDvEpGBoUgsy8qgOU6tGsBF7d27igyoThP0KY2rSH8nmTGrPs2GeA4MJSF6lEU2AQYAD080TvF3SCJRUQg==}
+  '@rusaint/react-native@0.13.4':
+    resolution: {integrity: sha512-5JxLBM8xLaAfypx3KEENr9bWCd2iUjVqsedwwrjxE92ItnMwyqY7gE6KbJk5OZhNqBLoeYMHLoXD+tpTKEQ/Rg==}
     peerDependencies:
       react: '*'
       react-native: ^0.79.3
@@ -6310,7 +6310,7 @@ snapshots:
     dependencies:
       nanoid: 3.3.11
 
-  '@rusaint/react-native@0.13.3(react-native@0.81.4(@babel/core@7.28.4)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
+  '@rusaint/react-native@0.13.4(react-native@0.81.4(@babel/core@7.28.4)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
     dependencies:
       react: 19.1.0
       react-native: 0.81.4(@babel/core@7.28.4)(@types/react@19.1.17)(react@19.1.0)
