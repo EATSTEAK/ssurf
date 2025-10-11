@@ -20,6 +20,8 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@rusaint/react-native": "^0.13.3",
+    "babel-plugin-inline-import": "^3.0.0",
+    "drizzle-orm": "^0.44.6",
     "expo": "~54.0.13",
     "expo-constants": "~18.0.9",
     "expo-dev-client": "^6.0.14",
@@ -47,6 +49,7 @@
   "devDependencies": {
     "@types/node": "^24.7.1",
     "@types/react": "~19.1.0",
+    "drizzle-kit": "^0.31.5",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-perfectionist": "^4.15.1",
