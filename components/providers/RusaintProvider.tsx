@@ -28,6 +28,8 @@ export const RusaintProvider = ({ children }: { children: React.ReactNode }) => 
 
   useEffect(() => {
     (async () => {
+      // TODO: retrieve ID/PW from secure storage
+      // TODO: handle session refresh
       const ses = await new USaintSessionBuilder().withPassword('20211561', '<redacted>');
       setSession(ses);
       const chapel = await new ChapelApplicationBuilder().build(ses);
