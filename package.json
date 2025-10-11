@@ -3,6 +3,7 @@
   "main": "index.tsx",
   "version": "1.0.0",
   "scripts": {
+    "expo": "expo",
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
