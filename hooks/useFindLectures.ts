@@ -1,14 +1,14 @@
 import { Lecture, LectureCategory, SemesterType } from '@rusaint/react-native';
 import { useEffect, useState } from 'react';
 
-import { useRusaint } from '@/components/providers/RusaintProvider';
+import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
 
 export const useFindLectures = (
   year: number,
   semester: SemesterType,
   category: LectureCategory,
 ) => {
-  const { courseScheduleClient: client } = useRusaint();
+  const { courseScheduleClient: client } = useRusaintApplication();
   const [lectures, setLectures] = useState<Lecture[]>([]);
 
   useEffect(() => {

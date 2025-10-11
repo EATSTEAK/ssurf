@@ -1,7 +1,7 @@
 import { SemesterType } from '@rusaint/react-native';
 import { useEffect, useState } from 'react';
 
-import { useRusaint } from '@/components/providers/RusaintProvider';
+import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
 import { db } from '@/db';
 import { syncChapelInformation } from '@/db/sync/chapel';
 
@@ -16,7 +16,7 @@ export const useSyncChapel = (
   semester: SemesterType,
   { force = false, ttlMs = 1000 * 60 * 60 }: SyncChapelOptions = {},
 ) => {
-  const { chapelClient } = useRusaint();
+  const { chapelClient } = useRusaintApplication();
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
