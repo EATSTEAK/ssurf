@@ -3,32 +3,25 @@ import { createContext, useContext, useState } from 'react';
 
 import { useExpoSecureStore } from '@/hooks/useExpoSecureStore';
 
-type UserSessionItem = {
-  id: null | string;
-  password: null | string;
-  session: null | USaintSessionInterface;
-};
-
 type RusaintSessionContextProps = {
   login: (id: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
-  user: UserSessionItem;
+  session: null | USaintSessionInterface;
 };
 
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
-  user: {
-    id: null,
-    password: null,
-    session: null,
-  },
+  session: null,
   login: async () => {},
   logout: async () => {},
   refreshSession: async () => {},
 });
 
 export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unknown>) => {
-  const [userInfo, setUserInfo] = useExpoSecureStore<Pick<UserSessionItem, 'id' | 'password'>>({
+  const [userInfo, setUserInfo] = useExpoSecureStore<{
+    id: null | string;
+    password: null | string;
+  }>({
     defaultValue: {
       id: null,
       password: null,
@@ -66,9 +59,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   };
 
   return (
-    <RusaintSessionContext.Provider
-      value={{ user: { ...userInfo, session }, login, logout, refreshSession }}
-    >
+    <RusaintSessionContext.Provider value={{ session, login, logout, refreshSession }}>
       {children}
     </RusaintSessionContext.Provider>
   );

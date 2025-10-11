@@ -19,9 +19,7 @@ const RusaintApplicationContext = createContext<RusaintApplicationContext>({
 });
 
 export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren<unknown>) => {
-  const {
-    user: { session },
-  } = useRusaintSession();
+  const { session } = useRusaintSession();
 
   const [chapelClient, setChapelClient] = useState<ChapelApplicationInterface | null>(null);
   const [courseScheduleClient, setCourseScheduleClient] =
