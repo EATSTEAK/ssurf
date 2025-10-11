@@ -1,5 +1,11 @@
 import { Stack } from 'expo-router';
 
+import { RusaintProvider } from '@/components/providers/RusaintProvider';
+
 export default function RootLayout() {
-  return <Stack />;
+  return (
+    <RusaintProvider>
+      <Stack />
+    </RusaintProvider>
+  );
 }
