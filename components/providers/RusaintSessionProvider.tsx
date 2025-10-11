@@ -38,12 +38,17 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
 
   const connectNewSession = async (id: string, password: string) => {
-    const session = await new USaintSessionBuilder().withPassword(id, password);
-    setSession(session);
+    const session = await new USaintSessionBuilder()
+      .withPassword(id, password)
+      .catch(console.error);
+    if (session) {
+      setSession(session);
+    }
   };
 
   const login = async (id: string, password: string) => {
     // TODO: handle session refresh
+
     await connectNewSession(id, password);
     await setUserInfo({ id, password });
   };
