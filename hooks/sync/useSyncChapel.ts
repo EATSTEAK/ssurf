@@ -1,5 +1,5 @@
 import { SemesterType } from '@rusaint/react-native';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useRusaint } from '@/components/providers/RusaintProvider';
 import { db } from '@/db';
@@ -17,21 +17,24 @@ export const useSyncChapel = (
 ) => {
   const { chapelClient } = useRusaint();
   const [isSyncing, setIsSyncing] = useState(false);
-  const cache = use(
-    db.query.cache.findFirst({
-      with: { key: `chapel.information.${year}-${semester}` },
-    }),
-  );
-  const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
 
   useEffect(() => {
-    if (shouldRequest && chapelClient && !isSyncing) {
-      setIsSyncing(true);
-      syncChapelInformation(chapelClient, year, semester).then(() => {
+    (async () => {
+      console.log('Checking chapel sync...', { year, semester, force, ttlMs });
+      const cache = await db.query.cache
+        .findFirst({
+          with: { key: `chapel.information.${year}-${semester}` },
+        })
+        .catch((e) => console.error(e));
+      console.log({ cache });
+      const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
+      if (shouldRequest && chapelClient && !isSyncing) {
+        setIsSyncing(true);
+        await syncChapelInformation(chapelClient, year, semester);
         setIsSyncing(false);
-      });
-    }
-  }, [chapelClient, isSyncing, semester, shouldRequest, year]);
+      }
+    })();
+  }, [chapelClient, force, isSyncing, semester, ttlMs, year]);
 
   return { isSyncing };
 };
