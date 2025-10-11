@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { Text, View } from 'react-native';
 
 import { RusaintApplicationProvider } from '@/components/providers/RusaintApplicationProvider';
+import { RusaintSessionProvider } from '@/components/providers/RusaintSessionProvider';
 import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
 
@@ -25,8 +26,10 @@ export default function RootLayout() {
   }
 
   return (
-    <RusaintApplicationProvider>
-      <Stack />
-    </RusaintApplicationProvider>
+    <RusaintSessionProvider>
+      <RusaintApplicationProvider>
+        <Stack />
+      </RusaintApplicationProvider>
+    </RusaintSessionProvider>
   );
 }
