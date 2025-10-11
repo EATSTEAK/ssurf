@@ -1,10 +1,10 @@
 import { SemesterType } from '@rusaint/react-native';
 import { Text, View } from 'react-native';
 
-import { useChapelInformation } from '@/hooks/chapel/chapel';
+import { useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 
 export default function Index() {
-  const result = useChapelInformation(2025, SemesterType.Two);
+  const result = useGeneralChapelInformation(2025, SemesterType.Two);
 
   return (
     <View
