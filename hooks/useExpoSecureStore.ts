@@ -6,6 +6,9 @@ type Props<T> = {
   key: string;
 };
 type ToObject<T> = T extends Record<string, unknown> | unknown[] ? T : never;
+/* 
+  NOTE: expo-secure-store API의 fallback return 타입이 null이므로, null을 허용하지 않아요.
+*/
 type StorageInsertable<T> = T extends boolean | number | string ? T : ToObject<T>;
 
 // Handle storage change events
