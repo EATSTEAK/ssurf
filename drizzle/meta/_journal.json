@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1760198297376,
+      "tag": "0000_real_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1760205940860,
+      "tag": "0001_bouncy_microbe",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1760210932710,
+      "tag": "0002_soft_hardball",
+      "breakpoints": true
+    }
+  ]
+}
