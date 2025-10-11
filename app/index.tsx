@@ -1,12 +1,10 @@
-import { LectureCategoryBuilder, SemesterType } from '@rusaint/react-native';
+import { SemesterType } from '@rusaint/react-native';
 import { Text, View } from 'react-native';
 
-import { useFindLectures } from '@/hooks/use-find-lectures';
-
-const category = new LectureCategoryBuilder().major('IT대학', '글로벌미디어학부', undefined);
+import { useChapelInformation } from '@/hooks/useChapelInformation';
 
 export default function Index() {
-  const result = useFindLectures(2025, SemesterType.One, category);
+  const result = useChapelInformation(2025, SemesterType.Two);
 
   return (
     <View
