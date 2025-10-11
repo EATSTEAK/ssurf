@@ -15,6 +15,13 @@
       "when": 1760205940860,
       "tag": "0001_bouncy_microbe",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1760210932710,
+      "tag": "0002_soft_hardball",
+      "breakpoints": true
     }
   ]
 }
