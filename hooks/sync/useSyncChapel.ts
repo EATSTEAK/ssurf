@@ -10,6 +10,7 @@ export interface SyncChapelOptions {
   ttlMs?: number;
 }
 
+// TODO: generalize to useSyncData
 export const useSyncChapel = (
   year: number,
   semester: SemesterType,
