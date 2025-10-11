@@ -13,20 +13,16 @@ export interface SyncChapelOptions {
 export const useSyncChapel = (
   year: number,
   semester: SemesterType,
-  { force = false, ttlMs = 1000 * 60 * 60 }: SyncChapelOptions,
+  { force = false, ttlMs = 1000 * 60 * 60 }: SyncChapelOptions = {},
 ) => {
   const { chapelClient } = useRusaint();
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     (async () => {
-      console.log('Checking chapel sync...', { year, semester, force, ttlMs });
-      const cache = await db.query.cache
-        .findFirst({
-          with: { key: `chapel.information.${year}-${semester}` },
-        })
-        .catch((e) => console.error(e));
-      console.log({ cache });
+      const cache = await db.query.cache.findFirst({
+        where: (cache, { eq }) => eq(cache.key, `chapel.information.${year}-${semester}`),
+      });
       const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
       if (shouldRequest && chapelClient && !isSyncing) {
         setIsSyncing(true);

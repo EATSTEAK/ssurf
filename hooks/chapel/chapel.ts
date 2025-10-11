@@ -7,7 +7,7 @@ import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
 
 export const useGeneralChapelInformation = (year: number, semester: SemesterType) => {
   const [data, setData] = useState<ChapelGeneralDto | null>(null);
-  const { isSyncing } = useSyncChapel(year, semester, {});
+  const { isSyncing } = useSyncChapel(year, semester);
 
   useEffect(() => {
     (async () => {
@@ -24,7 +24,7 @@ export const useGeneralChapelInformation = (year: number, semester: SemesterType
 
 export const useChapelAttendances = (year: number, semester: SemesterType) => {
   const [data, setData] = useState<ChapelAttendanceDto[] | null>(null);
-  const { isSyncing } = useSyncChapel(year, semester, {});
+  const { isSyncing } = useSyncChapel(year, semester);
 
   useEffect(() => {
     (async () => {
