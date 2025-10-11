@@ -6,7 +6,7 @@ export const useRusaintSession = (): null | USaintSessionInterface => {
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
   useEffect(() => {
     (async () => {
-      const s = await new USaintSessionBuilder().withPassword('20211561', '6kZf6O&dA^ZSS6');
+      const s = await new USaintSessionBuilder().withPassword('20211561', '<redacted>');
       setSession(s);
     })();
   }, []);
