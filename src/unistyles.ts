@@ -41,8 +41,7 @@ const darkTheme = {
   gap: (v: number) => v * 8,
 } as const;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _appThemes = {
+const appThemes = {
   light: lightTheme,
   dark: darkTheme,
 };
@@ -56,7 +55,7 @@ const breakpoints = {
 };
 
 type AppBreakpoints = typeof breakpoints;
-type AppThemes = typeof _appThemes;
+type AppThemes = typeof appThemes;
 
 declare module 'react-native-unistyles' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -69,9 +68,6 @@ StyleSheet.configure({
   settings: {
     adaptiveThemes: true,
   },
-  themes: {
-    light: lightTheme,
-    dark: darkTheme,
-  },
+  themes: appThemes,
   breakpoints,
 });
