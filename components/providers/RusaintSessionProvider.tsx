@@ -1,4 +1,5 @@
 import { USaintSessionBuilder, USaintSessionInterface } from '@rusaint/react-native';
+import { useRouter } from 'expo-router';
 import { createContext, useCallback, useContext, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
@@ -6,7 +7,7 @@ import { useExpoSecureStore } from '@/hooks/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
   hasCredential: () => boolean;
-  login: (id: string, password: string) => Promise<void>;
+  login: (id: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   session: null | USaintSessionInterface;
@@ -15,12 +16,13 @@ type RusaintSessionContextProps = {
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   session: null,
   hasCredential: () => false,
-  login: async () => {},
+  login: async () => false,
   logout: async () => {},
   refreshSession: async () => {},
 });
 
 export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+  const { navigate } = useRouter();
   const [userInfo, setUserInfo] = useExpoSecureStore<{
     id: null | string;
     password: null | string;
@@ -38,16 +40,21 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
       .withPassword(id, password)
       .catch(console.error);
 
-    if (session) {
-      setSession(session);
+    if (!session) {
+      return false;
     }
+
+    setSession(session);
+    return true;
   };
 
   const login = async (id: string, password: string) => {
     // TODO: handle session refresh
-
-    await connectNewSession(id, password);
-    await setUserInfo({ id, password });
+    if (await connectNewSession(id, password)) {
+      await setUserInfo({ id, password });
+      return true;
+    }
+    return false;
   };
 
   const refreshSession = useCallback(async () => {
@@ -60,6 +67,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   const logout = async () => {
     await setUserInfo({ id: null, password: null });
     setSession(null);
+    navigate('/(onboarding)');
   };
 
   const hasCredential = () => {
