@@ -4,7 +4,7 @@ import { Button, Text, TextInput, View } from 'react-native';
 
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 
-export default function Index() {
+export default function OnboardingPage() {
   const { login, logout, session } = useRusaintSession();
 
   const [id, setId] = useState<string>('');
