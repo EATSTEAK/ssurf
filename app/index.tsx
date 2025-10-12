@@ -1,13 +1,11 @@
-import { SemesterType } from '@rusaint/react-native';
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Button, Text, TextInput, View } from 'react-native';
 
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
-import { useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 
 export default function Index() {
   const { login, logout, session } = useRusaintSession();
-  const { data } = useGeneralChapelInformation(2025, SemesterType.Two);
 
   const [id, setId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -26,8 +24,11 @@ export default function Index() {
     >
       {session ? (
         <>
-          <Text>{JSON.stringify(data)}</Text>
+          <Text>{JSON.stringify(session)}</Text>
           <Button onPress={() => logout()} title="logout" />
+          <Link asChild href="/chapel">
+            <Button title="chapel" />
+          </Link>
         </>
       ) : (
         <>
