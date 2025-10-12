@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ssurf",
+      "bundleIdentifier": "dev.eatsteak.ssurf",
       "config": {
         "usesNonExemptEncryption": false
       }
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.ssurf"
+      "package": "dev.eatsteak.ssurf"
     },
     "web": {
       "output": "static",
@@ -56,6 +56,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "39518783-8aab-4312-85f2-46b95f61da42"
+      }
     }
   }
 }
