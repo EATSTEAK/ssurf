@@ -67,7 +67,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   const logout = async () => {
     await setUserInfo({ id: null, password: null });
     setSession(null);
-    navigate('/(onboarding)');
+    navigate('/');
   };
 
   const hasCredential = () => {
