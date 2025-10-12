@@ -2,3 +2,5 @@ pnpm-lock.yaml
 README.md
 node_modules
 .expo
+drizzle/
+.serena
