@@ -5,6 +5,7 @@ import { useAsyncEffect } from 'react-simplikit';
 import { useExpoSecureStore } from '@/hooks/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
+  hasCredential: () => boolean;
   login: (id: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -13,6 +14,7 @@ type RusaintSessionContextProps = {
 
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   session: null,
+  hasCredential: () => false,
   login: async () => {},
   logout: async () => {},
   refreshSession: async () => {},
@@ -60,6 +62,10 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     setSession(null);
   };
 
+  const hasCredential = () => {
+    return userInfo.id != null && userInfo.password != null;
+  };
+
   /* 
     세션 만료와는 상관 없이 앱이 시작될 때 저장된 아이디/비밀번호로 자동 로그인 시도
   */
@@ -70,7 +76,9 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   }, [refreshSession, session, userInfo.id, userInfo.password]);
 
   return (
-    <RusaintSessionContext.Provider value={{ session, login, logout, refreshSession }}>
+    <RusaintSessionContext.Provider
+      value={{ session, hasCredential, login, logout, refreshSession }}
+    >
       {children}
     </RusaintSessionContext.Provider>
   );
