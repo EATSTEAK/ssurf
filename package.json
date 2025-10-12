@@ -12,7 +12,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "lint:fix": "expo lint --fix .",
-    "format": "prettier",
+    "format": "prettier --check .",
     "format:fix": "prettier --write ."
   },
   "dependencies": {
