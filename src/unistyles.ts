@@ -43,10 +43,8 @@ const lightTheme = {
     secondary: palette.sand200,
     background: palette.sand50,
     backgroundCard: palette.sand100,
-    foreground: palette.sand900,
-    foregroundMuted: palette.sand800,
-    black: '#121212',
-    white: '#f7f7f7',
+    foreground: palette.neutral950,
+    foregroundMuted: palette.sand900,
   },
   gap: (v: number) => v * 8,
 } as const;
@@ -55,12 +53,10 @@ const darkTheme = {
   colors: {
     primary: palette.wave600,
     secondary: palette.sand800,
-    background: palette.sand900,
-    backgroundCard: palette.sand800,
+    background: palette.neutral950,
+    backgroundCard: palette.sand900,
     foreground: palette.sand50,
     foregroundMuted: palette.sand100,
-    black: '#121212',
-    white: '#f7f7f7',
   },
   gap: (v: number) => v * 8,
 } as const;
