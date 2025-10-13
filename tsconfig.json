@@ -7,11 +7,5 @@
       "@/*": ["src/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "src/expo-env.d.ts",
-    "drizzle.config.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "drizzle.config.ts", "expo-env.d.ts"]
 }

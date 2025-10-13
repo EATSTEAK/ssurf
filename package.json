@@ -1,6 +1,6 @@
 {
   "name": "ssurf",
-  "main": "index.tsx",
+  "main": "src/index.tsx",
   "version": "1.0.0",
   "scripts": {
     "expo": "expo",
