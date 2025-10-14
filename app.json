@@ -13,7 +13,8 @@
       "bundleIdentifier": "dev.eatsteak.ssurf",
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "icon": "./assets/app.icon"
     },
     "android": {
       "adaptiveIcon": {
