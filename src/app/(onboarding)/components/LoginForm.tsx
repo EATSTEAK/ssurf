@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { StyleSheet, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLoading } from 'react-simplikit';
 
+import { Button } from '@/components/primitives/Button';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 
 export const LoginForm = () => {
@@ -48,13 +49,13 @@ export const LoginForm = () => {
 
       <Text style={styles.information}>학번 및 비밀번호는 사용자 기기에만 저장돼요.</Text>
 
-      <Pressable
+      <Button
         disabled={isLoading || !id || !password}
         onPress={onPressLoginButton}
-        style={styles.loginButton}
+        style={{ width: '100%' }}
       >
-        <Text style={styles.loginButtonText}>{isLoading ? '로그인 중...' : '로그인'}</Text>
-      </Pressable>
+        <Text>{isLoading ? '로그인 중...' : '로그인'}</Text>
+      </Button>
     </SafeAreaView>
   );
 };
@@ -73,17 +74,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     textAlign: 'center',
-  },
-  loginButton: {
-    width: '100%',
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
 });

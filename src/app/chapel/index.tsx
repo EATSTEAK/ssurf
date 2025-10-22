@@ -1,7 +1,8 @@
 import { SemesterType } from '@rusaint/react-native';
-import { Button, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/primitives/Button';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 
@@ -28,7 +29,9 @@ export default function Index() {
         padding: 20,
       }}
     >
-      <Button onPress={logout} title="로그아웃" />
+      <Button onPress={logout} variant="primary">
+        로그아웃
+      </Button>
       <Text style={{ fontSize: 36, fontWeight: 'bold' }}>채플 정보</Text>
       <Text style={{ fontSize: 16, color: '#666' }}>
         {general.year}-{general.semester}학기
