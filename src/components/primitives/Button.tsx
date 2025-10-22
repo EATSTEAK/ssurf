@@ -58,8 +58,14 @@ const propagateState = <T,>(
   v: ((state: PressableStateCallbackType) => T) | T,
 ): T => (typeof v === 'function' ? (v as (state: PressableStateCallbackType) => T)(state) : v);
 
-export const Button = ({ variant, style, children, textStyle, ...props }: ButtonProps) => {
-  styles.useVariants({ variant: variant ?? 'primary' });
+export const Button = ({
+  variant = 'primary',
+  style,
+  children,
+  textStyle,
+  ...props
+}: ButtonProps) => {
+  styles.useVariants({ variant });
 
   return (
     <Pressable style={(state) => [styles.container, propagateState(state, style)]} {...props}>
