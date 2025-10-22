@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLoading } from 'react-simplikit';
 
 import { Button } from '@/components/primitives/Button';
+import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 
 export const LoginForm = () => {
@@ -28,14 +29,14 @@ export const LoginForm = () => {
         paddingHorizontal: 32,
       }}
     >
-      <Text
+      <ThemedText
         style={{
           fontSize: 24,
           fontWeight: 'bold',
         }}
       >
         유세인트 로그인
-      </Text>
+      </ThemedText>
 
       <TextInput onChangeText={setId} placeholder="학번" style={styles.textInput} value={id} />
       <TextInput
@@ -46,7 +47,9 @@ export const LoginForm = () => {
         value={password}
       />
 
-      <Text style={styles.information}>학번 및 비밀번호는 사용자 기기에만 저장돼요.</Text>
+      <ThemedText color="muted" style={styles.information}>
+        학번 및 비밀번호는 사용자 기기에만 저장돼요.
+      </ThemedText>
 
       <Button
         disabled={isLoading || !id || !password}
@@ -71,7 +74,6 @@ const styles = StyleSheet.create({
   },
   information: {
     fontSize: 13,
-    color: '#666',
     textAlign: 'center',
   },
 });
