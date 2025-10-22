@@ -1,5 +1,13 @@
 import React from 'react';
-import { Pressable, PressableProps, Text, View } from 'react-native';
+import {
+  Pressable,
+  PressableProps,
+  PressableStateCallbackType,
+  StyleProp,
+  Text,
+  TextStyle,
+  View,
+} from 'react-native';
 import { StyleSheet, UnistylesVariants } from 'react-native-unistyles';
 
 const styles = StyleSheet.create((theme) => ({
@@ -40,16 +48,26 @@ const styles = StyleSheet.create((theme) => ({
 export type ButtonProps = PressableProps &
   React.RefAttributes<View> &
   UnistylesVariants<typeof styles> & {
-    children: React.ReactNode;
+    textStyle?:
+      | ((state: PressableStateCallbackType) => StyleProp<TextStyle>)
+      | StyleProp<TextStyle>;
   };
 
-export const Button = ({ variant, ...props }: ButtonProps) => {
+const propagateState = <T,>(
+  state: PressableStateCallbackType,
+  v: ((state: PressableStateCallbackType) => T) | T,
+): T => (typeof v === 'function' ? (v as (state: PressableStateCallbackType) => T)(state) : v);
+
+export const Button = ({ variant, style, children, textStyle, ...props }: ButtonProps) => {
   styles.useVariants({ variant: variant ?? 'primary' });
+
   return (
-    <Pressable {...props}>
-      <View style={styles.container}>
-        <Text style={styles.text}>{props.children}</Text>
-      </View>
+    <Pressable style={(state) => [styles.container, propagateState(state, style)]} {...props}>
+      {(state) => (
+        <Text style={[styles.text, propagateState(state, textStyle)]}>
+          {propagateState(state, children)}
+        </Text>
+      )}
     </Pressable>
   );
 };
