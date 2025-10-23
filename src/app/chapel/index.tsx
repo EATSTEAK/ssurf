@@ -1,5 +1,6 @@
 import { SemesterType } from '@rusaint/react-native';
 import { Button, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
@@ -11,14 +12,14 @@ export default function Index() {
 
   if (!general) {
     return (
-      <View>
+      <SafeAreaView>
         <Text>Loading...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View
+    <SafeAreaView
       style={{
         flex: 1,
         justifyContent: 'flex-start',
@@ -51,6 +52,6 @@ export default function Index() {
             <Text>{attendance.attendance}</Text>
           </View>
         ))}
-    </View>
+    </SafeAreaView>
   );
 }

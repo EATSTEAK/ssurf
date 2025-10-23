@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLoading } from 'react-simplikit';
 
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
@@ -16,7 +17,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <View
+    <SafeAreaView
       style={{
         flex: 1,
         display: 'flex',
@@ -54,7 +55,7 @@ export const LoginForm = () => {
       >
         <Text style={styles.loginButtonText}>{isLoading ? '로그인 중...' : '로그인'}</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 };
 
