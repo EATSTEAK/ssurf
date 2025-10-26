@@ -1,6 +1,7 @@
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RusaintApplicationProvider } from '@/components/providers/RusaintApplicationProvider';
 import { RusaintSessionProvider } from '@/components/providers/RusaintSessionProvider';
@@ -11,24 +12,24 @@ export default function RootLayout() {
   const { success, error } = useMigrations(db, migrations);
   if (error) {
     return (
-      <View>
+      <SafeAreaView>
         <Text>{error.message}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!success) {
     return (
-      <View>
+      <SafeAreaView>
         <Text>Running migrations...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <RusaintSessionProvider>
       <RusaintApplicationProvider>
-        <Stack />
+        <Stack screenOptions={{ headerShown: false }} />
       </RusaintApplicationProvider>
     </RusaintSessionProvider>
   );
