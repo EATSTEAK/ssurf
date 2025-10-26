@@ -1,7 +1,7 @@
 // TODO: Remove example theme and replace with ssurf themes
 import { StyleSheet } from 'react-native-unistyles';
 
-const palette = {
+export const palette = {
   sand50: 'hsl(38.31 100% 97.95%)',
   sand100: 'hsl(38.33 100% 93.81%)',
   sand200: 'hsl(38.58 100% 82.98%)',
@@ -37,27 +37,148 @@ const palette = {
   neutral950: 'hsl(0 0% 7.73%)',
 };
 
+const cornerRadius = {
+  none: 0,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 28,
+  '2xl': 36,
+  '3xl': 44,
+  full: 9999,
+};
+
+const typography = {
+  heading: {
+    sm: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+    },
+    md: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0,
+    },
+    lg: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 22,
+      lineHeight: 28,
+      letterSpacing: 0,
+    },
+    xl: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 24,
+      lineHeight: 32,
+      letterSpacing: 0,
+    },
+    '2xl': {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 28,
+      lineHeight: 36,
+      letterSpacing: 0,
+    },
+    '3xl': {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 32,
+      lineHeight: 40,
+      letterSpacing: 0,
+    },
+  },
+  label: {
+    sm: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 0,
+    },
+    md: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0,
+    },
+    lg: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+    },
+  },
+  body: {
+    sm: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0,
+    },
+    md: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+    },
+    lg: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0,
+    },
+  },
+};
+
 const lightTheme = {
   colors: {
     primary: palette.wave400,
+    primaryPressed: palette.wave500,
+    fgPrimary: palette.neutral950,
     secondary: palette.sand200,
-    background: palette.sand50,
-    backgroundCard: palette.sand100,
-    foreground: palette.neutral950,
-    foregroundMuted: palette.sand900,
+    secondaryPressed: palette.sand300,
+    fgSecondary: palette.neutral950,
+    surface: palette.sand50,
+    fgSurface: palette.neutral950,
+    cardPrimary: palette.wave100,
+    fgCardPrimary: palette.wave900,
+    cardSecondary: palette.sand100,
+    fgCardSecondary: palette.sand900,
   },
+  cornerRadius,
+  typography,
   gap: (v: number) => v * 8,
 } as const;
 
 const darkTheme = {
   colors: {
     primary: palette.wave600,
+    primaryPressed: palette.wave500,
+    fgPrimary: palette.wave50,
     secondary: palette.sand800,
-    background: palette.neutral950,
-    backgroundCard: palette.sand900,
-    foreground: palette.sand50,
-    foregroundMuted: palette.sand100,
+    secondaryPressed: palette.sand700,
+    fgSecondary: palette.sand50,
+    surface: palette.neutral950,
+    fgSurface: palette.sand50,
+    cardPrimary: palette.wave900,
+    fgCardPrimary: palette.wave100,
+    cardSecondary: palette.sand900,
+    fgCardSecondary: palette.sand100,
   },
+  cornerRadius,
+  typography,
   gap: (v: number) => v * 8,
 } as const;
 

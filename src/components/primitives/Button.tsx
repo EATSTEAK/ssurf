@@ -11,7 +11,7 @@ import {
 import { StyleSheet, UnistylesVariants } from 'react-native-unistyles';
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
+  container: ({ pressed }) => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -21,24 +21,24 @@ const styles = StyleSheet.create((theme) => ({
     variants: {
       variant: {
         primary: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: pressed ? theme.colors.primaryPressed : theme.colors.primary,
         },
         secondary: {
-          backgroundColor: theme.colors.secondary,
+          backgroundColor: pressed ? theme.colors.secondaryPressed : theme.colors.secondary,
         },
       },
     },
-  },
+  }),
   text: {
     textAlign: 'center',
     fontSize: 16,
     variants: {
       variant: {
         primary: {
-          color: theme.colors.foreground,
+          color: theme.colors.fgPrimary,
         },
         secondary: {
-          color: theme.colors.foreground,
+          color: theme.colors.fgSecondary,
         },
       },
     },
@@ -68,7 +68,10 @@ export const Button = ({
   styles.useVariants({ variant });
 
   return (
-    <Pressable style={(state) => [styles.container, propagateState(state, style)]} {...props}>
+    <Pressable
+      style={(state) => [styles.container(state), propagateState(state, style)]}
+      {...props}
+    >
       {(state) => (
         <Text style={[styles.text, propagateState(state, textStyle)]}>
           {propagateState(state, children)}
