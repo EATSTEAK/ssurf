@@ -13,14 +13,17 @@ const styles = StyleSheet.create((theme) => ({
         secondary: {
           color: theme.colors.fgSecondary,
         },
-        surface: {
-          color: theme.colors.fgSurface,
-        },
         cardPrimary: {
           color: theme.colors.fgCardPrimary,
         },
         cardSecondary: {
           color: theme.colors.fgCardSecondary,
+        },
+        surface: {
+          color: theme.colors.fgSurface,
+        },
+        default: {
+          color: theme.colors.fgSurface,
         },
       },
       // Typography variants
@@ -86,6 +89,11 @@ const styles = StyleSheet.create((theme) => ({
         bodyLg: {
           fontSize: 16,
           lineHeight: 24,
+          fontWeight: '400' as const,
+        },
+        default: {
+          fontSize: 14,
+          lineHeight: 20,
           fontWeight: '400' as const,
         },
       },
