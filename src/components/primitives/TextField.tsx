@@ -19,11 +19,11 @@ const styles = StyleSheet.create((theme) => ({
     height: 48,
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: theme.colors.backgroundCard,
-    color: theme.colors.foregroundMuted,
+    backgroundColor: theme.colors.cardPrimary,
+    color: theme.colors.fgCardPrimary,
     fontWeight: 500,
   },
   placeholder: {
-    color: theme.colors.foregroundMuted,
+    color: theme.colors.fgCardSecondary,
   },
 }));
