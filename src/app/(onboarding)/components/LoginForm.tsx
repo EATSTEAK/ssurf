@@ -30,12 +30,7 @@ export const LoginForm = () => {
         paddingHorizontal: 32,
       }}
     >
-      <ThemedText
-        style={{
-          fontSize: 24,
-          fontWeight: 'bold',
-        }}
-      >
+      <ThemedText color="surface" typography="heading2xl">
         유세인트 로그인
       </ThemedText>
 
@@ -48,7 +43,7 @@ export const LoginForm = () => {
         value={password}
       />
 
-      <ThemedText color="muted" style={styles.information}>
+      <ThemedText color="secondary" typography="labelSm">
         학번 및 비밀번호는 사용자 기기에만 저장돼요.
       </ThemedText>
 
