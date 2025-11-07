@@ -21,7 +21,7 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: 12,
     backgroundColor: theme.colors.cardPrimary,
     color: theme.colors.fgCardPrimary,
-    fontWeight: 500,
+    fontWeight: '500',
   },
   placeholder: {
     color: theme.colors.fgCardSecondary,
