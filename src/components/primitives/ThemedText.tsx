@@ -29,73 +29,21 @@ const styles = StyleSheet.create((theme) => ({
       // Typography variants
       typography: {
         // Heading variants
-        headingSm: {
-          fontSize: 14,
-          lineHeight: 20,
-          fontWeight: '500' as const,
-        },
-        headingMd: {
-          fontSize: 16,
-          lineHeight: 24,
-          fontWeight: '500' as const,
-        },
-        headingLg: {
-          fontSize: 22,
-          lineHeight: 28,
-          fontWeight: '400' as const,
-        },
-        headingXl: {
-          fontSize: 24,
-          lineHeight: 32,
-          fontWeight: '400' as const,
-        },
-        heading2xl: {
-          fontSize: 28,
-          lineHeight: 36,
-          fontWeight: '400' as const,
-        },
-        heading3xl: {
-          fontSize: 32,
-          lineHeight: 40,
-          fontWeight: '400' as const,
-        },
+        headingSm: theme.typography.heading.sm,
+        headingMd: theme.typography.heading.md,
+        headingLg: theme.typography.heading.lg,
+        headingXl: theme.typography.heading.xl,
+        heading2xl: theme.typography.heading['2xl'],
+        heading3xl: theme.typography.heading['3xl'],
         // Label variants
-        labelSm: {
-          fontSize: 11,
-          lineHeight: 16,
-          fontWeight: '500' as const,
-        },
-        labelMd: {
-          fontSize: 12,
-          lineHeight: 16,
-          fontWeight: '500' as const,
-        },
-        labelLg: {
-          fontSize: 14,
-          lineHeight: 20,
-          fontWeight: '400' as const,
-        },
+        labelSm: theme.typography.label.sm,
+        labelMd: theme.typography.label.md,
+        labelLg: theme.typography.label.lg,
         // Body variants
-        bodySm: {
-          fontSize: 12,
-          lineHeight: 16,
-          fontWeight: '400' as const,
-        },
-        bodyMd: {
-          fontSize: 14,
-          lineHeight: 20,
-          fontWeight: '400' as const,
-        },
-        bodyLg: {
-          fontSize: 16,
-          lineHeight: 24,
-          fontWeight: '400' as const,
-        },
-        default: {
-          fontSize: 14,
-          lineHeight: 20,
-          fontWeight: '400' as const,
-        },
+        bodySm: theme.typography.body.sm,
+        bodyMd: theme.typography.body.md,
+        bodyLg: theme.typography.body.lg,
+        default: theme.typography.body.md,
       },
     },
   },
