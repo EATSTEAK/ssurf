@@ -19,8 +19,8 @@ const styles = StyleSheet.create((theme) => ({
     height: 48,
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: theme.colors.cardPrimary,
-    color: theme.colors.fgCardPrimary,
+    backgroundColor: theme.colors.primaryContainer,
+    color: theme.colors.fgPrimaryContainer,
     fontWeight: '500',
   },
   placeholder: {

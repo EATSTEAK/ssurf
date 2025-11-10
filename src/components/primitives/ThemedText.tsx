@@ -13,14 +13,23 @@ const styles = StyleSheet.create((theme) => ({
         secondary: {
           color: theme.colors.fgSecondary,
         },
-        cardPrimary: {
-          color: theme.colors.fgCardPrimary,
+        primaryContainer: {
+          color: theme.colors.fgPrimaryContainer,
         },
-        cardSecondary: {
-          color: theme.colors.fgCardSecondary,
+        successContainer: {
+          color: theme.colors.fgSuccessContainer,
+        },
+        errorContainer: {
+          color: theme.colors.fgErrorContainer,
         },
         surface: {
           color: theme.colors.fgSurface,
+        },
+        surfaceDim: {
+          color: theme.colors.fgSurfaceDim,
+        },
+        surfaceDimmer: {
+          color: theme.colors.fgSurfaceDimmer,
         },
         default: {
           color: theme.colors.fgSurface,

@@ -17,7 +17,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   indicator: ({ disabled }: { disabled?: boolean }) => ({
     height: '100%',
-    backgroundColor: disabled ? theme.colors.cardPrimary : theme.colors.primary,
+    backgroundColor: disabled ? theme.colors.primaryContainer : theme.colors.primary,
     flex: 1,
   }),
 }));
