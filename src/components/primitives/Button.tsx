@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { StyleSheet, UnistylesVariants } from 'react-native-unistyles';
 
+import { propagateState } from '@/utils/propagateState';
+
 const styles = StyleSheet.create((theme) => ({
   container: ({ pressed }) => ({
     display: 'flex',
@@ -52,11 +54,6 @@ export type ButtonProps = PressableProps &
       | ((state: PressableStateCallbackType) => StyleProp<TextStyle>)
       | StyleProp<TextStyle>;
   };
-
-const propagateState = <T,>(
-  state: PressableStateCallbackType,
-  v: ((state: PressableStateCallbackType) => T) | T,
-): T => (typeof v === 'function' ? (v as (state: PressableStateCallbackType) => T)(state) : v);
 
 export const Button = ({
   variant = 'primary',
