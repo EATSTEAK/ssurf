@@ -1,0 +1,30 @@
+import { View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
+
+import { ThemedText } from '@/components/primitives/ThemedText';
+import { ChapelAttendanceDto } from '@/db/schema/chapel';
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    padding: 10,
+    backgroundColor: theme.colors.primaryContainer,
+    borderRadius: theme.cornerRadius.md,
+    display: 'flex',
+    gap: theme.gap(2),
+    width: '100%',
+  },
+}));
+
+export const Attendance = ({ attendance }: { attendance: ChapelAttendanceDto }) => {
+  return (
+    <View key={attendance.date} style={styles.container}>
+      <ThemedText typography="headingMd">
+        {attendance.category} (
+        {`${attendance.instructor} ${attendance.instructorDepartment}`.trim()})
+      </ThemedText>
+      <ThemedText style={{ alignSelf: 'flex-end' }}>
+        {attendance.date} / {attendance.attendance}
+      </ThemedText>
+    </View>
+  );
+};
