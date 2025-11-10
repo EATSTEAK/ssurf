@@ -1,5 +1,6 @@
 import * as ProgressPrimitive from '@rn-primitives/progress';
 import { ComponentProps } from 'react';
+import { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 const styles = StyleSheet.create((theme) => ({
@@ -11,26 +12,29 @@ const styles = StyleSheet.create((theme) => ({
     overflow: 'hidden',
     position: 'relative',
   },
-  indicator: {
+  indicator: ({ value, max }) => ({
+    left: 0,
+    top: 0,
+    position: 'absolute',
     height: '100%',
     backgroundColor: theme.colors.primary,
-    width: '100%',
     transitionProperty: 'width',
     transitionDuration: '300ms',
     transitionTimingFunction: 'ease-in-out',
     flex: 1,
-  },
+    width: `${((value ?? 0) / (max ?? 100)) * 100}%`,
+  }),
 }));
 
-export const Progress = ({ style, ...props }: ComponentProps<typeof ProgressPrimitive.Root>) => {
+export const Progress = ({
+  style,
+  indicatorStyle,
+  ...props
+}: ComponentProps<typeof ProgressPrimitive.Root> & { indicatorStyle?: StyleProp<ViewStyle> }) => {
   return (
     <ProgressPrimitive.Root {...props} style={[styles.root, style]}>
       <ProgressPrimitive.Indicator
-        style={[
-          styles.indicator,
-          // TODO: Fix width calculation
-          { transform: `translateX(-${400 - (props.value! / props.max!) * 400}%)` },
-        ]}
+        style={[styles.indicator({ value: props.value, max: props.max }), indicatorStyle]}
       />
     </ProgressPrimitive.Root>
   );
