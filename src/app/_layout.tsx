@@ -2,6 +2,7 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
 import { Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useUnistyles } from 'react-native-unistyles';
 
 import { RusaintApplicationProvider } from '@/components/providers/RusaintApplicationProvider';
 import { RusaintSessionProvider } from '@/components/providers/RusaintSessionProvider';
@@ -10,6 +11,7 @@ import migrations from '@/drizzle/migrations';
 
 export default function RootLayout() {
   const { success, error } = useMigrations(db, migrations);
+  const { theme } = useUnistyles();
   if (error) {
     return (
       <SafeAreaView>
@@ -29,7 +31,14 @@ export default function RootLayout() {
   return (
     <RusaintSessionProvider>
       <RusaintApplicationProvider>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              backgroundColor: theme.colors.surface,
+            },
+          }}
+        />
       </RusaintApplicationProvider>
     </RusaintSessionProvider>
   );

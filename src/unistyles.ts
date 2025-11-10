@@ -1,63 +1,184 @@
 // TODO: Remove example theme and replace with ssurf themes
 import { StyleSheet } from 'react-native-unistyles';
 
-const palette = {
-  sand50: 'oklch(0.99 0.01 82)',
-  sand100: 'oklch(0.97 0.03 82)',
-  sand200: 'oklch(0.92 0.08 82)',
-  sand300: 'oklch(0.86 0.14 82)',
-  sand400: 'oklch(0.79 0.13 82)',
-  sand500: 'oklch(0.73 0.12 82)',
-  sand600: 'oklch(0.6 0.1 82)',
-  sand700: 'oklch(0.51 0.08 82)',
-  sand800: 'oklch(0.39 0.06 82)',
-  sand900: 'oklch(0.26 0.04 82)',
-  sand950: 'oklch(0 0 82)',
-  wave50: 'oklch(0.99 0.01 202)',
-  wave100: 'oklch(0.96 0.03 202)',
-  wave200: 'oklch(0.91 0.08 202)',
-  wave300: 'oklch(0.84 0.14 202)',
-  wave400: 'oklch(0.77 0.13 202)',
-  wave500: 'oklch(0.71 0.12 202)',
-  wave600: 'oklch(0.58 0.1 202)',
-  wave700: 'oklch(0.49 0.08 202)',
-  wave800: 'oklch(0.38 0.06 202)',
-  wave900: 'oklch(0.25 0.04 202)',
-  wave950: 'oklch(0 0 202)',
-  neutral50: 'oklch(0.99 0 0)',
-  neutral100: 'oklch(0.97 0 0)',
-  neutral200: 'oklch(0.92 0 0)',
-  neutral300: 'oklch(0.86 0 0)',
-  neutral400: 'oklch(0.79 0 0)',
-  neutral500: 'oklch(0.71 0 0)',
-  neutral600: 'oklch(0.61 0 0)',
-  neutral700: 'oklch(0.52 0 0)',
-  neutral800: 'oklch(0.41 0 0)',
-  neutral900: 'oklch(0.3 0 0)',
-  neutral950: 'oklch(0.19 0 0)',
+export const palette = {
+  sand50: 'hsl(38.31 100% 97.95%)',
+  sand100: 'hsl(38.33 100% 93.81%)',
+  sand200: 'hsl(38.58 100% 82.98%)',
+  sand300: 'hsl(39.9 99.48% 67.49%)',
+  sand400: 'hsl(39.96 73.56% 59.89%)',
+  sand500: 'hsl(39.95 57.73% 53.77%)',
+  sand600: 'hsl(40.04 52.37% 40.64%)',
+  sand700: 'hsl(39.71 48.66% 32.95%)',
+  sand800: 'hsl(39.62 50.49% 22.16%)',
+  sand900: 'hsl(39.62 60.38% 11.16%)',
+  sand950: 'hsl(0 0% 0%)',
+  wave50: 'hsl(183.92 92.7% 97.86%)',
+  wave100: 'hsl(184.07 77% 92.16%)',
+  wave200: 'hsl(184.28 86.32% 79.98%)',
+  wave300: 'hsl(183.5 88.64% 52.7%)',
+  wave400: 'hsl(183.33 90.48% 44.35%)',
+  wave500: 'hsl(183.32 92.75% 39.33%)',
+  wave600: 'hsl(183.16 100% 27.36%)',
+  wave700: 'hsl(183.66 78.26% 25.46%)',
+  wave800: 'hsl(183.82 73.81% 18.04%)',
+  wave900: 'hsl(184.02 87.16% 8.75%)',
+  wave950: 'hsl(0 0% 0%)',
+  neutral50: 'hsl(0 0% 98.68%)',
+  neutral100: 'hsl(0 0% 96.06%)',
+  neutral200: 'hsl(160 0% 89.56%)',
+  neutral300: 'hsl(180 0% 81.87%)',
+  neutral400: 'hsl(0 0% 73.08%)',
+  neutral500: 'hsl(180 0% 63.26%)',
+  neutral600: 'hsl(120 0% 51.37%)',
+  neutral700: 'hsl(0 0% 41.09%)',
+  neutral800: 'hsl(0 0% 29.11%)',
+  neutral900: 'hsl(0 0% 17.92%)',
+  neutral950: 'hsl(0 0% 7.73%)',
+};
+
+const cornerRadius = {
+  none: 0,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 28,
+  '2xl': 36,
+  '3xl': 44,
+  full: 9999,
+};
+
+const typography = {
+  heading: {
+    sm: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+    },
+    md: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0,
+    },
+    lg: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 22,
+      lineHeight: 28,
+      letterSpacing: 0,
+    },
+    xl: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 24,
+      lineHeight: 32,
+      letterSpacing: 0,
+    },
+    '2xl': {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 28,
+      lineHeight: 36,
+      letterSpacing: 0,
+    },
+    '3xl': {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 32,
+      lineHeight: 40,
+      letterSpacing: 0,
+    },
+  },
+  label: {
+    sm: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 0,
+    },
+    md: {
+      fontFamily: 'Pretendard',
+      fontWeight: '500', // Medium
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0,
+    },
+    lg: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+    },
+  },
+  body: {
+    sm: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0,
+    },
+    md: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+    },
+    lg: {
+      fontFamily: 'Pretendard',
+      fontWeight: '400', // Regular
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0,
+    },
+  },
 };
 
 const lightTheme = {
   colors: {
     primary: palette.wave400,
+    primaryPressed: palette.wave500,
+    fgPrimary: palette.neutral950,
     secondary: palette.sand200,
-    background: palette.sand50,
-    backgroundCard: palette.sand100,
-    foreground: palette.neutral950,
-    foregroundMuted: palette.sand900,
+    secondaryPressed: palette.sand300,
+    fgSecondary: palette.neutral950,
+    surface: palette.sand50,
+    fgSurface: palette.neutral950,
+    cardPrimary: palette.wave100,
+    fgCardPrimary: palette.wave900,
+    cardSecondary: palette.sand100,
+    fgCardSecondary: palette.sand900,
   },
+  cornerRadius,
+  typography,
   gap: (v: number) => v * 8,
 } as const;
 
 const darkTheme = {
   colors: {
     primary: palette.wave600,
+    primaryPressed: palette.wave500,
+    fgPrimary: palette.wave50,
     secondary: palette.sand800,
-    background: palette.neutral950,
-    backgroundCard: palette.sand900,
-    foreground: palette.sand50,
-    foregroundMuted: palette.sand100,
+    secondaryPressed: palette.sand700,
+    fgSecondary: palette.sand50,
+    surface: palette.neutral950,
+    fgSurface: palette.sand50,
+    cardPrimary: palette.wave900,
+    fgCardPrimary: palette.wave100,
+    cardSecondary: palette.sand900,
+    fgCardSecondary: palette.sand100,
   },
+  cornerRadius,
+  typography,
   gap: (v: number) => v * 8,
 } as const;
 

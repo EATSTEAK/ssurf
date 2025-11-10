@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLoading } from 'react-simplikit';
 
+import { Button } from '@/components/primitives/Button';
+import { TextField } from '@/components/primitives/TextField';
+import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 
 export const LoginForm = () => {
@@ -28,62 +31,27 @@ export const LoginForm = () => {
         paddingHorizontal: 32,
       }}
     >
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: 'bold',
-        }}
-      >
-        유세인트 로그인
-      </Text>
+      <ThemedText typography="heading2xl">유세인트 로그인</ThemedText>
 
-      <TextInput onChangeText={setId} placeholder="학번" style={styles.textInput} value={id} />
-      <TextInput
+      <TextField onChangeText={setId} placeholder="학번" value={id} />
+      <TextField
         onChangeText={setPassword}
         placeholder="비밀번호"
         secureTextEntry
-        style={styles.textInput}
         value={password}
       />
 
-      <Text style={styles.information}>학번 및 비밀번호는 사용자 기기에만 저장돼요.</Text>
+      <ThemedText color="secondary" typography="labelSm">
+        학번 및 비밀번호는 사용자 기기에만 저장돼요.
+      </ThemedText>
 
-      <Pressable
+      <Button
         disabled={isLoading || !id || !password}
         onPress={onPressLoginButton}
-        style={styles.loginButton}
+        style={{ width: '100%' }}
       >
-        <Text style={styles.loginButtonText}>{isLoading ? '로그인 중...' : '로그인'}</Text>
-      </Pressable>
+        <Text>{isLoading ? '로그인 중...' : '로그인'}</Text>
+      </Button>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingVertical: 0,
-    paddingHorizontal: 16,
-    width: '100%',
-    height: 48,
-  },
-  information: {
-    fontSize: 13,
-    color: '#666',
-    textAlign: 'center',
-  },
-  loginButton: {
-    width: '100%',
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
