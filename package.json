@@ -19,6 +19,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@rn-primitives/progress": "^1.2.0",
     "@rusaint/react-native": "^0.13.4",
     "babel-plugin-inline-import": "^3.0.0",
     "drizzle-orm": "^0.44.6",
