@@ -14,7 +14,7 @@ const styles = StyleSheet.create((theme) => ({
           color: theme.colors.fgSecondary,
         },
         cardPrimary: {
-          color: theme.colors.fgCardPrimary,
+          color: theme.colors.fgPrimaryContainer,
         },
         cardSecondary: {
           color: theme.colors.fgCardSecondary,

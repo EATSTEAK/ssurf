@@ -7,7 +7,7 @@ const styles = StyleSheet.create((theme) => ({
   root: {
     width: '100%',
     height: 10,
-    backgroundColor: theme.colors.cardPrimary,
+    backgroundColor: theme.colors.primaryContainer,
     borderRadius: theme.cornerRadius.full,
     overflow: 'hidden',
     position: 'relative',
