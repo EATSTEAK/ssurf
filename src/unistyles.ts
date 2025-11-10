@@ -162,7 +162,7 @@ const typography = {
       letterSpacing: 0,
     },
   },
-};
+} as const;
 
 const lightTheme = {
   colors: {
