@@ -22,7 +22,7 @@ export const Attendance = ({ attendance }: { attendance: ChapelAttendanceDto }) 
         {`${attendance.instructor} ${attendance.instructorDepartment}`.trim()})
       </ThemedText>
       <ThemedText color="surfaceDim" style={{ alignSelf: 'flex-end' }}>
-        {attendance.date} / {attendance.attendance}
+        {attendance.date} / {attendance.attendance || '미결'}
       </ThemedText>
     </View>
   );
