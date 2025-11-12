@@ -19,6 +19,7 @@ const styles = StyleSheet.create((theme) => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: theme.gap(1),
   },
   firstFloor: {
     aspectRatio: 915 / 594,
