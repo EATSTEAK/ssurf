@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Svg, { ClipPath, Defs, G, Path, Rect, SvgProps } from 'react-native-svg';
-export const ChapelSeatmap2F = (props: SvgProps) => (
+export const ChapelSeatmap2F3F = (props: SvgProps) => (
   <Svg fill="none" height={590} width={915} {...props}>
     <Path
       d="M34.5 112.5v48H2.57c.363-6.457 2.198-11.564 5.976-15.198 4.278-4.116 11.52-6.802 23.454-6.802v-5c-11.932 0-19.193-2.685-23.479-6.699-3.738-3.502-5.56-8.345-5.943-14.301H34.5ZM34.5 293.5v48H2.57c.363-6.457 2.198-11.564 5.976-15.198 4.278-4.116 11.52-6.802 23.454-6.802v-5c-11.932 0-19.193-2.685-23.479-6.699-3.738-3.502-5.56-8.345-5.943-14.301H34.5Z"
