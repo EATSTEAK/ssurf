@@ -4,8 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
-import { ChapelSeatmap1F } from '@/components/chapel/seatmap/ChapelSeatmap1F';
-import { ChapelSeatmap2F3F } from '@/components/chapel/seatmap/ChapelSeatmap2F3F';
+import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
 import { Button } from '@/components/primitives/Button';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
@@ -78,17 +77,10 @@ export default function Index() {
       <ThemedText typography="headingXl">
         {general.floor}F / {general.seat}
       </ThemedText>
-      <View style={{ width: '100%', overflow: 'hidden' }}>
-        {general.floor === 1 ? (
-          <View style={{ aspectRatio: 915 / 594 }}>
-            <ChapelSeatmap1F height="100%" width="100%" />
-          </View>
-        ) : (
-          <View style={{ aspectRatio: 915 / 590 }}>
-            <ChapelSeatmap2F3F height="100%" width="100%" />
-          </View>
-        )}
-      </View>
+      <ChapelSeatmapView
+        floor={(general.floor ?? 1) as 1 | 2 | 3}
+        seat={general.seat as `${string}-${number}-${number}`}
+      />
       <ScrollView
         contentContainerStyle={{ display: 'flex', gap: 10 }}
         style={{ width: '100%', marginTop: 20 }}
