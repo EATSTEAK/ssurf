@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import Animated, {
+  Easing,
   Extrapolation,
   interpolate,
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -12,6 +14,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ThemedText } from '@/components/primitives/ThemedText';
+import { Wave } from '@/components/Wave';
 
 const styles = StyleSheet.create((theme) => ({
   refreshHeader: {
@@ -19,8 +22,16 @@ const styles = StyleSheet.create((theme) => ({
     top: 0,
     left: 0,
     right: 0,
-    overflow: 'hidden',
+    overflow: 'visible',
     backgroundColor: theme.colors.primary,
+  },
+  waveContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: 20,
+    overflow: 'visible',
   },
 }));
 
@@ -33,6 +44,24 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
   const insets = useSafeAreaInsets();
   const animatingOut = useSharedValue(false);
   const prevIsSyncingRef = useRef(isSyncing);
+  const waveOffset = useSharedValue(0);
+
+  useEffect(() => {
+    if (isSyncing) {
+      // isSyncing 중에는 파도 애니메이션 시작
+      waveOffset.value = withRepeat(
+        withTiming(100, {
+          duration: 1500,
+          easing: Easing.linear,
+        }),
+        -1,
+        false,
+      );
+    } else {
+      // isSyncing이 아닐 때는 애니메이션 정지
+      waveOffset.value = withTiming(0, { duration: 300 });
+    }
+  }, [isSyncing, waveOffset]);
 
   useEffect(() => {
     const wasSyncing = prevIsSyncingRef.current;
@@ -88,22 +117,29 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
 
   const refreshContentStyle = useAnimatedStyle(() => {
     const translateY = interpolate(pullDistance.value, [0, 80], [-20, 0], Extrapolation.CLAMP);
-    const scale = interpolate(pullDistance.value, [0, 80], [0.8, 1], Extrapolation.CLAMP);
     const opacity = interpolate(pullDistance.value, [0, 40, 80], [0, 0.5, 1], Extrapolation.CLAMP);
 
     if (isSyncing) {
       return {
-        transform: [
-          { translateY: withSpring(0, { damping: 20, stiffness: 200 }) },
-          { scale: withSpring(1, { damping: 20, stiffness: 200 }) },
-        ],
+        transform: [{ translateY: withSpring(0, { damping: 20, stiffness: 200 }) }],
         opacity: withTiming(1, { duration: 200 }),
       };
     }
 
     return {
-      transform: [{ translateY }, { scale }],
+      transform: [{ translateY }],
       opacity,
+    };
+  });
+
+  const waveAnimatedStyle = useAnimatedStyle(() => {
+    if (isSyncing) {
+      return {
+        transform: [{ translateX: `${-waveOffset.value}%` }],
+      };
+    }
+    return {
+      transform: [{ translateX: 0 }],
     };
   });
 
@@ -127,6 +163,9 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
           </ThemedText>
         </Animated.View>
       </SafeAreaView>
+      <Animated.View style={[styles.waveContainer, waveAnimatedStyle, refreshContentStyle]}>
+        <Wave height="20" style={{ marginTop: 20 }} width="200%" />
+      </Animated.View>
     </Animated.View>
   );
 }
