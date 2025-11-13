@@ -1,7 +1,6 @@
 import { SemesterType } from '@rusaint/react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Fragment } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -19,6 +18,7 @@ import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
 import { Button } from '@/components/primitives/Button';
+import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 import { RefreshHeader } from '@/components/RefreshHeader';
@@ -40,7 +40,7 @@ const styles = StyleSheet.create((theme) => ({
   topView: {
     width: '100%',
     display: 'flex',
-    gap: theme.gap(2),
+    gap: theme.gap(1),
     flexDirection: 'column',
     padding: theme.gap(2),
   },
@@ -48,29 +48,25 @@ const styles = StyleSheet.create((theme) => ({
   scrollView: {
     flex: 1,
     width: '100%',
-    backgroundColor: theme.colors.surfaceDim,
+    backgroundColor: theme.colors.surface,
   },
   contentView: {
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
     gap: theme.gap(2),
-    backgroundColor: theme.colors.surface,
   },
   seatView: {
-    paddingHorizontal: theme.gap(2),
     display: 'flex',
-    gap: theme.gap(2),
+    gap: theme.gap(1),
     flexDirection: 'column',
+    backgroundColor: theme.colors.surfaceDim,
+    padding: theme.gap(2),
   },
   attendanceView: {
     display: 'flex',
     flexDirection: 'column',
-  },
-  separator: {
-    height: 0.5,
-    width: '100%',
-    backgroundColor: theme.colors.surfaceDimmer,
+    backgroundColor: theme.colors.surfaceDim,
   },
   bottomView: {
     width: '100%',
@@ -82,6 +78,35 @@ const styles = StyleSheet.create((theme) => ({
     width: '100%',
   },
 }));
+
+const doorDirection = (floor: number, seat: string) => {
+  switch (seat.charAt(0)) {
+    case 'A':
+    case 'B':
+      return '정면 좌측 문';
+    case 'C':
+      if (seat.charAt(4) < '6') {
+        return '정면 좌측 문';
+      }
+      return '정면 우측 문';
+    case 'D':
+    case 'E':
+      return '정면 우측 문';
+    case 'F':
+    case 'G':
+      return '좌측 문';
+    case 'H':
+      if (seat.charAt(4) < '5') {
+        return '좌측 문';
+      }
+      return '우측 문';
+    case 'I':
+    case 'J':
+      return '우측 문';
+    default:
+      return 'left';
+  }
+};
 
 export default function Index() {
   const { logout } = useRusaintSession();
@@ -154,8 +179,17 @@ export default function Index() {
 
   if (!general) {
     return (
-      <SafeAreaView>
-        <Text>Loading...</Text>
+      <SafeAreaView style={styles.topView}>
+        <View style={styles.titleContainer}>
+          <SsurfLined height={32} width={32} />
+          <ThemedText typography="heading3xl">채플</ThemedText>
+        </View>
+        <Space gap={1} />
+        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <ThemedText typography="bodyLg">
+            정보를 가져오는 중이에요. 잠시만 기다려주세요.
+          </ThemedText>
+        </View>
       </SafeAreaView>
     );
   }
@@ -170,13 +204,12 @@ export default function Index() {
         <SafeAreaView edges={{ top: 'additive' }} style={styles.topView}>
           <View style={styles.titleContainer}>
             <SsurfLined height={32} width={32} />
-            <ThemedText style={{ fontWeight: '600' }} typography="heading2xl">
-              채플 정보
-            </ThemedText>
+            <ThemedText typography="heading3xl">채플</ThemedText>
           </View>
           <ThemedText typography="labelMd">
             {general.year}-{general.semester}학기
           </ThemedText>
+          <Space gap={1} />
           <View>
             {attendanceLeft <= 0 ? (
               <ThemedText color="fgPrimary" typography="headingXl">
@@ -209,11 +242,20 @@ export default function Index() {
         </SafeAreaView>
         <View style={styles.contentView}>
           <View style={styles.seatView}>
-            <View style={{ marginTop: 10 }} />
             <ThemedText typography="heading2xl">좌석 정보</ThemedText>
-            <ThemedText typography="headingXl">
+            <ThemedText typography="heading3xl">
               {general.floor}F / {general.seat}
             </ThemedText>
+            {general.floor && general.seat && (
+              <ThemedText typography="headingMd">
+                {general.floor}층{' '}
+                <ThemedText color="primaryInverted" typography="bodyLg">
+                  {doorDirection(general.floor, general.seat)}
+                </ThemedText>
+                으로 들어가세요.
+              </ThemedText>
+            )}
+
             <ChapelSeatmapView
               floor={(general.floor ?? 1) as 1 | 2 | 3}
               seat={general.seat as `${string}-${number}-${number}`}
@@ -222,10 +264,7 @@ export default function Index() {
           <View style={styles.attendanceView}>
             {attendances &&
               attendances.map((attendance) => (
-                <Fragment key={attendance.date}>
-                  <View style={styles.separator} />
-                  <Attendance attendance={attendance} />
-                </Fragment>
+                <Attendance attendance={attendance} key={attendance.date} />
               ))}
           </View>
         </View>
@@ -257,9 +296,7 @@ export default function Index() {
             }}
           >
             <Animated.View style={textAnimatedStyle}>
-              <ThemedText style={{ fontWeight: 600 }} typography="headingXl">
-                채플 정보
-              </ThemedText>
+              <ThemedText typography="headingXl">채플</ThemedText>
             </Animated.View>
             <Animated.View style={textAnimatedStyle}>
               <ThemedText typography="labelMd">
