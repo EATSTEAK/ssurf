@@ -158,7 +158,7 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
         }}
       >
         <Animated.View style={refreshContentStyle}>
-          <ThemedText color="primary" typography="bodyMd">
+          <ThemedText color="fgPrimary" typography="bodyMd">
             {isSyncing ? '불러오는 중...' : '당겨서 새로고침'}
           </ThemedText>
         </Animated.View>

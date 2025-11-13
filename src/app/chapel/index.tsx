@@ -179,7 +179,7 @@ export default function Index() {
           </ThemedText>
           <View>
             {attendanceLeft <= 0 ? (
-              <ThemedText color="primary" typography="headingXl">
+              <ThemedText color="fgPrimary" typography="headingXl">
                 축하해요! 이번 학기 PASS했어요!
               </ThemedText>
             ) : passable ? (
