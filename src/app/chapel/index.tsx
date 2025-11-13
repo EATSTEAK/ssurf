@@ -3,14 +3,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Fragment } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import Animated, {
-  Extrapolate,
+  Extrapolation,
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
@@ -18,7 +21,9 @@ import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
 import { Button } from '@/components/primitives/Button';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
+import { RefreshHeader } from '@/components/RefreshHeader';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
+import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
 import { SsurfLined } from '@/icons/SsurfLined';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
@@ -80,11 +85,14 @@ const styles = StyleSheet.create((theme) => ({
 
 export default function Index() {
   const { logout } = useRusaintSession();
+  const { sync: syncChapel, isSyncing } = useSyncChapel(2025, SemesterType.Two);
   const { data: general } = useGeneralChapelInformation(2025, SemesterType.Two);
   const { data: attendances } = useChapelAttendances(2025, SemesterType.Two);
   const { theme } = useUnistyles();
+  const insets = useSafeAreaInsets();
 
   const scrollY = useSharedValue(0);
+  const pullDistance = useSharedValue(0);
 
   const totalAttendances = attendances?.length ?? 0;
   const requiredAttendances = Math.ceil(totalAttendances * (2 / 3));
@@ -93,25 +101,54 @@ export default function Index() {
   const attendanceLeft = requiredAttendances - attendedCount;
   const passable = totalAttendances - absentCount >= requiredAttendances;
 
+  const handleRefresh = () => {
+    syncChapel();
+  };
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
+      if (event.contentOffset.y < 0 && !isSyncing) {
+        pullDistance.value = Math.abs(event.contentOffset.y);
+      } else if (event.contentOffset.y >= 0) {
+        pullDistance.value = 0;
+      }
+    },
+    onEndDrag: (event) => {
+      if (event.contentOffset.y < -80 && !isSyncing) {
+        scheduleOnRN(handleRefresh);
+      }
+      pullDistance.value = withSpring(0);
     },
   });
 
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(scrollY.value, [0, 100], [0, 1], Extrapolate.CLAMP);
+  // 일반 헤더 애니메이션
+  const normalHeaderAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(scrollY.value, [0, 100], [0, 1], Extrapolation.CLAMP);
     return {
-      opacity,
+      opacity: isSyncing ? withTiming(0) : opacity,
     };
   });
 
   const textAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(scrollY.value, [0, 100], [0, 1], Extrapolate.CLAMP);
-    const translateY = interpolate(scrollY.value, [0, 100], [20, 0], Extrapolate.CLAMP);
+    const opacity = interpolate(scrollY.value, [0, 100], [0, 1], Extrapolation.CLAMP);
+    const translateY = interpolate(scrollY.value, [0, 100], [20, 0], Extrapolation.CLAMP);
     return {
       opacity,
       transform: [{ translateY }],
+    };
+  });
+
+  // ScrollView paddingTop 애니메이션
+  const scrollViewAnimatedStyle = useAnimatedStyle(() => {
+    if (isSyncing) {
+      return {
+        paddingTop: withSpring(insets.top + 24, { damping: 20, stiffness: 20 }),
+      };
+    }
+
+    return {
+      paddingTop: withTiming(0, { duration: 200 }),
     };
   });
 
@@ -128,7 +165,7 @@ export default function Index() {
       <AnimatedScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        style={styles.scrollView}
+        style={[styles.scrollView, scrollViewAnimatedStyle]}
       >
         <SafeAreaView edges={{ top: 'additive' }} style={styles.topView}>
           <View style={styles.titleContainer}>
@@ -198,7 +235,8 @@ export default function Index() {
           로그아웃
         </Button>
       </SafeAreaView>
-      <Animated.View style={[styles.header, headerAnimatedStyle]}>
+      {/* 일반 헤더 */}
+      <Animated.View style={[styles.header, normalHeaderAnimatedStyle]}>
         <LinearGradient
           colors={[theme.colors.surfaceDim, 'transparent']}
           end={{ x: 0.5, y: 1 }}
@@ -214,6 +252,8 @@ export default function Index() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4,
             }}
           >
             <Animated.View style={textAnimatedStyle}>
@@ -229,6 +269,9 @@ export default function Index() {
           </SafeAreaView>
         </LinearGradient>
       </Animated.View>
+
+      {/* Refresh 헤더 */}
+      <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
     </View>
   );
 }
