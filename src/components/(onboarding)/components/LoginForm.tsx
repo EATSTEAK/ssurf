@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +10,7 @@ import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 
 export const LoginForm = () => {
-  const { login } = useRusaintSession();
+  const { login, hasCredential } = useRusaintSession();
   const [isLoading, startLoading] = useLoading();
 
   const [id, setId] = useState<string>('');
@@ -17,6 +18,10 @@ export const LoginForm = () => {
 
   const onPressLoginButton = async () => {
     await startLoading(login(id, password));
+    if (hasCredential) {
+      console.log('redirecting to chapel...');
+      router.replace('/(tabs)/chapel');
+    }
   };
 
   return (
