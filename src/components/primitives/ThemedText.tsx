@@ -3,38 +3,8 @@ import { Text, TextProps } from 'react-native';
 import { StyleSheet, UnistylesVariants } from 'react-native-unistyles';
 
 const styles = StyleSheet.create((theme) => ({
-  text: {
+  text: (color: keyof typeof theme.colors) => ({
     variants: {
-      // Color variants
-      color: {
-        primary: {
-          color: theme.colors.fgPrimary,
-        },
-        secondary: {
-          color: theme.colors.fgSecondary,
-        },
-        primaryContainer: {
-          color: theme.colors.fgPrimaryContainer,
-        },
-        successContainer: {
-          color: theme.colors.fgSuccessContainer,
-        },
-        errorContainer: {
-          color: theme.colors.fgErrorContainer,
-        },
-        surface: {
-          color: theme.colors.fgSurface,
-        },
-        surfaceDim: {
-          color: theme.colors.fgSurfaceDim,
-        },
-        surfaceDimmer: {
-          color: theme.colors.fgSurfaceDimmer,
-        },
-        default: {
-          color: theme.colors.fgSurface,
-        },
-      },
       // Typography variants
       typography: {
         // Heading variants
@@ -55,12 +25,15 @@ const styles = StyleSheet.create((theme) => ({
         default: theme.typography.body.md,
       },
     },
-  },
+    color: theme.colors[color] ?? theme.colors.fgSurface,
+  }),
 }));
 
 export type ThemedTextProps = React.RefAttributes<Text> &
   TextProps &
-  UnistylesVariants<typeof styles>;
+  UnistylesVariants<typeof styles> & {
+    color?: Parameters<typeof styles.text>[0];
+  };
 
 /**
  * A ThemedText component that supports typography and color variants.
@@ -71,14 +44,14 @@ export type ThemedTextProps = React.RefAttributes<Text> &
  * - bodySm, bodyMd, bodyLg
  *
  * Color variants:
- * - primary, secondary, surface, cardPrimary, cardSecondary
+ * - any colors
  *
  * @example
- * <ThemedText typography="headingLg" color="primary">Title</ThemedText>
+ * <ThemedText typography="headingLg" color="fgPrimary">Title</ThemedText>
  * <ThemedText typography="bodyMd">Body text</ThemedText>
  */
 export const ThemedText = ({ color, typography, style, ...props }: ThemedTextProps) => {
-  styles.useVariants({ color, typography });
+  styles.useVariants({ typography });
 
-  return <Text {...props} style={[styles.text, style]} />;
+  return <Text {...props} style={[styles.text(color ?? 'fgSurface'), style]} />;
 };

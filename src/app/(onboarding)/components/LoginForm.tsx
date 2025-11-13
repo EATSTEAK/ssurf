@@ -41,7 +41,7 @@ export const LoginForm = () => {
         value={password}
       />
 
-      <ThemedText color="secondary" typography="labelSm">
+      <ThemedText color="fgSecondary" typography="labelSm">
         학번 및 비밀번호는 사용자 기기에만 저장돼요.
       </ThemedText>
 

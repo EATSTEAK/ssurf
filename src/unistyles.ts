@@ -89,28 +89,28 @@ const typography = {
     },
     lg: {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 22,
       lineHeight: 28,
       letterSpacing: 0,
     },
     xl: {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 24,
       lineHeight: 32,
       letterSpacing: 0,
     },
     '2xl': {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 28,
       lineHeight: 36,
       letterSpacing: 0,
     },
     '3xl': {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 32,
       lineHeight: 40,
       letterSpacing: 0,
@@ -168,15 +168,19 @@ const lightTheme = {
   colors: {
     primary: palette.wave400,
     primaryPressed: palette.wave500,
+    primaryInverted: palette.wave600,
     fgPrimary: palette.wave950,
-    secondary: palette.sand200,
-    secondaryPressed: palette.sand300,
+    secondary: palette.sand400,
+    secondaryPressed: palette.sand500,
+    secondaryInverted: palette.sand600,
     fgSecondary: palette.sand950,
     success: palette.kelp400,
     successPressed: palette.kelp500,
+    successInverted: palette.kelp600,
     fgSuccess: palette.kelp950,
     error: palette.coral400,
     errorPressed: palette.coral500,
+    errorInverted: palette.coral600,
     fgError: palette.coral950,
     surface: palette.sand50,
     fgSurface: palette.sand950,
@@ -201,15 +205,19 @@ const darkTheme = {
   colors: {
     primary: palette.wave600,
     primaryPressed: palette.wave500,
+    primaryInverted: palette.wave400,
     fgPrimary: palette.wave50,
-    secondary: palette.sand800,
-    secondaryPressed: palette.sand700,
+    secondary: palette.sand600,
+    secondaryPressed: palette.sand500,
+    secondaryInverted: palette.sand400,
     fgSecondary: palette.sand50,
     success: palette.kelp600,
     successPressed: palette.kelp500,
+    successInverted: palette.kelp400,
     fgSuccess: palette.sand50,
     error: palette.coral600,
     errorPressed: palette.coral500,
+    errorInverted: palette.coral400,
     fgError: palette.sand50,
     surface: palette.sand950,
     fgSurface: palette.sand50,

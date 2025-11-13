@@ -24,6 +24,6 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: '500',
   },
   placeholder: {
-    color: theme.colors.fgCardSecondary,
+    color: theme.colors.fgSurfaceMuted,
   },
 }));

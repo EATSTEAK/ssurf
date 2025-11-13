@@ -20,17 +20,23 @@ export const useSyncChapel = (
   const { chapelClient } = useRusaintApplication();
   const [isSyncing, setIsSyncing] = useState(false);
 
+  const sync = async () => {
+    if (chapelClient && !isSyncing) {
+      setIsSyncing(true);
+      await syncChapelInformation(chapelClient, year, semester);
+      setIsSyncing(false);
+    }
+  };
+
   useAsyncEffect(async () => {
     const cache = await db.query.cache.findFirst({
       where: (cache, { eq }) => eq(cache.key, `chapel.information.${year}-${semester}`),
     });
     const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
-    if (shouldRequest && chapelClient && !isSyncing) {
-      setIsSyncing(true);
-      await syncChapelInformation(chapelClient, year, semester);
-      setIsSyncing(false);
+    if (shouldRequest) {
+      await sync();
     }
   }, [chapelClient, force, isSyncing, semester, ttlMs, year]);
 
-  return { isSyncing };
+  return { isSyncing, sync };
 };
