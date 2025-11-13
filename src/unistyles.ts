@@ -89,28 +89,28 @@ const typography = {
     },
     lg: {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 22,
       lineHeight: 28,
       letterSpacing: 0,
     },
     xl: {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 24,
       lineHeight: 32,
       letterSpacing: 0,
     },
     '2xl': {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 28,
       lineHeight: 36,
       letterSpacing: 0,
     },
     '3xl': {
       fontFamily: 'Pretendard',
-      fontWeight: '400', // Regular
+      fontWeight: '600', // SemiBold
       fontSize: 32,
       lineHeight: 40,
       letterSpacing: 0,
