@@ -39,11 +39,22 @@ export default function Index() {
           Copyright © 2025 EATSTEAK, fecapark and SSURF Contributors.
         </ThemedText>
         <ThemedText typography="bodyLg">
-          This Project is hosted on <Link href="https://github.com/eatsteak/ssurf">GitHub</Link>.
+          This Project is hosted on{' '}
+          <Link asChild href="https://github.com/eatsteak/ssurf">
+            <ThemedText color="primaryInverted" typography="bodyLg">
+              GitHub
+            </ThemedText>
+          </Link>
+          .
         </ThemedText>
         <ThemedText typography="bodyLg">
           Based on Open-soruce u-saint scraper{' '}
-          <Link href="https://github.com/eatsteak/rusaint">Rusaint</Link>.
+          <Link asChild href="https://github.com/eatsteak/rusaint">
+            <ThemedText color="primaryInverted" typography="bodyLg">
+              rusaint
+            </ThemedText>
+          </Link>
+          .
         </ThemedText>
       </View>
       <Button onPress={logout}>로그아웃</Button>

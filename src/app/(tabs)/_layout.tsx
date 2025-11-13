@@ -18,7 +18,7 @@ export default function TabsLayout() {
         <Label>설정</Label>
         {Platform.select({
           ios: <Icon sf="gearshape.fill" />,
-          android: <VectorIcon family={MaterialCommunityIcons} name="cog-outline" />,
+          android: <VectorIcon family={MaterialCommunityIcons} name="cog" />,
         })}
       </NativeTabs.Trigger>
     </NativeTabs>
