@@ -1,4 +1,6 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +15,7 @@ import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
 
 function RootLayoutNav() {
+  useFonts(MaterialCommunityIcons.font);
   const { theme } = useUnistyles();
   const { hasCredential } = useRusaintSession();
 
