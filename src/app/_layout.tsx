@@ -14,7 +14,7 @@ import migrations from '@/drizzle/migrations';
 
 function RootLayoutNav() {
   const { theme } = useUnistyles();
-  const { hasCredential, session } = useRusaintSession();
+  const { hasCredential } = useRusaintSession();
 
   return (
     <Stack
@@ -25,10 +25,10 @@ function RootLayoutNav() {
         },
       }}
     >
-      <Stack.Protected guard={!hasCredential || !session}>
+      <Stack.Protected guard={!hasCredential}>
         <Stack.Screen name="(onboarding)/index" />
       </Stack.Protected>
-      <Stack.Protected guard={hasCredential && !!session}>
+      <Stack.Protected guard={hasCredential}>
         <Stack.Screen name="(tabs)" />
       </Stack.Protected>
     </Stack>

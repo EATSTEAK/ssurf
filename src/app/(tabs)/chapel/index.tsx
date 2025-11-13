@@ -102,7 +102,7 @@ const doorDirection = (floor: number, seat: string) => {
     case 'J':
       return '우측 문';
     default:
-      return 'left';
+      return '';
   }
 };
 
@@ -264,7 +264,7 @@ export default function Index() {
                 <Attendance attendance={attendance} key={attendance.date} />
               ))}
           </View>
-          <Space gap={4} />
+          <Space gap={8} />
         </SafeAreaView>
       </AnimatedScrollView>
       {/* 일반 헤더 */}
