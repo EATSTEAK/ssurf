@@ -1,6 +1,6 @@
 import { USaintSessionBuilder, USaintSessionInterface } from '@rusaint/react-native';
 import { useRouter } from 'expo-router';
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useRef, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
 import { useExpoSecureStore } from '@/hooks/useExpoSecureStore';
@@ -21,6 +21,8 @@ const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   refreshSession: async () => {},
 });
 
+const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+
 export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unknown>) => {
   const { navigate } = useRouter();
   const [userInfo, setUserInfo] = useExpoSecureStore<{
@@ -34,6 +36,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     key: 'user-info',
   });
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
+  const sessionCreatedAtRef = useRef<Date | null>(null);
 
   const connectNewSession = async (id: string, password: string) => {
     const session = await new USaintSessionBuilder()
@@ -44,6 +47,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
       return false;
     }
 
+    sessionCreatedAtRef.current = new Date();
     setSession(session);
     return true;
   };
@@ -67,6 +71,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   const logout = async () => {
     await setUserInfo({ id: null, password: null });
     setSession(null);
+    sessionCreatedAtRef.current = null;
     navigate('/');
   };
 
@@ -76,7 +81,11 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     세션 만료와는 상관 없이 앱이 시작될 때 저장된 아이디/비밀번호로 자동 로그인 시도
   */
   useAsyncEffect(async () => {
-    if (userInfo.id && userInfo.password && !session) {
+    const sessionConstructed = !!session;
+    const sessionExpired =
+      sessionCreatedAtRef.current &&
+      new Date().getTime() - sessionCreatedAtRef.current.getTime() > SESSION_TTL_MS;
+    if (userInfo.id && userInfo.password && (!sessionConstructed || sessionExpired)) {
       refreshSession();
     }
   }, [refreshSession, session, userInfo.id, userInfo.password]);
