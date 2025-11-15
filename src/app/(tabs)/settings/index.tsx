@@ -3,10 +3,12 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
+import packageJson from '@/../package.json';
 import { Button } from '@/components/primitives/Button';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 import { SsurfLined } from '@/icons/SsurfLined';
+import { REV } from '@/index';
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -33,7 +35,9 @@ export default function Index() {
       <View style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
         <View style={{ display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' }}>
           <SsurfLined height={64} width={64} />
-          <ThemedText typography="headingLg">SSURF v0.0.0</ThemedText>
+          <ThemedText typography="headingLg">
+            SSURF v{packageJson.version} (rev. {REV})
+          </ThemedText>
         </View>
         <ThemedText typography="bodyLg">
           Copyright © 2025 EATSTEAK, fecapark and SSURF Contributors.
