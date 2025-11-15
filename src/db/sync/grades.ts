@@ -57,26 +57,11 @@ export const syncGradeSummary = async (
     })
     .execute();
 
-  // 캐시 업데이트 - certificated
+  // 캐시 업데이트
   await db
     .insert(cache)
     .values({
-      key: 'grades.summary.certificated',
-      updatedAt: Date.now(),
-    })
-    .onConflictDoUpdate({
-      target: cache.key,
-      set: {
-        updatedAt: Date.now(),
-      },
-    })
-    .execute();
-
-  // 캐시 업데이트 - recorded
-  await db
-    .insert(cache)
-    .values({
-      key: 'grades.summary.recorded',
+      key: `grades.summary.${courseType}`,
       updatedAt: Date.now(),
     })
     .onConflictDoUpdate({
@@ -125,6 +110,22 @@ export const syncSemesterGrades = async (
       })),
     )
     .execute();
+
+  // 캐시 업데이트
+  const cacheKey = `grades.semester.${courseType}`;
+  await db
+    .insert(cache)
+    .values({
+      key: cacheKey,
+      updatedAt: Date.now(),
+    })
+    .onConflictDoUpdate({
+      target: cache.key,
+      set: {
+        updatedAt: Date.now(),
+      },
+    })
+    .execute();
 };
 
 export const syncClassGrades = async (
@@ -166,7 +167,7 @@ export const syncClassGrades = async (
   }
 
   // 캐시 업데이트
-  const cacheKey = `grades.semester.${year}-${semester}`;
+  const cacheKey = `grades.classes.${courseType}.${year}.${semester}`;
   await db
     .insert(cache)
     .values({
