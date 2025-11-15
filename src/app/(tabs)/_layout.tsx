@@ -11,15 +11,14 @@ export default function TabsLayout() {
         <Label>채플</Label>
         {Platform.select({
           ios: <Icon sf="bird.fill" />,
-          // TODO: load icons in android
-          android: <VectorIcon family={MaterialCommunityIcons} name="bird" />,
+          android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="bird" />} />,
         })}
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="settings/index">
         <Label>설정</Label>
         {Platform.select({
           ios: <Icon sf="gearshape.fill" />,
-          android: <VectorIcon family={MaterialCommunityIcons} name="cog" />,
+          android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="cog" />} />,
         })}
       </NativeTabs.Trigger>
     </NativeTabs>
