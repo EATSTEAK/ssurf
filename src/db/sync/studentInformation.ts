@@ -1,5 +1,4 @@
 import { StudentInformation, StudentInformationApplicationInterface } from '@rusaint/react-native';
-import { eq } from 'drizzle-orm';
 
 import { db } from '@/db';
 import { cache } from '@/db/schema/cache';
@@ -7,12 +6,8 @@ import { studentInformation } from '@/db/schema/studentInformation';
 
 export const syncStudentInformation = async (client: StudentInformationApplicationInterface) => {
   const info: StudentInformation = await client.general();
-
   // Save student information
-  await db
-    .delete(studentInformation)
-    .where(eq(studentInformation.studentNumber, info.studentNumber))
-    .execute();
+  await db.delete(studentInformation).execute();
   await db
     .insert(studentInformation)
     .values({
@@ -26,7 +21,6 @@ export const syncStudentInformation = async (client: StudentInformationApplicati
       division: info.division ?? null,
       grade: info.grade,
       term: info.term,
-      image: info.image,
       alias: info.alias ?? null,
       kanjiName: info.kanjiName ?? null,
       email: info.email ?? null,
@@ -47,7 +41,7 @@ export const syncStudentInformation = async (client: StudentInformationApplicati
     .execute();
 
   // Update cache
-  const cacheKey = `student-information.general.${info.studentNumber}`;
+  const cacheKey = `student-information.general`;
   await db
     .insert(cache)
     .values({

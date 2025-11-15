@@ -8,7 +8,7 @@ import * as graduationRequirementsSchemas from '@/db/schema/graduationRequiremen
 import * as scholarshipsSchemas from '@/db/schema/scholarships';
 import * as studentInformationSchemas from '@/db/schema/studentInformation';
 
-const expoDb = openDatabaseSync('db.db', { enableChangeListener: true });
+export const expoDb = openDatabaseSync('db.db', { enableChangeListener: true });
 
 export const db = drizzle(expoDb, {
   schema: {
