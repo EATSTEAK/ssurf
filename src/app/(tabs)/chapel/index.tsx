@@ -107,7 +107,7 @@ const doorDirection = (floor: number, seat: string) => {
 };
 
 export default function Index() {
-  const { sync: syncChapel, isSyncing } = useSyncChapel(2025, SemesterType.Two);
+  const { sync: syncChapel, isSyncing } = useSyncChapel();
   const { data: general } = useGeneralChapelInformation(2025, SemesterType.Two);
   const { data: attendances } = useChapelAttendances(2025, SemesterType.Two);
   const { theme } = useUnistyles();
@@ -124,7 +124,7 @@ export default function Index() {
   const passable = totalAttendances - absentCount >= requiredAttendances;
 
   const handleRefresh = () => {
-    syncChapel();
+    syncChapel([2025, SemesterType.Two], { force: true });
   };
 
   const scrollHandler = useAnimatedScrollHandler({

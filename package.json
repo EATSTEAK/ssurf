@@ -5,6 +5,11 @@
   "scripts": {
     "expo": "expo",
     "drizzle-kit": "drizzle-kit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:drop": "drizzle-kit drop",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
