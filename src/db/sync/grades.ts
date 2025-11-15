@@ -5,7 +5,7 @@ import {
   GradeSummary,
   SemesterGrade,
 } from '@rusaint/react-native';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/db';
 import { cache } from '@/db/schema/cache';
@@ -57,26 +57,11 @@ export const syncGradeSummary = async (
     })
     .execute();
 
-  // 캐시 업데이트 - certificated
+  // 캐시 업데이트
   await db
     .insert(cache)
     .values({
-      key: 'grades.summary.certificated',
-      updatedAt: Date.now(),
-    })
-    .onConflictDoUpdate({
-      target: cache.key,
-      set: {
-        updatedAt: Date.now(),
-      },
-    })
-    .execute();
-
-  // 캐시 업데이트 - recorded
-  await db
-    .insert(cache)
-    .values({
-      key: 'grades.summary.recorded',
+      key: `grades.summary.${courseType}`,
       updatedAt: Date.now(),
     })
     .onConflictDoUpdate({
@@ -95,47 +80,68 @@ export const syncGradeSummary = async (
 export const syncSemesterGrades = async (
   client: CourseGradesApplicationInterface,
   courseType: CourseType,
-  year: number,
-  semester: number,
 ) => {
   // 학기별 성적 목록 가져오기
   const semesters: SemesterGrade[] = await client.semesters(courseType);
 
-  // 현재 학기 성적 찾기
-  const currentSemester = semesters.find((s) => s.year === year && s.semester === semester);
+  // 기존 학기별 성적 데이터 삭제
+  await db.delete(semesterGrades).execute();
 
-  if (currentSemester) {
-    // 기존 학기별 성적 데이터 삭제
-    await db.delete(semesterGrades).where(eq(semesterGrades.year, year)).execute();
+  // 학기별 성적 저장
+  await db
+    .insert(semesterGrades)
+    .values(
+      semesters.map((sem) => ({
+        year: sem.year,
+        semester: sem.semester,
+        attemptedCredits: sem.attemptedCredits,
+        earnedCredits: sem.earnedCredits,
+        pfEarnedCredits: sem.pfEarnedCredits,
+        gradePointsAverage: sem.gradePointsAverage,
+        gradePointsSum: sem.gradePointsSum,
+        arithmeticMean: sem.arithmeticMean,
+        semesterRankFirst: sem.semesterRank?.first ?? null,
+        semesterRankSecond: sem.semesterRank?.second ?? null,
+        generalRankFirst: sem.generalRank?.first ?? null,
+        generalRankSecond: sem.generalRank?.second ?? null,
+        academicProbation: sem.academicProbation ? 1 : 0,
+        consult: sem.consult ? 1 : 0,
+        flunked: sem.flunked ? 1 : 0,
+      })),
+    )
+    .execute();
 
-    // 학기별 성적 저장
-    await db
-      .insert(semesterGrades)
-      .values({
-        year: currentSemester.year,
-        semester: currentSemester.semester,
-        attemptedCredits: currentSemester.attemptedCredits,
-        earnedCredits: currentSemester.earnedCredits,
-        pfEarnedCredits: currentSemester.pfEarnedCredits,
-        gradePointsAverage: currentSemester.gradePointsAverage,
-        gradePointsSum: currentSemester.gradePointsSum,
-        arithmeticMean: currentSemester.arithmeticMean,
-        semesterRankFirst: currentSemester.semesterRank?.first ?? null,
-        semesterRankSecond: currentSemester.semesterRank?.second ?? null,
-        generalRankFirst: currentSemester.generalRank?.first ?? null,
-        generalRankSecond: currentSemester.generalRank?.second ?? null,
-        academicProbation: currentSemester.academicProbation ? 1 : 0,
-        consult: currentSemester.consult ? 1 : 0,
-        flunked: currentSemester.flunked ? 1 : 0,
-      })
-      .execute();
-  }
+  // 캐시 업데이트
+  const cacheKey = `grades.semester.${courseType}`;
+  await db
+    .insert(cache)
+    .values({
+      key: cacheKey,
+      updatedAt: Date.now(),
+    })
+    .onConflictDoUpdate({
+      target: cache.key,
+      set: {
+        updatedAt: Date.now(),
+      },
+    })
+    .execute();
+};
 
+export const syncClassGrades = async (
+  client: CourseGradesApplicationInterface,
+  courseType: CourseType,
+  year: number,
+  semester: number,
+) => {
   // 과목별 성적 가져오기
   const classes: ClassGrade[] = await client.classes(courseType, year, semester, true);
 
   // 기존 과목별 성적 데이터 삭제
-  await db.delete(classGrades).where(eq(classGrades.year, year)).execute();
+  await db
+    .delete(classGrades)
+    .where(and(eq(classGrades.year, year), eq(classGrades.semester, semester)))
+    .execute();
 
   // 과목별 성적 저장
   if (classes.length > 0) {
@@ -161,7 +167,7 @@ export const syncSemesterGrades = async (
   }
 
   // 캐시 업데이트
-  const cacheKey = `grades.semester.${year}-${semester}`;
+  const cacheKey = `grades.classes.${courseType}.${year}.${semester}`;
   await db
     .insert(cache)
     .values({

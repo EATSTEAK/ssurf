@@ -36,6 +36,13 @@
       "when": 1763234434112,
       "tag": "0004_huge_pretty_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1763236311567,
+      "tag": "0005_foamy_goliath",
+      "breakpoints": true
     }
   ]
 }

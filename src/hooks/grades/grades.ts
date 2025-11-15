@@ -4,7 +4,11 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { ClassGradeDto, GradeSummaryDto, SemesterGradeDto } from '@/db/schema/grades';
-import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSyncGrades';
+import {
+  useSyncClassGrades,
+  useSyncGradeSummary,
+  useSyncSemesterGrades,
+} from '@/hooks/sync/useSyncGrades';
 
 /**
  * 성적 요약 정보를 조회하는 훅
@@ -35,7 +39,7 @@ export const useSemesterGrades = (year: number, semester: number) => {
   const { isSyncing, sync } = useSyncSemesterGrades();
 
   useAsyncEffect(async () => {
-    await sync([CourseType.Bachelor, year, semester], { force: false });
+    await sync([CourseType.Bachelor], { force: false });
     const result = await db.query.semesterGrades.findFirst({
       where: (semesterGrades, { eq, and }) =>
         and(eq(semesterGrades.year, year), eq(semesterGrades.semester, semester)),
@@ -53,7 +57,7 @@ export const useSemesterGrades = (year: number, semester: number) => {
  */
 export const useClassGrades = (year: number, semester: number) => {
   const [data, setData] = useState<ClassGradeDto[] | null>(null);
-  const { isSyncing, sync } = useSyncSemesterGrades();
+  const { isSyncing, sync } = useSyncClassGrades();
 
   useAsyncEffect(async () => {
     await sync([CourseType.Bachelor, year, semester], { force: false });

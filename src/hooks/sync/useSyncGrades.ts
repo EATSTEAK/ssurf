@@ -1,5 +1,5 @@
 import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
-import { syncGradeSummary, syncSemesterGrades } from '@/db/sync/grades';
+import { syncClassGrades, syncGradeSummary, syncSemesterGrades } from '@/db/sync/grades';
 
 import { SyncOptions, useSyncData } from './index';
 
@@ -12,23 +12,38 @@ export const useSyncGradeSummary = (options?: SyncOptions) => {
 
   return useSyncData({
     client: gradesClient,
-    cacheKey: 'grades.summary.certificated',
+    cacheKey: ([courseType]) => `grades.summary.${courseType}`,
     syncFn: syncGradeSummary,
     options,
   });
 };
 
 /**
- * 특정 학기의 성적 정보를 동기화하는 훅
- * 학기별 성적과 과목별 성적을 가져옴
+ * 학기별 성적 정보를 동기화하는 훅
+ * 학기별 성적을 가져옴
  */
 export const useSyncSemesterGrades = (options?: SyncOptions) => {
   const { gradesClient } = useRusaintApplication();
 
   return useSyncData({
     client: gradesClient,
-    cacheKey: ([year, semester]) => `grades.semester.${year}-${semester}`,
+    cacheKey: ([courseType]) => `grades.semester.${courseType}`,
     syncFn: syncSemesterGrades,
+    options,
+  });
+};
+
+/**
+ * 과목별 성적 정보를 동기화하는 훅
+ * 특정 학기의 과목별 성적을 가져옴
+ */
+export const useSyncClassGrades = (options?: SyncOptions) => {
+  const { gradesClient } = useRusaintApplication();
+
+  return useSyncData({
+    client: gradesClient,
+    cacheKey: ([courseType, year, semester]) => `grades.classes.${courseType}.${year}.${semester}`,
+    syncFn: syncClassGrades,
     options,
   });
 };

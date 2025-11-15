@@ -8,7 +8,7 @@ export const studentInformation = sqliteTable(
     studentNumber: t.integer().notNull(),
     name: t.text().notNull(),
     rrn: t.integer().notNull(),
-    collage: t.text().notNull(),
+    college: t.text().notNull(),
     department: t.text().notNull(),
     major: t.text(),
     division: t.text(),
@@ -25,7 +25,7 @@ export const studentInformation = sqliteTable(
     specificAddress: t.text(),
     isTransferStudent: t.integer().notNull(), // boolean as integer (0 or 1)
     applyDate: t.text().notNull(),
-    appliedCollage: t.text().notNull(),
+    appliedCollege: t.text().notNull(),
     appliedDepartment: t.text().notNull(),
     pluralMajor: t.text(),
     subMajor: t.text(),
