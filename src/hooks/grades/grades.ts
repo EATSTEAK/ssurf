@@ -12,9 +12,10 @@ import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSync
  */
 export const useGradeSummary = (type: 'certificated' | 'recorded') => {
   const [data, setData] = useState<GradeSummaryDto | null>(null);
-  const { isSyncing } = useSyncGradeSummary(CourseType.Bachelor);
+  const { isSyncing, sync } = useSyncGradeSummary();
 
   useAsyncEffect(async () => {
+    await sync([CourseType.Bachelor], { force: false });
     const result = await db.query.gradeSummary.findFirst({
       where: (gradeSummary, { eq }) => eq(gradeSummary.type, type),
     });
@@ -31,9 +32,10 @@ export const useGradeSummary = (type: 'certificated' | 'recorded') => {
  */
 export const useSemesterGrades = (year: number, semester: number) => {
   const [data, setData] = useState<null | SemesterGradeDto>(null);
-  const { isSyncing } = useSyncSemesterGrades(CourseType.Bachelor, year, semester);
+  const { isSyncing, sync } = useSyncSemesterGrades();
 
   useAsyncEffect(async () => {
+    await sync([CourseType.Bachelor, year, semester], { force: false });
     const result = await db.query.semesterGrades.findFirst({
       where: (semesterGrades, { eq, and }) =>
         and(eq(semesterGrades.year, year), eq(semesterGrades.semester, semester)),
@@ -51,9 +53,10 @@ export const useSemesterGrades = (year: number, semester: number) => {
  */
 export const useClassGrades = (year: number, semester: number) => {
   const [data, setData] = useState<ClassGradeDto[] | null>(null);
-  const { isSyncing } = useSyncSemesterGrades(CourseType.Bachelor, year, semester);
+  const { isSyncing, sync } = useSyncSemesterGrades();
 
   useAsyncEffect(async () => {
+    await sync([CourseType.Bachelor, year, semester], { force: false });
     const result = await db.query.classGrades.findMany({
       where: (classGrades, { eq, and }) =>
         and(eq(classGrades.year, year), eq(classGrades.semester, semester)),

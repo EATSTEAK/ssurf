@@ -1,42 +1,18 @@
 import { SemesterType } from '@rusaint/react-native';
-import { useState } from 'react';
-import { useAsyncEffect } from 'react-simplikit';
 
 import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
-import { db } from '@/db';
 import { syncChapelInformation } from '@/db/sync/chapel';
 
-export interface SyncChapelOptions {
-  force?: boolean;
-  ttlMs?: number;
-}
+import { SyncOptions, useSyncData } from './index';
 
-// TODO: generalize to useSyncData
-export const useSyncChapel = (
-  year: number,
-  semester: SemesterType,
-  { force = false, ttlMs = 1000 * 60 * 60 }: SyncChapelOptions = {},
-) => {
+export const useSyncChapel = (options?: SyncOptions) => {
   const { chapelClient } = useRusaintApplication();
-  const [isSyncing, setIsSyncing] = useState(false);
 
-  const sync = async () => {
-    if (chapelClient && !isSyncing) {
-      setIsSyncing(true);
-      await syncChapelInformation(chapelClient, year, semester);
-      setIsSyncing(false);
-    }
-  };
-
-  useAsyncEffect(async () => {
-    const cache = await db.query.cache.findFirst({
-      where: (cache, { eq }) => eq(cache.key, `chapel.information.${year}-${semester}`),
-    });
-    const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
-    if (shouldRequest) {
-      await sync();
-    }
-  }, [chapelClient, force, isSyncing, semester, ttlMs, year]);
-
-  return { isSyncing, sync };
+  return useSyncData({
+    client: chapelClient,
+    cacheKey: ([year, semester]: [number, SemesterType]) =>
+      `chapel.information.${year}-${semester}`,
+    syncFn: syncChapelInformation,
+    options,
+  });
 };

@@ -131,8 +131,8 @@ export const syncSemesterGrades = async (
       .execute();
   }
 
-  // 과목별 성적 가져오기 (상세 성적 제외)
-  const classes: ClassGrade[] = await client.classes(courseType, year, semester, false);
+  // 과목별 성적 가져오기
+  const classes: ClassGrade[] = await client.classes(courseType, year, semester, true);
 
   // 기존 과목별 성적 데이터 삭제
   await db.delete(classGrades).where(eq(classGrades.year, year)).execute();
