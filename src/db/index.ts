@@ -4,6 +4,7 @@ import { openDatabaseSync } from 'expo-sqlite';
 import * as cacheSchemas from '@/db/schema/cache';
 import * as chapelSchemas from '@/db/schema/chapel';
 import * as gradesSchemas from '@/db/schema/grades';
+import * as graduationRequirementsSchemas from '@/db/schema/graduationRequirements';
 import * as scholarshipsSchemas from '@/db/schema/scholarships';
 import * as studentInformationSchemas from '@/db/schema/studentInformation';
 
@@ -14,6 +15,7 @@ export const db = drizzle(expoDb, {
     ...chapelSchemas,
     ...cacheSchemas,
     ...gradesSchemas,
+    ...graduationRequirementsSchemas,
     ...scholarshipsSchemas,
     ...studentInformationSchemas,
   },

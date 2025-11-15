@@ -5,6 +5,8 @@ import {
   CourseGradesApplicationInterface,
   CourseScheduleApplicationBuilder,
   CourseScheduleApplicationInterface,
+  GraduationRequirementsApplicationBuilder,
+  GraduationRequirementsApplicationInterface,
   ScholarshipsApplicationBuilder,
   ScholarshipsApplicationInterface,
   StudentInformationApplicationBuilder,
@@ -18,6 +20,7 @@ export interface RusaintApplicationContext {
   chapelClient: ChapelApplicationInterface | null;
   courseScheduleClient: CourseScheduleApplicationInterface | null;
   gradesClient: CourseGradesApplicationInterface | null;
+  graduationRequirementsClient: GraduationRequirementsApplicationInterface | null;
   scholarshipsClient: null | ScholarshipsApplicationInterface;
   studentInformationClient: null | StudentInformationApplicationInterface;
 }
@@ -26,6 +29,7 @@ const RusaintApplicationContext = createContext<RusaintApplicationContext>({
   chapelClient: null,
   courseScheduleClient: null,
   gradesClient: null,
+  graduationRequirementsClient: null,
   scholarshipsClient: null,
   studentInformationClient: null,
 });
@@ -37,6 +41,8 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
   const [courseScheduleClient, setCourseScheduleClient] =
     useState<CourseScheduleApplicationInterface | null>(null);
   const [gradesClient, setGradesClient] = useState<CourseGradesApplicationInterface | null>(null);
+  const [graduationRequirementsClient, setGraduationRequirementsClient] =
+    useState<GraduationRequirementsApplicationInterface | null>(null);
   const [scholarshipsClient, setScholarshipsClient] =
     useState<null | ScholarshipsApplicationInterface>(null);
   const [studentInformationClient, setStudentInformationClient] =
@@ -50,11 +56,15 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
     const chapel = await new ChapelApplicationBuilder().build(session);
     const courseSchedule = await new CourseScheduleApplicationBuilder().build(session);
     const grades = await new CourseGradesApplicationBuilder().build(session);
+    const graduationRequirements = await new GraduationRequirementsApplicationBuilder().build(
+      session,
+    );
     const scholarships = await new ScholarshipsApplicationBuilder().build(session);
     const studentInformation = await new StudentInformationApplicationBuilder().build(session);
     setChapelClient(chapel);
     setCourseScheduleClient(courseSchedule);
     setGradesClient(grades);
+    setGraduationRequirementsClient(graduationRequirements);
     setScholarshipsClient(scholarships);
     setStudentInformationClient(studentInformation);
   }, [session]);
@@ -65,6 +75,7 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
         chapelClient,
         courseScheduleClient,
         gradesClient,
+        graduationRequirementsClient,
         scholarshipsClient,
         studentInformationClient,
       }}
