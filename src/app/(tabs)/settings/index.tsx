@@ -52,7 +52,7 @@ export default function Index() {
           .
         </ThemedText>
         <ThemedText typography="bodyLg">
-          Based on Open-soruce u-saint scraper{' '}
+          Based on Open-source u-saint scraper{' '}
           <Link asChild href="https://github.com/eatsteak/rusaint">
             <ThemedText color="primaryInverted" typography="bodyLg">
               rusaint
