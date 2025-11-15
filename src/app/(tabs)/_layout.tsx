@@ -11,6 +11,7 @@ export default function TabsLayout() {
         <Label>채플</Label>
         {Platform.select({
           ios: <Icon sf="bird.fill" />,
+          // TODO: load icons in android
           android: <VectorIcon family={MaterialCommunityIcons} name="bird" />,
         })}
       </NativeTabs.Trigger>
