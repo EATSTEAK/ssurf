@@ -5,6 +5,8 @@ import {
   CourseGradesApplicationInterface,
   CourseScheduleApplicationBuilder,
   CourseScheduleApplicationInterface,
+  StudentInformationApplicationBuilder,
+  StudentInformationApplicationInterface,
 } from '@rusaint/react-native';
 import { createContext, useContext, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
@@ -14,12 +16,14 @@ export interface RusaintApplicationContext {
   chapelClient: ChapelApplicationInterface | null;
   courseScheduleClient: CourseScheduleApplicationInterface | null;
   gradesClient: CourseGradesApplicationInterface | null;
+  studentInformationClient: null | StudentInformationApplicationInterface;
 }
 
 const RusaintApplicationContext = createContext<RusaintApplicationContext>({
   chapelClient: null,
   courseScheduleClient: null,
   gradesClient: null,
+  studentInformationClient: null,
 });
 
 export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren<unknown>) => {
@@ -29,6 +33,8 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
   const [courseScheduleClient, setCourseScheduleClient] =
     useState<CourseScheduleApplicationInterface | null>(null);
   const [gradesClient, setGradesClient] = useState<CourseGradesApplicationInterface | null>(null);
+  const [studentInformationClient, setStudentInformationClient] =
+    useState<null | StudentInformationApplicationInterface>(null);
 
   useAsyncEffect(async () => {
     if (!session) {
@@ -38,9 +44,11 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
     const chapel = await new ChapelApplicationBuilder().build(session);
     const courseSchedule = await new CourseScheduleApplicationBuilder().build(session);
     const grades = await new CourseGradesApplicationBuilder().build(session);
+    const studentInformation = await new StudentInformationApplicationBuilder().build(session);
     setChapelClient(chapel);
     setCourseScheduleClient(courseSchedule);
     setGradesClient(grades);
+    setStudentInformationClient(studentInformation);
   }, [session]);
 
   return (
@@ -49,6 +57,7 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
         chapelClient,
         courseScheduleClient,
         gradesClient,
+        studentInformationClient,
       }}
     >
       {children}
