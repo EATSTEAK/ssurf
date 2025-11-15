@@ -1,17 +1,46 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 
 import { RusaintApplicationProvider } from '@/components/providers/RusaintApplicationProvider';
-import { RusaintSessionProvider } from '@/components/providers/RusaintSessionProvider';
+import {
+  RusaintSessionProvider,
+  useRusaintSession,
+} from '@/components/providers/RusaintSessionProvider';
 import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
 
+function RootLayoutNav() {
+  useFonts(MaterialCommunityIcons.font);
+  const { theme } = useUnistyles();
+  const { hasCredential } = useRusaintSession();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: theme.colors.surface,
+        },
+      }}
+    >
+      <Stack.Protected guard={!hasCredential}>
+        <Stack.Screen name="(onboarding)/index" />
+      </Stack.Protected>
+      <Stack.Protected guard={hasCredential}>
+        <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
 export default function RootLayout() {
   const { success, error } = useMigrations(db, migrations);
-  const { theme } = useUnistyles();
+
   if (error) {
     return (
       <SafeAreaView>
@@ -31,14 +60,7 @@ export default function RootLayout() {
   return (
     <RusaintSessionProvider>
       <RusaintApplicationProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: {
-              backgroundColor: theme.colors.surface,
-            },
-          }}
-        />
+        <RootLayoutNav />
       </RusaintApplicationProvider>
     </RusaintSessionProvider>
   );

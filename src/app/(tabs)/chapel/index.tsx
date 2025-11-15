@@ -17,10 +17,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
-import { Button } from '@/components/primitives/Button';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
-import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 import { RefreshHeader } from '@/components/RefreshHeader';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
@@ -104,12 +102,11 @@ const doorDirection = (floor: number, seat: string) => {
     case 'J':
       return '우측 문';
     default:
-      return 'left';
+      return '';
   }
 };
 
 export default function Index() {
-  const { logout } = useRusaintSession();
   const { sync: syncChapel, isSyncing } = useSyncChapel(2025, SemesterType.Two);
   const { data: general } = useGeneralChapelInformation(2025, SemesterType.Two);
   const { data: attendances } = useChapelAttendances(2025, SemesterType.Two);
@@ -240,7 +237,7 @@ export default function Index() {
             <ThemedText typography="bodyLg">{general.time}</ThemedText>
           </View>
         </SafeAreaView>
-        <View style={styles.contentView}>
+        <SafeAreaView edges={{ bottom: 'additive' }} style={styles.contentView}>
           <View style={styles.seatView}>
             <ThemedText typography="heading2xl">좌석 정보</ThemedText>
             <ThemedText typography="heading3xl">
@@ -267,13 +264,9 @@ export default function Index() {
                 <Attendance attendance={attendance} key={attendance.date} />
               ))}
           </View>
-        </View>
+          <Space gap={8} />
+        </SafeAreaView>
       </AnimatedScrollView>
-      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.bottomView}>
-        <Button onPress={logout} variant="primary">
-          로그아웃
-        </Button>
-      </SafeAreaView>
       {/* 일반 헤더 */}
       <Animated.View style={[styles.header, normalHeaderAnimatedStyle]}>
         <LinearGradient
