@@ -24,6 +24,8 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     overflow: 'visible',
     backgroundColor: theme.colors.primary,
+    zIndex: 10,
+    elevation: 10,
   },
   waveContainer: {
     position: 'absolute',

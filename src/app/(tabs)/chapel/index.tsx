@@ -2,12 +2,8 @@ import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, RefreshControl, ScrollView, View } from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import { Platform, View } from 'react-native';
+import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
@@ -18,9 +14,9 @@ import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
 import { CardView } from '@/components/containers/CardView';
 import { SafeContainer } from '@/components/containers/Container';
+import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/components/headers/FloatingHeader';
 import { Header } from '@/components/headers/Header';
-import { RefreshHeader } from '@/components/headers/RefreshHeader';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
@@ -33,8 +29,6 @@ import {
   semesterToString,
 } from '@/utils/semester';
 
-const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
-
 const styles = StyleSheet.create((theme) => ({
   root: {
     width: '100%',
@@ -42,12 +36,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     position: 'relative',
   },
-  scrollView: {
-    gap: theme.gap(2),
-    backgroundColor: theme.colors.surface,
-    display: 'flex',
-    flexDirection: 'column',
-  },
+
   topView: {
     width: '100%',
     display: 'flex',
@@ -113,7 +102,6 @@ export default function Index() {
   );
 
   const scrollY = useSharedValue(0);
-  const pullDistance = useSharedValue(0);
 
   const totalAttendances = attendances?.length ?? 0;
   const requiredAttendances = Math.ceil(totalAttendances * (2 / 3));
@@ -135,14 +123,6 @@ export default function Index() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
-      if (event.contentOffset.y < 0 && !isSyncing) {
-        pullDistance.value = Math.abs(event.contentOffset.y);
-      } else if (event.contentOffset.y >= 0) {
-        pullDistance.value = 0;
-      }
-    },
-    onEndDrag: () => {
-      pullDistance.value = withSpring(0);
     },
   });
 
@@ -226,16 +206,10 @@ export default function Index() {
         }}
       />
       <View style={styles.root}>
-        <AnimatedScrollView
-          contentContainerStyle={styles.scrollView}
+        <RefreshableScrollView
+          onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshControl={
-            <RefreshControl
-              onRefresh={handleRefresh}
-              refreshing={isSyncing}
-              style={{ visibility: 'hidden' }}
-            />
-          }
+          refreshing={isSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>
@@ -308,13 +282,12 @@ export default function Index() {
             </CardView>
             <Space gap={8} />
           </SafeContainer>
-        </AnimatedScrollView>
+        </RefreshableScrollView>
         <FloatingHeader
           label={`${general.year}-${general.semester}학기`}
           scrollY={scrollY}
           title="채플"
         />
-        <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
       </View>
     </>
   );
