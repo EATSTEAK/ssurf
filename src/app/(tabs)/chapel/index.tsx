@@ -24,6 +24,7 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const styles = StyleSheet.create((theme) => ({
   root: {
     width: '100%',
+    height: '100%',
     backgroundColor: theme.colors.surface,
     position: 'relative',
   },
@@ -136,18 +137,24 @@ export default function Index() {
 
   if (!general) {
     return (
-      <SafeAreaView style={styles.scrollView}>
-        <View style={styles.titleContainer}>
-          <SsurfLined height={32} width={32} />
-          <ThemedText typography="heading3xl">채플</ThemedText>
-        </View>
-        <Space gap={1} />
-        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <ThemedText typography="bodyLg">
-            정보를 가져오는 중이에요. 잠시만 기다려주세요.
-          </ThemedText>
-        </View>
-      </SafeAreaView>
+      <View style={styles.root}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.topView}>
+            <View style={styles.titleContainer}>
+              <SsurfLined height={32} width={32} />
+              <ThemedText typography="heading3xl">채플</ThemedText>
+            </View>
+          </View>
+          <Space gap={1} />
+          <View
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}
+          >
+            <ThemedText typography="bodyLg">
+              정보를 가져오는 중이에요. 잠시만 기다려주세요.
+            </ThemedText>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
