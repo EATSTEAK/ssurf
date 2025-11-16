@@ -54,15 +54,19 @@ export const Attendance = ({ attendance }: { attendance: ChapelAttendanceDto }) 
   return (
     <View key={attendance.date} style={styles.container}>
       <View style={styles.categoryContainer}>
-        <ThemedText color="fgSurfaceDim" typography="labelMd">
-          {attendance.category}
-        </ThemedText>
-        <ThemedText color="fgSurfaceDim" style={{ flexGrow: 1 }} typography="headingMd">
-          {`${attendance.instructor} ${attendance.instructorDepartment}`.trim()}
-        </ThemedText>
-        <ThemedText color="fgSuccessContainer" style={styles.chip} typography="labelMd">
-          {attendance.date} / {attendance.attendance || '미결'}
-        </ThemedText>
+        <View>
+          <ThemedText color="fgSurfaceDim" typography="labelMd">
+            {attendance.category}
+          </ThemedText>
+          <ThemedText color="fgSurfaceDim" typography="headingMd">
+            {`${attendance.instructor} ${attendance.instructorDepartment}`.trim()}
+          </ThemedText>
+        </View>
+        <View style={{ flexGrow: 1 }}>
+          <ThemedText color="fgSuccessContainer" style={styles.chip} typography="labelMd">
+            {attendance.date} / {attendance.attendance || '미결'}
+          </ThemedText>
+        </View>
       </View>
     </View>
   );

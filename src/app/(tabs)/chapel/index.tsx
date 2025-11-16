@@ -1,5 +1,8 @@
 import { SemesterType } from '@rusaint/react-native';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { Image } from 'expo-image';
+import { useNavigation } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Platform, RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -8,16 +11,24 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
+import errorImage from '@/assets/error.png';
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
 import { FloatingHeader } from '@/components/FloatingHeader';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
+import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
 import { RefreshHeader } from '@/components/RefreshHeader';
+import { SemesterSelector } from '@/components/SemesterSelector';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
 import { SsurfLined } from '@/icons/SsurfLined';
+import {
+  constructSemesters,
+  getEstimatedCurrentSemester,
+  semesterToString,
+} from '@/utils/semester';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -91,10 +102,24 @@ const doorDirection = (floor: number, seat: string) => {
   }
 };
 
+const RUSAINT_NO_CHAPEL =
+  'RusaintError.General: Error from application: No chapel information provided';
+
 export default function Index() {
-  const { sync: syncChapel, isSyncing } = useSyncChapel();
-  const { data: general } = useGeneralChapelInformation(2025, SemesterType.Two);
-  const { data: attendances } = useChapelAttendances(2025, SemesterType.Two);
+  const { defaultChapelSemester } = useRusaintApplication();
+  const defaultSemester = defaultChapelSemester ?? getEstimatedCurrentSemester();
+  const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
+
+  const { sync: syncChapel, isSyncing, error } = useSyncChapel();
+  const { data: general } = useGeneralChapelInformation(
+    selectedSemester.year,
+    selectedSemester.semester,
+  );
+  const { data: attendances } = useChapelAttendances(
+    selectedSemester.year,
+    selectedSemester.semester,
+  );
+  const navigation = useNavigation();
 
   const scrollY = useSharedValue(0);
   const pullDistance = useSharedValue(0);
@@ -107,8 +132,14 @@ export default function Index() {
   const passable = totalAttendances - absentCount >= requiredAttendances;
 
   const handleRefresh = () => {
-    syncChapel([2025, SemesterType.Two], { force: true });
+    syncChapel([selectedSemester.year, selectedSemester.semester], { force: true });
   };
+
+  useEffect(() => {
+    if (selectedSemester) {
+      syncChapel([selectedSemester.year, selectedSemester.semester]);
+    }
+  }, [selectedSemester, syncChapel]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -128,6 +159,7 @@ export default function Index() {
     return (
       <View style={styles.root}>
         <SafeAreaView style={styles.container}>
+          {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
             <View style={styles.titleContainer}>
               <SsurfLined height={32} width={32} />
@@ -136,16 +168,67 @@ export default function Index() {
           </View>
           <Space gap={1} />
           <View
-            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flex: 1,
+              gap: 16,
+              marginBottom: 96,
+            }}
           >
-            <ThemedText typography="bodyLg">
-              정보를 가져오는 중이에요. 잠시만 기다려주세요.
-            </ThemedText>
+            {error ? (
+              error.message === RUSAINT_NO_CHAPEL ? (
+                <>
+                  <ThemedText typography="headingLg">선택한 학기의 채플 정보가 없어요.</ThemedText>
+                  <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
+                </>
+              ) : (
+                <>
+                  <Image
+                    source={errorImage}
+                    style={{ width: 150, height: 150, marginBottom: 16 }}
+                  />
+                  <ThemedText color="error" typography="headingLg">
+                    정보를 가져오는 중 오류가 발생했어요
+                  </ThemedText>
+                  <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
+                  <ThemedText typography="bodySm">{error.message}</ThemedText>
+                </>
+              )
+            ) : (
+              <ThemedText typography="bodyLg">
+                정보를 가져오는 중이에요. 잠시만 기다려주세요.
+              </ThemedText>
+            )}
           </View>
         </SafeAreaView>
       </View>
     );
   }
+
+  const semesters = constructSemesters(defaultSemester.year - 4, defaultSemester.year, [
+    SemesterType.Two,
+    SemesterType.One,
+  ]);
+
+  navigation.setOptions({
+    headerShown: true,
+    headerTransparent: true,
+    title: '채플',
+    headerTitle: () => <></>,
+    headerRight: () => (
+      <SemesterSelector
+        onChange={(index) => setSelectedSemester(semesters[index])}
+        selectedIndex={semesters.findIndex(
+          (semester) =>
+            semester.year === selectedSemester.year &&
+            semester.semester === selectedSemester.semester,
+        )}
+        semesters={semesters}
+      />
+    ),
+  });
 
   return (
     <View style={styles.root}>
@@ -162,14 +245,13 @@ export default function Index() {
         scrollEventThrottle={16}
       >
         <SafeAreaView style={styles.container}>
+          {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
             <View style={styles.titleContainer}>
               <SsurfLined height={32} width={32} />
               <ThemedText typography="heading3xl">채플</ThemedText>
             </View>
-            <ThemedText typography="labelMd">
-              {general.year}-{general.semester}학기
-            </ThemedText>
+            <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
             <Space gap={1} />
             <View>
               {attendanceLeft <= 0 ? (

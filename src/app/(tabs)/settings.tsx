@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { Platform, RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -13,6 +13,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import packageJson from '@/../package.json';
 import { FloatingHeader } from '@/components/FloatingHeader';
 import { ActionList, ActionListItem } from '@/components/primitives/ActionList';
+import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
 import { RefreshHeader } from '@/components/RefreshHeader';
@@ -117,6 +118,7 @@ export default function Index() {
         scrollEventThrottle={16}
       >
         <SafeAreaView style={styles.container}>
+          {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
             <View style={styles.headerView}>
               <SsurfLined height={32} width={32} />

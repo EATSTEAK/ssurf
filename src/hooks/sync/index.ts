@@ -35,6 +35,11 @@ export interface UseSyncDataParams<TClient, TArgs extends unknown[]> {
 
 export interface UseSyncDataReturn<TArgs extends unknown[]> {
   /**
+   * 동기화 중 발생한 에러
+   */
+  error: Error | undefined;
+
+  /**
    * 동기화 중인지 여부
    */
   isSyncing: boolean;
@@ -75,13 +80,19 @@ export const useSyncData = <TClient, TArgs extends unknown[]>({
   options,
 }: UseSyncDataParams<TClient, TArgs>): UseSyncDataReturn<TArgs> => {
   const ttlMs = options?.ttlMs ?? 1000 * 60 * 60;
-  const { isSyncing: getIsSyncing, setIsSyncing: setStoreSyncing } = useSyncStore();
+  const {
+    isSyncing: getIsSyncing,
+    setIsSyncing: setStoreSyncing,
+    getError,
+    setError,
+  } = useSyncStore();
 
   // 임시 cacheKey를 저장하기 위한 state (args가 전달되기 전까지는 알 수 없음)
   const [lastResolvedKey, setLastResolvedKey] = useState<null | string>(null);
 
   // 현재 cacheKey의 동기화 상태를 구독
   const isSyncing = lastResolvedKey ? getIsSyncing(lastResolvedKey) : false;
+  const error = lastResolvedKey ? getError(lastResolvedKey) : undefined;
 
   const sync = async (args: TArgs, options?: SyncFunctionOptions) => {
     const force = options?.force ?? false;
@@ -89,6 +100,17 @@ export const useSyncData = <TClient, TArgs extends unknown[]>({
 
     // cacheKey 추적
     setLastResolvedKey(resolvedCacheKey);
+
+    // force가 true인 경우에만 에러 상태를 초기화
+    if (force) {
+      setError(resolvedCacheKey, undefined);
+    }
+
+    // 이전에 에러가 발생했고 force가 아닌 경우 재시도하지 않음
+    const existingError = getError(resolvedCacheKey);
+    if (existingError && !force) {
+      return;
+    }
 
     const cache = await db.query.cache.findFirst({
       where: (cache, { eq }) => eq(cache.key, resolvedCacheKey),
@@ -101,9 +123,11 @@ export const useSyncData = <TClient, TArgs extends unknown[]>({
         setStoreSyncing(resolvedCacheKey, true);
         try {
           await syncFn(client, ...args);
+          // 성공 시 에러 상태 초기화
+          setError(resolvedCacheKey, undefined);
         } catch (error) {
-          console.error('Error during data sync:', error);
-          throw error;
+          // 에러를 store에 저장
+          setError(resolvedCacheKey, error instanceof Error ? error : new Error(String(error)));
         } finally {
           setStoreSyncing(resolvedCacheKey, false);
         }
@@ -111,5 +135,5 @@ export const useSyncData = <TClient, TArgs extends unknown[]>({
     }
   };
 
-  return { isSyncing, sync };
+  return { error, isSyncing, sync };
 };
