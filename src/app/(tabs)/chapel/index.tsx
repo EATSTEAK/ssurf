@@ -48,23 +48,12 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.gap(3),
   },
   titleContainer: { display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' },
-  seatView: {
+  cardView: {
     display: 'flex',
     gap: theme.gap(1),
     flexDirection: 'column',
     backgroundColor: theme.colors.surfaceDim,
     padding: theme.gap(3),
-  },
-  attendanceView: {
-    display: 'flex',
-    flexDirection: 'column',
-    backgroundColor: theme.colors.surfaceDim,
-    padding: theme.gap(3),
-    gap: theme.gap(1),
-  },
-  attendanceList: {
-    display: 'flex',
-    flexDirection: 'column',
   },
   bottomView: {
     width: '100%',
@@ -216,7 +205,7 @@ export default function Index() {
               <ThemedText typography="bodyLg">{general.time}</ThemedText>
             </View>
           </View>
-          <View style={styles.seatView}>
+          <View style={styles.cardView}>
             <ThemedText typography="headingLg">좌석 정보</ThemedText>
             <ThemedText typography="heading3xl">
               {general.floor}F / {general.seat}
@@ -236,7 +225,7 @@ export default function Index() {
               seat={general.seat as `${string}-${number}-${number}`}
             />
           </View>
-          <View style={styles.attendanceView}>
+          <View style={styles.cardView}>
             <ThemedText typography="headingLg">출석 정보</ThemedText>
             <Space gap={0} />
             {attendances &&
