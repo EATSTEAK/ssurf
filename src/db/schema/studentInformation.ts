@@ -14,7 +14,6 @@ export const studentInformation = sqliteTable(
     division: t.text(),
     grade: t.integer().notNull(),
     term: t.integer().notNull(),
-    image: t.blob().notNull(),
     alias: t.text(),
     kanjiName: t.text(),
     email: t.text(),

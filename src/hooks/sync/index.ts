@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { db } from '@/db';
+import { useSyncStore } from '@/stores/syncStore';
 
 export interface SyncFunctionOptions {
   force?: boolean;
@@ -74,22 +75,37 @@ export const useSyncData = <TClient, TArgs extends unknown[]>({
   options,
 }: UseSyncDataParams<TClient, TArgs>): UseSyncDataReturn<TArgs> => {
   const ttlMs = options?.ttlMs ?? 1000 * 60 * 60;
-  const [isSyncing, setIsSyncing] = useState(false);
+  const { isSyncing: getIsSyncing, setIsSyncing: setStoreSyncing } = useSyncStore();
+
+  // 임시 cacheKey를 저장하기 위한 state (args가 전달되기 전까지는 알 수 없음)
+  const [lastResolvedKey, setLastResolvedKey] = useState<null | string>(null);
+
+  // 현재 cacheKey의 동기화 상태를 구독
+  const isSyncing = lastResolvedKey ? getIsSyncing(lastResolvedKey) : false;
 
   const sync = async (args: TArgs, options?: SyncFunctionOptions) => {
     const force = options?.force ?? false;
     const resolvedCacheKey = typeof cacheKey === 'function' ? cacheKey(args) : cacheKey;
+
+    // cacheKey 추적
+    setLastResolvedKey(resolvedCacheKey);
+
     const cache = await db.query.cache.findFirst({
       where: (cache, { eq }) => eq(cache.key, resolvedCacheKey),
     });
     const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
+
     if (shouldRequest) {
-      if (client && !isSyncing) {
-        setIsSyncing(true);
+      const currentSyncing = getIsSyncing(resolvedCacheKey);
+      if (client && !currentSyncing) {
+        setStoreSyncing(resolvedCacheKey, true);
         try {
           await syncFn(client, ...args);
+        } catch (error) {
+          console.error('Error during data sync:', error);
+          throw error;
         } finally {
-          setIsSyncing(false);
+          setStoreSyncing(resolvedCacheKey, false);
         }
       }
     }

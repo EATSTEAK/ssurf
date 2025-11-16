@@ -6,7 +6,7 @@ import { useUnistyles } from 'react-native-unistyles';
 export default function TabsLayout() {
   const { theme } = useUnistyles();
   return (
-    <NativeTabs tintColor={theme.colors.primary}>
+    <NativeTabs backgroundColor={theme.colors.surfaceDim} tintColor={theme.colors.primary}>
       <NativeTabs.Trigger name="chapel/index">
         <Label>채플</Label>
         {Platform.select({

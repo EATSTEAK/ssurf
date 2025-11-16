@@ -1,0 +1,1 @@
+ALTER TABLE `student_information` DROP COLUMN `image`;

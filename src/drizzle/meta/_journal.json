@@ -43,6 +43,13 @@
       "when": 1763236311567,
       "tag": "0005_foamy_goliath",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1763241580773,
+      "tag": "0006_calm_wasp",
+      "breakpoints": true
     }
   ]
 }
