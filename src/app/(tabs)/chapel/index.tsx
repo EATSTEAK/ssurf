@@ -1,6 +1,6 @@
 import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
-import { useNavigation } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
@@ -11,7 +11,9 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
+import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
+import loadingImage from '@/assets/loading.png';
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
@@ -119,7 +121,6 @@ export default function Index() {
     selectedSemester.year,
     selectedSemester.semester,
   );
-  const navigation = useNavigation();
 
   const scrollY = useSharedValue(0);
   const pullDistance = useSharedValue(0);
@@ -165,6 +166,7 @@ export default function Index() {
               <SsurfLined height={32} width={32} />
               <ThemedText typography="heading3xl">채플</ThemedText>
             </View>
+            <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
           </View>
           <Space gap={1} />
           <View
@@ -180,26 +182,38 @@ export default function Index() {
             {error ? (
               error.message === RUSAINT_NO_CHAPEL ? (
                 <>
+                  <Image
+                    contentFit="contain"
+                    source={emptyImage}
+                    style={{ width: 150, height: 150, marginBottom: 16 }}
+                  />
                   <ThemedText typography="headingLg">선택한 학기의 채플 정보가 없어요.</ThemedText>
                   <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
                 </>
               ) : (
                 <>
                   <Image
+                    contentFit="contain"
                     source={errorImage}
                     style={{ width: 150, height: 150, marginBottom: 16 }}
                   />
                   <ThemedText color="error" typography="headingLg">
-                    정보를 가져오는 중 오류가 발생했어요
+                    정보를 가져오는 중 오류가 발생했어요.
                   </ThemedText>
                   <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
                   <ThemedText typography="bodySm">{error.message}</ThemedText>
                 </>
               )
             ) : (
-              <ThemedText typography="bodyLg">
-                정보를 가져오는 중이에요. 잠시만 기다려주세요.
-              </ThemedText>
+              <>
+                <Image
+                  contentFit="contain"
+                  source={loadingImage}
+                  style={{ width: 150, height: 150, marginBottom: 16 }}
+                />
+                <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
+                <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
+              </>
             )}
           </View>
         </SafeAreaView>
@@ -212,118 +226,122 @@ export default function Index() {
     SemesterType.One,
   ]);
 
-  navigation.setOptions({
-    headerShown: true,
-    headerTransparent: true,
-    title: '채플',
-    headerTitle: () => <></>,
-    headerRight: () => (
-      <SemesterSelector
-        onChange={(index) => setSelectedSemester(semesters[index])}
-        selectedIndex={semesters.findIndex(
-          (semester) =>
-            semester.year === selectedSemester.year &&
-            semester.semester === selectedSemester.semester,
-        )}
-        semesters={semesters}
-      />
-    ),
-  });
-
   return (
-    <View style={styles.root}>
-      <AnimatedScrollView
-        contentContainerStyle={styles.scrollView}
-        onScroll={scrollHandler}
-        refreshControl={
-          <RefreshControl
-            onRefresh={handleRefresh}
-            refreshing={isSyncing}
-            style={{ visibility: 'hidden' }}
-          />
-        }
-        scrollEventThrottle={16}
-      >
-        <SafeAreaView style={styles.container}>
-          {Platform.OS === 'ios' && <Space gap={2} />}
-          <View style={styles.topView}>
-            <View style={styles.titleContainer}>
-              <SsurfLined height={32} width={32} />
-              <ThemedText typography="heading3xl">채플</ThemedText>
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          headerTransparent: true,
+          title: '채플',
+          headerTitle: () => <></>,
+          headerRight: () => (
+            <SemesterSelector
+              onChange={(index) => setSelectedSemester(semesters[index])}
+              selectedIndex={semesters.findIndex(
+                (semester) =>
+                  semester.year === selectedSemester.year &&
+                  semester.semester === selectedSemester.semester,
+              )}
+              semesters={semesters}
+            />
+          ),
+        }}
+      />
+
+      <View style={styles.root}>
+        <AnimatedScrollView
+          contentContainerStyle={styles.scrollView}
+          onScroll={scrollHandler}
+          refreshControl={
+            <RefreshControl
+              onRefresh={handleRefresh}
+              refreshing={isSyncing}
+              style={{ visibility: 'hidden' }}
+            />
+          }
+          scrollEventThrottle={16}
+        >
+          <SafeAreaView style={styles.container}>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.topView}>
+              <View style={styles.titleContainer}>
+                <SsurfLined height={32} width={32} />
+                <ThemedText typography="heading3xl">채플</ThemedText>
+              </View>
+              <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
+              <Space gap={1} />
+              <View>
+                {attendanceLeft <= 0 ? (
+                  <ThemedText color="fgPrimary" typography="headingXl">
+                    축하해요! 이번 학기 PASS했어요!
+                  </ThemedText>
+                ) : passable ? (
+                  <ThemedText typography="headingXl">
+                    <ThemedText color="successInverted" typography="headingXl">
+                      {attendanceLeft}회
+                    </ThemedText>{' '}
+                    더 출석해야 PASS할 수 있어요
+                  </ThemedText>
+                ) : (
+                  <ThemedText typography="headingXl">
+                    아쉽지만 이번 학기에는 PASS할 수 없어요
+                  </ThemedText>
+                )}
+                <Space gap={1} />
+                <ChapelProgress
+                  attendanceLeft={attendanceLeft}
+                  attendedArray={
+                    attendances
+                      ?.filter((a) => a.attendance !== '')
+                      .map((a) => a.attendance === '출석') || []
+                  }
+                  totalAttendances={totalAttendances}
+                />
+                <ThemedText style={{ alignSelf: 'flex-end' }}>
+                  {attendedCount}/{totalAttendances} 출석{' '}
+                  {absentCount > 0 ? `/ 결석 ${absentCount}회` : ''}
+                </ThemedText>
+                <ThemedText typography="bodyLg">{general.time}</ThemedText>
+              </View>
             </View>
-            <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
-            <Space gap={1} />
-            <View>
-              {attendanceLeft <= 0 ? (
-                <ThemedText color="fgPrimary" typography="headingXl">
-                  축하해요! 이번 학기 PASS했어요!
-                </ThemedText>
-              ) : passable ? (
-                <ThemedText typography="headingXl">
-                  <ThemedText color="successInverted" typography="headingXl">
-                    {attendanceLeft}회
-                  </ThemedText>{' '}
-                  더 출석해야 PASS할 수 있어요
-                </ThemedText>
-              ) : (
-                <ThemedText typography="headingXl">
-                  아쉽지만 이번 학기에는 PASS할 수 없어요
+            <View style={styles.cardView}>
+              <ThemedText typography="headingLg">좌석 정보</ThemedText>
+              <ThemedText typography="heading3xl">
+                {general.floor}F / {general.seat}
+              </ThemedText>
+              {general.floor && general.seat && doorDirection(general.floor, general.seat) && (
+                <ThemedText typography="headingMd">
+                  {general.floor}층{' '}
+                  <ThemedText color="primaryInverted" typography="bodyLg">
+                    {doorDirection(general.floor, general.seat)}
+                  </ThemedText>
+                  으로 들어가세요.
                 </ThemedText>
               )}
-              <Space gap={1} />
-              <ChapelProgress
-                attendanceLeft={attendanceLeft}
-                attendedArray={
-                  attendances
-                    ?.filter((a) => a.attendance !== '')
-                    .map((a) => a.attendance === '출석') || []
-                }
-                totalAttendances={totalAttendances}
-              />
-              <ThemedText style={{ alignSelf: 'flex-end' }}>
-                {attendedCount}/{totalAttendances} 출석{' '}
-                {absentCount > 0 ? `/ 결석 ${absentCount}회` : ''}
-              </ThemedText>
-              <ThemedText typography="bodyLg">{general.time}</ThemedText>
-            </View>
-          </View>
-          <View style={styles.cardView}>
-            <ThemedText typography="headingLg">좌석 정보</ThemedText>
-            <ThemedText typography="heading3xl">
-              {general.floor}F / {general.seat}
-            </ThemedText>
-            {general.floor && general.seat && doorDirection(general.floor, general.seat) && (
-              <ThemedText typography="headingMd">
-                {general.floor}층{' '}
-                <ThemedText color="primaryInverted" typography="bodyLg">
-                  {doorDirection(general.floor, general.seat)}
-                </ThemedText>
-                으로 들어가세요.
-              </ThemedText>
-            )}
 
-            <ChapelSeatmapView
-              floor={(general.floor ?? 1) as 1 | 2 | 3}
-              seat={general.seat as `${string}-${number}-${number}`}
-            />
-          </View>
-          <View style={styles.cardView}>
-            <ThemedText typography="headingLg">출석 정보</ThemedText>
-            <Space gap={0} />
-            {attendances &&
-              attendances.map((attendance) => (
-                <Attendance attendance={attendance} key={attendance.date} />
-              ))}
-          </View>
-          <Space gap={8} />
-        </SafeAreaView>
-      </AnimatedScrollView>
-      <FloatingHeader
-        label={`${general.year}-${general.semester}학기`}
-        scrollY={scrollY}
-        title="채플"
-      />
-      <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
-    </View>
+              <ChapelSeatmapView
+                floor={(general.floor ?? 1) as 1 | 2 | 3}
+                seat={general.seat as `${string}-${number}-${number}`}
+              />
+            </View>
+            <View style={styles.cardView}>
+              <ThemedText typography="headingLg">출석 정보</ThemedText>
+              <Space gap={0} />
+              {attendances &&
+                attendances.map((attendance) => (
+                  <Attendance attendance={attendance} key={attendance.date} />
+                ))}
+            </View>
+            <Space gap={8} />
+          </SafeAreaView>
+        </AnimatedScrollView>
+        <FloatingHeader
+          label={`${general.year}-${general.semester}학기`}
+          scrollY={scrollY}
+          title="채플"
+        />
+        <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
+      </View>
+    </>
   );
 }
