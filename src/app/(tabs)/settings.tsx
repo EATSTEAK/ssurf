@@ -1,6 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
+import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -11,6 +12,7 @@ import { SafeContainer } from '@/components/containers/Container';
 import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/components/headers/FloatingHeader';
 import { Header } from '@/components/headers/Header';
+import { LogoutModal } from '@/components/LogoutModal';
 import { ActionList, ActionListItem } from '@/components/primitives/ActionList';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
@@ -47,6 +49,7 @@ export default function Index() {
   const { sync, isSyncing } = useSyncStudentInformation();
   const { data: info } = useStudentInformation();
   const scrollY = useSharedValue(0);
+  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -89,7 +92,7 @@ export default function Index() {
                     tintColor={styles.actionListSymbol.color}
                   />
                 }
-                onPress={logout}
+                onPress={() => setIsLogoutModalVisible(true)}
               >
                 <ThemedText typography="bodyLg">로그아웃</ThemedText>
               </ActionListItem>
@@ -127,6 +130,11 @@ export default function Index() {
         </SafeContainer>
       </RefreshableScrollView>
       <FloatingHeader scrollY={scrollY} title="설정" />
+      <LogoutModal
+        onClose={() => setIsLogoutModalVisible(false)}
+        onLogout={logout}
+        visible={isLogoutModalVisible}
+      />
     </View>
   );
 }
