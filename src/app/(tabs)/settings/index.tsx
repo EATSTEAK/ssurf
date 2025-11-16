@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { Platform, RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -19,8 +19,9 @@ import { useStudentInformation } from '@/hooks/studentInformation/studentInforma
 import { useSyncStudentInformation } from '@/hooks/sync/useSyncStudentInformation';
 import { SsurfLined } from '@/icons/SsurfLined';
 import { REV } from '@/index';
+import { paletteHex } from '@/unistyles';
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
     justifyContent: 'flex-start',
@@ -57,7 +58,10 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
   },
   profileSymbol: {
-    color: theme.colors.fgPrimary,
+    color: rt.colorScheme === 'dark' ? paletteHex.sand50 : paletteHex.sand950,
+  },
+  actionListSymbol: {
+    color: rt.colorScheme === 'dark' ? paletteHex.sand200 : paletteHex.sand800,
   },
   cardView: {
     backgroundColor: theme.colors.surfaceDim,
@@ -108,16 +112,18 @@ export default function Index() {
           {info && (
             <View style={styles.profileView}>
               <View style={styles.profileIcon}>
-                {Platform.select({
-                  ios: <SymbolView colors={styles.profileSymbol.color} name="person" size={32} />,
-                  android: (
+                <SymbolView
+                  fallback={
                     <MaterialCommunityIcons
                       color={styles.profileSymbol.color}
                       name="account"
                       size={32}
                     />
-                  ),
-                })}
+                  }
+                  name="person"
+                  size={32}
+                  tintColor={styles.profileSymbol.color}
+                />
               </View>
               <View>
                 <ThemedText typography="headingXl">{info.name}</ThemedText>
@@ -133,9 +139,16 @@ export default function Index() {
               <ActionListItem
                 icon={
                   <SymbolView
-                    colors={styles.cardView.backgroundColor}
+                    fallback={
+                      <MaterialCommunityIcons
+                        color={styles.actionListSymbol.color}
+                        name="logout"
+                        size={24}
+                      />
+                    }
                     name="rectangle.portrait.and.arrow.right"
                     size={24}
+                    tintColor={styles.actionListSymbol.color}
                   />
                 }
                 onPress={logout}
