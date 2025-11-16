@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
 import packageJson from '@/../package.json';
+import { FloatingHeader } from '@/components/FloatingHeader';
 import { ActionList, ActionListItem } from '@/components/primitives/ActionList';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
@@ -188,6 +189,7 @@ export default function Index() {
           </View>
         </AnimatedScrollView>
       </SafeAreaView>
+      <FloatingHeader scrollY={scrollY} title="설정" />
       <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
     </View>
   );
