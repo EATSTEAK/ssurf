@@ -1,5 +1,6 @@
 import { SemesterType } from '@rusaint/react-native';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { useNavigation } from 'expo-router';
+import { Platform, RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -95,6 +96,7 @@ export default function Index() {
   const { sync: syncChapel, isSyncing } = useSyncChapel();
   const { data: general } = useGeneralChapelInformation(2025, SemesterType.Two);
   const { data: attendances } = useChapelAttendances(2025, SemesterType.Two);
+  const navigation = useNavigation();
 
   const scrollY = useSharedValue(0);
   const pullDistance = useSharedValue(0);
@@ -128,6 +130,7 @@ export default function Index() {
     return (
       <View style={styles.root}>
         <SafeAreaView style={styles.container}>
+          {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
             <View style={styles.titleContainer}>
               <SsurfLined height={32} width={32} />
@@ -147,6 +150,13 @@ export default function Index() {
     );
   }
 
+  navigation.setOptions({
+    headerShown: true,
+    headerTransparent: true,
+    title: '채플',
+    headerTitle: () => <></>,
+  });
+
   return (
     <View style={styles.root}>
       <AnimatedScrollView
@@ -162,6 +172,7 @@ export default function Index() {
         scrollEventThrottle={16}
       >
         <SafeAreaView style={styles.container}>
+          {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
             <View style={styles.titleContainer}>
               <SsurfLined height={32} width={32} />
