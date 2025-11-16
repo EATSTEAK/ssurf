@@ -1,5 +1,6 @@
 import { SemesterType } from '@rusaint/react-native';
 import { useNavigation } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
@@ -15,10 +16,17 @@ import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
 import { FloatingHeader } from '@/components/FloatingHeader';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
+import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
 import { RefreshHeader } from '@/components/RefreshHeader';
+import { SemesterSelector } from '@/components/SemesterSelector';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
 import { SsurfLined } from '@/icons/SsurfLined';
+import {
+  constructSemesters,
+  getEstimatedCurrentSemester,
+  semesterToString,
+} from '@/utils/semester';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -93,9 +101,19 @@ const doorDirection = (floor: number, seat: string) => {
 };
 
 export default function Index() {
+  const { defaultChapelSemester } = useRusaintApplication();
+  const defaultSemester = defaultChapelSemester ?? getEstimatedCurrentSemester();
+  const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
+
   const { sync: syncChapel, isSyncing } = useSyncChapel();
-  const { data: general } = useGeneralChapelInformation(2025, SemesterType.Two);
-  const { data: attendances } = useChapelAttendances(2025, SemesterType.Two);
+  const { data: general } = useGeneralChapelInformation(
+    selectedSemester.year,
+    selectedSemester.semester,
+  );
+  const { data: attendances } = useChapelAttendances(
+    selectedSemester.year,
+    selectedSemester.semester,
+  );
   const navigation = useNavigation();
 
   const scrollY = useSharedValue(0);
@@ -109,8 +127,14 @@ export default function Index() {
   const passable = totalAttendances - absentCount >= requiredAttendances;
 
   const handleRefresh = () => {
-    syncChapel([2025, SemesterType.Two], { force: true });
+    syncChapel([selectedSemester.year, selectedSemester.semester], { force: true });
   };
+
+  useEffect(() => {
+    if (selectedSemester) {
+      syncChapel([selectedSemester.year, selectedSemester.semester]);
+    }
+  }, [selectedSemester, syncChapel]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -150,11 +174,27 @@ export default function Index() {
     );
   }
 
+  const semesters = constructSemesters(defaultSemester.year - 4, defaultSemester.year, [
+    SemesterType.Two,
+    SemesterType.One,
+  ]);
+
   navigation.setOptions({
     headerShown: true,
     headerTransparent: true,
     title: '채플',
     headerTitle: () => <></>,
+    headerRight: () => (
+      <SemesterSelector
+        onChange={(index) => setSelectedSemester(semesters[index])}
+        selectedIndex={semesters.findIndex(
+          (semester) =>
+            semester.year === selectedSemester.year &&
+            semester.semester === selectedSemester.semester,
+        )}
+        semesters={semesters}
+      />
+    ),
   });
 
   return (
@@ -178,9 +218,7 @@ export default function Index() {
               <SsurfLined height={32} width={32} />
               <ThemedText typography="heading3xl">채플</ThemedText>
             </View>
-            <ThemedText typography="labelMd">
-              {general.year}-{general.semester}학기
-            </ThemedText>
+            <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
             <Space gap={1} />
             <View>
               {attendanceLeft <= 0 ? (
