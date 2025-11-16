@@ -189,13 +189,17 @@ export default function Index() {
                 </ThemedText>
               ) : passable ? (
                 <ThemedText typography="headingXl">
-                  {attendanceLeft}회 더 출석해야 PASS할 수 있어요
+                  <ThemedText color="successInverted" typography="headingXl">
+                    {attendanceLeft}회
+                  </ThemedText>{' '}
+                  더 출석해야 PASS할 수 있어요
                 </ThemedText>
               ) : (
                 <ThemedText typography="headingXl">
                   아쉽지만 이번 학기에는 PASS할 수 없어요
                 </ThemedText>
               )}
+              <Space gap={1} />
               <ChapelProgress
                 attendanceLeft={attendanceLeft}
                 attendedArray={
