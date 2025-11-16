@@ -11,6 +11,7 @@ import {
   ScholarshipsApplicationInterface,
   StudentInformationApplicationBuilder,
   StudentInformationApplicationInterface,
+  YearSemester,
 } from '@rusaint/react-native';
 import { createContext, useContext, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
@@ -19,6 +20,8 @@ import { useRusaintSession } from '@/components/providers/RusaintSessionProvider
 export interface RusaintApplicationContext {
   chapelClient: ChapelApplicationInterface | null;
   courseScheduleClient: CourseScheduleApplicationInterface | null;
+  defaultChapelSemester: null | YearSemester;
+  defaultGradesSemester: null | YearSemester;
   gradesClient: CourseGradesApplicationInterface | null;
   graduationRequirementsClient: GraduationRequirementsApplicationInterface | null;
   scholarshipsClient: null | ScholarshipsApplicationInterface;
@@ -28,6 +31,8 @@ export interface RusaintApplicationContext {
 const RusaintApplicationContext = createContext<RusaintApplicationContext>({
   chapelClient: null,
   courseScheduleClient: null,
+  defaultChapelSemester: null,
+  defaultGradesSemester: null,
   gradesClient: null,
   graduationRequirementsClient: null,
   scholarshipsClient: null,
@@ -47,6 +52,8 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
     useState<null | ScholarshipsApplicationInterface>(null);
   const [studentInformationClient, setStudentInformationClient] =
     useState<null | StudentInformationApplicationInterface>(null);
+  const [defaultChapelSemester, setDefaultChapelSemester] = useState<null | YearSemester>(null);
+  const [defaultGradesSemester, setDefaultGradesSemester] = useState<null | YearSemester>(null);
 
   useAsyncEffect(async () => {
     if (!session) {
@@ -54,8 +61,10 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
     }
     // NOTE: 각 애플리케이션을 생성하는 것은 서버(u-saint) 입장에서 탭을 하나 띄우는 것과 동일하므로, 동시에 요청하지 않고 순차적으로 요청해요
     const chapel = await new ChapelApplicationBuilder().build(session);
+    setDefaultChapelSemester(await chapel.getSelectedSemester());
     const courseSchedule = await new CourseScheduleApplicationBuilder().build(session);
     const grades = await new CourseGradesApplicationBuilder().build(session);
+    setDefaultGradesSemester(await grades.getSelectedSemester());
     const graduationRequirements = await new GraduationRequirementsApplicationBuilder().build(
       session,
     );
@@ -74,6 +83,8 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
       value={{
         chapelClient,
         courseScheduleClient,
+        defaultChapelSemester,
+        defaultGradesSemester,
         gradesClient,
         graduationRequirementsClient,
         scholarshipsClient,
