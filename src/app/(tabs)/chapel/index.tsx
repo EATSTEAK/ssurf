@@ -213,7 +213,7 @@ export default function Index() {
             </View>
           </View>
           <View style={styles.seatView}>
-            <ThemedText typography="headingMd">좌석 정보</ThemedText>
+            <ThemedText typography="headingLg">좌석 정보</ThemedText>
             <ThemedText typography="heading3xl">
               {general.floor}F / {general.seat}
             </ThemedText>
@@ -233,7 +233,7 @@ export default function Index() {
             />
           </View>
           <View style={styles.attendanceView}>
-            <ThemedText typography="headingMd">출석 정보</ThemedText>
+            <ThemedText typography="headingLg">출석 정보</ThemedText>
             <Space gap={0} />
             {attendances &&
               attendances.map((attendance) => (
