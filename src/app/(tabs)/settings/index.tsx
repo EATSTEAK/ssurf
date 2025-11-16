@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
 import packageJson from '@/../package.json';
+import { FloatingHeader } from '@/components/FloatingHeader';
 import { ActionList, ActionListItem } from '@/components/primitives/ActionList';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
@@ -22,32 +23,42 @@ import { REV } from '@/index';
 import { paletteHex } from '@/unistyles';
 
 const styles = StyleSheet.create((theme, rt) => ({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: theme.gap(2),
+  root: {
     width: '100%',
-    position: 'relative',
+    height: '100%',
     backgroundColor: theme.colors.surface,
+    position: 'relative',
   },
   scrollView: {
     gap: theme.gap(2),
     backgroundColor: theme.colors.surface,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  container: {
+    flex: 1,
+    gap: theme.gap(2),
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+  },
+  topView: {
+    width: '100%',
+    display: 'flex',
+    gap: theme.gap(3),
+    flexDirection: 'column',
+    padding: theme.gap(3),
   },
   headerView: {
     display: 'flex',
     gap: theme.gap(1),
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.gap(2),
   },
   profileView: {
     display: 'flex',
     gap: theme.gap(1),
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.gap(2),
   },
   profileIcon: {
     width: 64,
@@ -65,9 +76,10 @@ const styles = StyleSheet.create((theme, rt) => ({
   },
   cardView: {
     backgroundColor: theme.colors.surfaceDim,
-    padding: theme.gap(2),
+    padding: theme.gap(3),
     gap: theme.gap(2),
   },
+  infoView: { display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' },
 }));
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
@@ -97,42 +109,44 @@ export default function Index() {
     await sync([], { force: true });
   };
   return (
-    <View style={{ flex: 1, position: 'relative' }}>
-      <SafeAreaView style={styles.container}>
-        <AnimatedScrollView
-          contentContainerStyle={styles.scrollView}
-          onScroll={scrollHandler}
-          refreshControl={<RefreshControl onRefresh={onRefresh} refreshing={isSyncing} />}
-          scrollEventThrottle={16}
-        >
-          <View style={styles.headerView}>
-            <SsurfLined height={32} width={32} />
-            <ThemedText typography="heading3xl">설정</ThemedText>
-          </View>
-          {info && (
-            <View style={styles.profileView}>
-              <View style={styles.profileIcon}>
-                <SymbolView
-                  fallback={
-                    <MaterialCommunityIcons
-                      color={styles.profileSymbol.color}
-                      name="account"
-                      size={32}
-                    />
-                  }
-                  name="person"
-                  size={32}
-                  tintColor={styles.profileSymbol.color}
-                />
-              </View>
-              <View>
-                <ThemedText typography="headingXl">{info.name}</ThemedText>
-                <ThemedText typography="bodyMd">
-                  {info.studentNumber} / {info.department}
-                </ThemedText>
-              </View>
+    <View style={styles.root}>
+      <AnimatedScrollView
+        contentContainerStyle={styles.scrollView}
+        onScroll={scrollHandler}
+        refreshControl={<RefreshControl onRefresh={onRefresh} refreshing={isSyncing} />}
+        scrollEventThrottle={16}
+      >
+        <SafeAreaView style={styles.container}>
+          <View style={styles.topView}>
+            <View style={styles.headerView}>
+              <SsurfLined height={32} width={32} />
+              <ThemedText typography="heading3xl">설정</ThemedText>
             </View>
-          )}
+            {info && (
+              <View style={styles.profileView}>
+                <View style={styles.profileIcon}>
+                  <SymbolView
+                    fallback={
+                      <MaterialCommunityIcons
+                        color={styles.profileSymbol.color}
+                        name="account"
+                        size={32}
+                      />
+                    }
+                    name="person"
+                    size={32}
+                    tintColor={styles.profileSymbol.color}
+                  />
+                </View>
+                <View>
+                  <ThemedText typography="headingXl">{info.name}</ThemedText>
+                  <ThemedText typography="bodyMd">
+                    {info.studentNumber} / {info.department}
+                  </ThemedText>
+                </View>
+              </View>
+            )}
+          </View>
           <View style={styles.cardView}>
             <ThemedText typography="headingLg">계정 설정</ThemedText>
             <ActionList>
@@ -158,7 +172,7 @@ export default function Index() {
             </ActionList>
           </View>
           <View style={styles.cardView}>
-            <View style={{ display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.infoView}>
               <SsurfLined height={64} width={64} />
               <ThemedText typography="headingLg">
                 SSURF v{packageJson.version} (rev. {REV})
@@ -186,8 +200,9 @@ export default function Index() {
               .
             </ThemedText>
           </View>
-        </AnimatedScrollView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </AnimatedScrollView>
+      <FloatingHeader scrollY={scrollY} title="설정" />
       <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
     </View>
   );

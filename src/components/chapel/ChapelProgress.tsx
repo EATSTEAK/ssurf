@@ -46,6 +46,13 @@ export const ChapelProgress = ({
   ...props
 }: ChapelProgressProps) => {
   const weekPassed = attendedArray.length;
+  const passIndicatorIndex =
+    attendanceLeft > 0
+      ? weekPassed + attendanceLeft
+      : (attendedArray
+          .map((value, index) => [value, index] satisfies [boolean, number])
+          .filter(([attended]) => attended === true)
+          .at(-1 + attendanceLeft)?.[1] ?? weekPassed) + 1;
 
   const selectStyle = (index: number) => {
     return [
@@ -63,7 +70,7 @@ export const ChapelProgress = ({
       />
       <View
         style={style.passIndicator({
-          index: weekPassed + attendanceLeft - 1,
+          index: passIndicatorIndex,
           total: totalAttendances,
         })}
       >

@@ -6,8 +6,8 @@ import { ChapelAttendanceDto } from '@/db/schema/chapel';
 
 const styles = StyleSheet.create((theme) => ({
   container: {
-    padding: 10,
     backgroundColor: theme.colors.surfaceDim,
+    paddingVertical: theme.gap(0.5),
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
