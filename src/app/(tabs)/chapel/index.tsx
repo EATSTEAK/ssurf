@@ -1,4 +1,5 @@
 import { SemesterType } from '@rusaint/react-native';
+import { Image } from 'expo-image';
 import { useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, View } from 'react-native';
@@ -10,6 +11,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
+import errorImage from '@/assets/error.png';
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
@@ -100,12 +102,15 @@ const doorDirection = (floor: number, seat: string) => {
   }
 };
 
+const RUSAINT_NO_CHAPEL =
+  'RusaintError.General: Error from application: No chapel information provided';
+
 export default function Index() {
   const { defaultChapelSemester } = useRusaintApplication();
   const defaultSemester = defaultChapelSemester ?? getEstimatedCurrentSemester();
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
 
-  const { sync: syncChapel, isSyncing } = useSyncChapel();
+  const { sync: syncChapel, isSyncing, error } = useSyncChapel();
   const { data: general } = useGeneralChapelInformation(
     selectedSemester.year,
     selectedSemester.semester,
@@ -163,11 +168,39 @@ export default function Index() {
           </View>
           <Space gap={1} />
           <View
-            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flex: 1,
+              gap: 16,
+              marginBottom: 96,
+            }}
           >
-            <ThemedText typography="bodyLg">
-              정보를 가져오는 중이에요. 잠시만 기다려주세요.
-            </ThemedText>
+            {error ? (
+              error.message === RUSAINT_NO_CHAPEL ? (
+                <>
+                  <ThemedText typography="headingLg">선택한 학기의 채플 정보가 없어요.</ThemedText>
+                  <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
+                </>
+              ) : (
+                <>
+                  <Image
+                    source={errorImage}
+                    style={{ width: 150, height: 150, marginBottom: 16 }}
+                  />
+                  <ThemedText color="error" typography="headingLg">
+                    정보를 가져오는 중 오류가 발생했어요
+                  </ThemedText>
+                  <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
+                  <ThemedText typography="bodySm">{error.message}</ThemedText>
+                </>
+              )
+            ) : (
+              <ThemedText typography="bodyLg">
+                정보를 가져오는 중이에요. 잠시만 기다려주세요.
+              </ThemedText>
+            )}
           </View>
         </SafeAreaView>
       </View>
