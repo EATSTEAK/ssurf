@@ -7,16 +7,16 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import { CardView } from '@/components/containers/CardView';
 import { SafeContainer } from '@/components/containers/Container';
 import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
+import { GradeSummaryWidget } from '@/components/grades/widgets/GradeSummaryWidget';
+import { SemestersWidget } from '@/components/grades/widgets/SemestersWidget';
 import { FloatingHeader } from '@/components/headers/FloatingHeader';
 import { Header } from '@/components/headers/Header';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useGradeSummary, useSemesterGrades } from '@/hooks/grades/grades';
 import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSyncGrades';
-import { semesterToString } from '@/utils/semester';
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -129,56 +129,9 @@ export default function Index() {
             <View style={styles.topView}>
               <Header title="성적" />
               <Space gap={1} />
-              <View>
-                <ThemedText typography="headingLg">평점 평균</ThemedText>
-                <ThemedText typography="heading3xl">
-                  {Math.round(summary.gradePointsAverage * 1000) / 1000}
-                </ThemedText>
-                <ThemedText typography="bodyLg">
-                  {summary.earnedCredits} / {summary.attemptedCredits} 학점 수강
-                </ThemedText>
-
-                <View style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
-                  <View
-                    style={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center' }}
-                  >
-                    <ThemedText style={{ fontWeight: 600 }} typography="labelLg">
-                      산술평균
-                    </ThemedText>
-                    <ThemedText typography="bodyLg">{summary.arithmeticMean}</ThemedText>
-                  </View>
-                  <View
-                    style={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center' }}
-                  >
-                    <ThemedText style={{ fontWeight: 600 }} typography="labelLg">
-                      평점계
-                    </ThemedText>
-                    <ThemedText typography="bodyLg">
-                      {Math.round(summary.gradePointsSum * 1000) / 1000}
-                    </ThemedText>
-                  </View>
-                </View>
-              </View>
+              <GradeSummaryWidget summary={summary} />
             </View>
-            <CardView>
-              <ThemedText typography="headingLg">학기별 정보</ThemedText>
-              {semesters?.map((semester) => (
-                <View
-                  key={`${semester.year}-${semester.semester}`}
-                  style={{ marginTop: 16, gap: 4 }}
-                >
-                  <ThemedText typography="headingMd">
-                    {semesterToString({ year: semester.year, semester: semester.semester })}
-                  </ThemedText>
-                  <ThemedText typography="bodyLg">
-                    평점 평균:{' '}
-                    <ThemedText style={{ fontWeight: 600 }} typography="bodyLg">
-                      {Math.round(semester.gradePointsAverage * 1000) / 1000}
-                    </ThemedText>
-                  </ThemedText>
-                </View>
-              ))}
-            </CardView>
+            <SemestersWidget semesters={semesters} />
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
