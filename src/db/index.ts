@@ -8,15 +8,25 @@ import * as graduationRequirementsSchemas from '@/db/schema/graduationRequiremen
 import * as scholarshipsSchemas from '@/db/schema/scholarships';
 import * as studentInformationSchemas from '@/db/schema/studentInformation';
 
+const schema = {
+  ...chapelSchemas,
+  ...cacheSchemas,
+  ...gradesSchemas,
+  ...graduationRequirementsSchemas,
+  ...scholarshipsSchemas,
+  ...studentInformationSchemas,
+};
+
 export const expoDb = openDatabaseSync('db.db', { enableChangeListener: true });
 
 export const db = drizzle(expoDb, {
-  schema: {
-    ...chapelSchemas,
-    ...cacheSchemas,
-    ...gradesSchemas,
-    ...graduationRequirementsSchemas,
-    ...scholarshipsSchemas,
-    ...studentInformationSchemas,
-  },
+  schema,
 });
+
+/**
+ * 로그아웃 시 모든 DB 데이터를 삭제합니다.
+ */
+export const clearAllData = async () => {
+  const promises = Object.values(schema).map((table) => db.delete(table));
+  await Promise.all(promises);
+};
