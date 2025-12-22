@@ -33,14 +33,20 @@ const styles = StyleSheet.create((theme) => ({
 const Root = TabsPrimitive.Root;
 
 // List 컴포넌트 (스크롤 가능한 탭 목록)
-function List({ children, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>) {
+function List({
+  children,
+  ref,
+  style,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & React.RefAttributes<ScrollView>) {
   return (
-    <TabsPrimitive.List style={styles.listContainer} {...props} asChild>
+    <TabsPrimitive.List {...props} asChild>
       <ScrollView
         contentContainerStyle={styles.list}
         horizontal
+        ref={ref}
         showsHorizontalScrollIndicator={false}
-        style={styles.scrollView}
+        style={[styles.listContainer, style]}
       >
         {children}
       </ScrollView>
