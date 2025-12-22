@@ -28,6 +28,12 @@ const styles = StyleSheet.create((theme) => ({
         secondary: {
           backgroundColor: pressed ? theme.colors.secondaryPressed : theme.colors.secondary,
         },
+        error: {
+          backgroundColor: pressed ? theme.colors.errorPressed : theme.colors.error,
+        },
+        success: {
+          backgroundColor: pressed ? theme.colors.successPressed : theme.colors.success,
+        },
       },
     },
   }),
@@ -41,6 +47,12 @@ const styles = StyleSheet.create((theme) => ({
         },
         secondary: {
           color: theme.colors.fgSecondary,
+        },
+        error: {
+          color: theme.colors.fgError,
+        },
+        success: {
+          color: theme.colors.fgSuccess,
         },
       },
     },

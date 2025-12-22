@@ -24,6 +24,8 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     overflow: 'visible',
     backgroundColor: theme.colors.primary,
+    zIndex: 10, // NOTE: RefreshHeader should be above all content (e.g. FloatingHeader)
+    elevation: 10,
   },
   waveContainer: {
     position: 'absolute',

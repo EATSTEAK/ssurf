@@ -17,7 +17,15 @@ export interface FloatingHeaderProps {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  header: { position: 'absolute', top: 0, left: 0, width: '100%', overflow: 'visible' },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    overflow: 'visible',
+    zIndex: 1,
+    elevation: 1,
+  },
   headerGradient: {
     gradientColor: theme.colors.surfaceDim,
     width: '100%',

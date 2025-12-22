@@ -2,13 +2,8 @@ import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, RefreshControl, ScrollView, View } from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform, View } from 'react-native';
+import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
@@ -17,22 +12,22 @@ import loadingImage from '@/assets/loading.png';
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
-import { FloatingHeader } from '@/components/FloatingHeader';
+import { CardView } from '@/components/containers/CardView';
+import { SafeContainer } from '@/components/containers/Container';
+import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
+import { FloatingHeader } from '@/components/headers/FloatingHeader';
+import { Header } from '@/components/headers/Header';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
-import { RefreshHeader } from '@/components/RefreshHeader';
 import { SemesterSelector } from '@/components/SemesterSelector';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
-import { SsurfLined } from '@/icons/SsurfLined';
 import {
   constructSemesters,
   getEstimatedCurrentSemester,
   semesterToString,
 } from '@/utils/semester';
-
-const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -41,18 +36,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     position: 'relative',
   },
-  scrollView: {
-    gap: theme.gap(2),
-    backgroundColor: theme.colors.surface,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  container: {
-    flex: 1,
-    gap: theme.gap(2),
-    width: '100%',
-    backgroundColor: theme.colors.surface,
-  },
+
   topView: {
     width: '100%',
     display: 'flex',
@@ -60,18 +44,13 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'column',
     padding: theme.gap(3),
   },
-  titleContainer: { display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' },
-  cardView: {
+  errorView: {
     display: 'flex',
-    gap: theme.gap(1),
-    flexDirection: 'column',
-    backgroundColor: theme.colors.surfaceDim,
-    padding: theme.gap(3),
-  },
-  bottomView: {
-    width: '100%',
-    paddingHorizontal: theme.gap(2),
-    backgroundColor: theme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+    gap: 16,
+    marginBottom: 96,
   },
 }));
 
@@ -123,7 +102,6 @@ export default function Index() {
   );
 
   const scrollY = useSharedValue(0);
-  const pullDistance = useSharedValue(0);
 
   const totalAttendances = attendances?.length ?? 0;
   const requiredAttendances = Math.ceil(totalAttendances * (2 / 3));
@@ -145,40 +123,20 @@ export default function Index() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
-      if (event.contentOffset.y < 0 && !isSyncing) {
-        pullDistance.value = Math.abs(event.contentOffset.y);
-      } else if (event.contentOffset.y >= 0) {
-        pullDistance.value = 0;
-      }
-    },
-    onEndDrag: () => {
-      pullDistance.value = withSpring(0);
     },
   });
 
   if (!general) {
     return (
       <View style={styles.root}>
-        <SafeAreaView style={styles.container}>
+        <SafeContainer>
           {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
-            <View style={styles.titleContainer}>
-              <SsurfLined height={32} width={32} />
-              <ThemedText typography="heading3xl">채플</ThemedText>
-            </View>
+            <Header title="채플" />
             <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
           </View>
           <Space gap={1} />
-          <View
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flex: 1,
-              gap: 16,
-              marginBottom: 96,
-            }}
-          >
+          <View style={styles.errorView}>
             {error ? (
               error.message === RUSAINT_NO_CHAPEL ? (
                 <>
@@ -216,7 +174,7 @@ export default function Index() {
               </>
             )}
           </View>
-        </SafeAreaView>
+        </SafeContainer>
       </View>
     );
   }
@@ -247,27 +205,17 @@ export default function Index() {
           ),
         }}
       />
-
       <View style={styles.root}>
-        <AnimatedScrollView
-          contentContainerStyle={styles.scrollView}
+        <RefreshableScrollView
+          onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshControl={
-            <RefreshControl
-              onRefresh={handleRefresh}
-              refreshing={isSyncing}
-              style={{ visibility: 'hidden' }}
-            />
-          }
+          refreshing={isSyncing}
           scrollEventThrottle={16}
         >
-          <SafeAreaView style={styles.container}>
+          <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
-              <View style={styles.titleContainer}>
-                <SsurfLined height={32} width={32} />
-                <ThemedText typography="heading3xl">채플</ThemedText>
-              </View>
+              <Header title="채플" />
               <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
               <Space gap={1} />
               <View>
@@ -304,7 +252,7 @@ export default function Index() {
                 <ThemedText typography="bodyLg">{general.time}</ThemedText>
               </View>
             </View>
-            <View style={styles.cardView}>
+            <CardView>
               <ThemedText typography="headingLg">좌석 정보</ThemedText>
               <ThemedText typography="heading3xl">
                 {general.floor}F / {general.seat}
@@ -323,24 +271,23 @@ export default function Index() {
                 floor={(general.floor ?? 1) as 1 | 2 | 3}
                 seat={general.seat as `${string}-${number}-${number}`}
               />
-            </View>
-            <View style={styles.cardView}>
+            </CardView>
+            <CardView>
               <ThemedText typography="headingLg">출석 정보</ThemedText>
               <Space gap={0} />
               {attendances &&
                 attendances.map((attendance) => (
                   <Attendance attendance={attendance} key={attendance.date} />
                 ))}
-            </View>
+            </CardView>
             <Space gap={8} />
-          </SafeAreaView>
-        </AnimatedScrollView>
+          </SafeContainer>
+        </RefreshableScrollView>
         <FloatingHeader
           label={`${general.year}-${general.semester}학기`}
           scrollY={scrollY}
           title="채플"
         />
-        <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
       </View>
     </>
   );
