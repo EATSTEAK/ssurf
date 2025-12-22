@@ -19,7 +19,8 @@ const config = defineConfig([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
+      tseslint.configs.eslintRecommended,
+      reactHooks.configs.flat['recommended-latest'],
       perfectionist.configs['recommended-natural'],
       eslintConfigPrettier,
     ],
@@ -34,8 +35,6 @@ const config = defineConfig([
       'react-refresh': reactRefresh,
     },
     rules: {
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/naming-convention': [
         'error',
         {
@@ -54,9 +53,6 @@ const config = defineConfig([
           trailingUnderscore: 'allow',
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
         'warn',
@@ -79,18 +75,15 @@ const config = defineConfig([
           groups: [
             'type',
             ['builtin', 'external'],
-            'internal-type',
+            'type-internal',
             'internal',
-            ['parent-type', 'sibling-type', 'index-type'],
+            ['type-parent', 'type-sibling', 'type-index'],
             ['parent', 'sibling', 'index'],
-            'object',
+            'import',
             'unknown',
           ],
-          newlinesBetween: 'always',
-          customGroups: {
-            type: {},
-            value: {},
-          },
+          newlinesBetween: 1,
+          customGroups: [],
         },
       ],
       'react/display-name': [1, { ignoreTranspilerName: false }],
