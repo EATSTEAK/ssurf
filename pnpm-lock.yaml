@@ -110,6 +110,9 @@ importers:
       react-native-nitro-modules:
         specifier: ^0.30.2
         version: 0.30.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      react-native-pager-view:
+        specifier: ^8.0.0
+        version: 8.0.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       react-native-reanimated:
         specifier: ~4.1.6
         version: 4.1.6(@babel/core@7.28.5)(react-native-worklets@0.5.1(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -4070,6 +4073,12 @@ packages:
 
   react-native-nitro-modules@0.30.2:
     resolution: {integrity: sha512-+/uVS7FQwOiKYZQERMIvBRv5/X3CVHrFG6Nr/kIhVfVxGeUimHnBz7cgA97lJKIn7AKDRWL+UjLedW8pGOt0dg==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
+  react-native-pager-view@8.0.0:
+    resolution: {integrity: sha512-oAwlWT1lhTkIs9HhODnjNNl/owxzn9DP1MbP+az6OTUdgbmzA16Up83sBH8NRKwrH8rNm7iuWnX1qMqiiWOLhg==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -9336,6 +9345,11 @@ snapshots:
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
 
   react-native-nitro-modules@0.30.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
+
+  react-native-pager-view@8.0.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
