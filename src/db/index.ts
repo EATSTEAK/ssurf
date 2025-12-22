@@ -30,7 +30,7 @@ export const db = drizzle(expoDb, {
 export const clearAllData = async () => {
   const promises = Object.values(schema).map((table) => db.delete(table));
   const results = await Promise.allSettled(promises);
-  
+
   const failures = results.filter((result) => result.status === 'rejected');
   if (failures.length > 0) {
     console.error('데이터 삭제 중 오류 발생:', failures);
