@@ -49,3 +49,48 @@ export const constructSemesters = (
   }
   return semesters;
 };
+
+/**
+ * 이전 학기를 계산
+ * @param semester 기준 학기
+ * @returns 이전 학기
+ */
+export const getPreviousSemester = (semester: YearSemester): YearSemester => {
+  const semesterOrder = [
+    SemesterType.Winter,
+    SemesterType.One,
+    SemesterType.Summer,
+    SemesterType.Two,
+  ];
+
+  const currentIndex = semesterOrder.indexOf(semester.semester);
+  if (currentIndex > 0) {
+    return {
+      year: semester.year,
+      semester: semesterOrder[currentIndex - 1],
+    };
+  }
+  // Winter 학기인 경우 이전 연도의 Two 학기
+  return {
+    year: semester.year - 1,
+    semester: SemesterType.Two,
+  };
+};
+
+/**
+ * 기준 학기로부터 최근 N개의 학기를 생성
+ * @param baseSemester 기준 학기
+ * @param count 생성할 학기 개수 (기준 학기 포함)
+ * @returns 최근 학기들 (내림차순)
+ */
+export const getRecentSemesters = (baseSemester: YearSemester, count: number): YearSemester[] => {
+  const semesters: YearSemester[] = [baseSemester];
+  let current = baseSemester;
+
+  for (let i = 1; i < count; i++) {
+    current = getPreviousSemester(current);
+    semesters.push(current);
+  }
+
+  return semesters;
+};
