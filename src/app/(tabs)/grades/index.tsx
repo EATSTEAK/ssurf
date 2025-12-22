@@ -178,6 +178,11 @@ export default function Index() {
           (s) => semesterToString({ year: s.year, semester: s.semester }) === selectedTab,
         ) || certiSummary;
 
+  // 선택된 semester 정보 추출
+  const selectedSemesterData = semesters.find(
+    (s) => semesterToString({ year: s.year, semester: s.semester }) === selectedTab,
+  );
+
   return (
     <>
       <Stack.Screen
@@ -203,7 +208,11 @@ export default function Index() {
               <Space gap={1} />
               <GradeSummaryWidget summary={displayedSummary} />
               <Space gap={1} />
-              <GradeSequenceGraphWidget semesters={semesters} />
+              <GradeSequenceGraphWidget
+                selectedSemester={selectedSemesterData?.semester}
+                selectedYear={selectedSemesterData?.year}
+                semesters={semesters}
+              />
             </View>
             <Tabs.Root onValueChange={handleTabChange} value={selectedTab}>
               <Tabs.List>
