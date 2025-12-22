@@ -30,16 +30,39 @@ export const useGradeSummary = (type: 'certificated' | 'recorded') => {
 };
 
 /**
+ * 모든 학기의 성적 정보를 조회하는 훅
+ * @param courseType 과정 유형
+ * @returns SemesterGradeDto[]
+ */
+export const useSemesterGrades = (courseType: CourseType = CourseType.Bachelor) => {
+  const [data, setData] = useState<null | SemesterGradeDto[]>(null);
+  const { isSyncing, sync } = useSyncSemesterGrades();
+
+  useAsyncEffect(async () => {
+    await sync([courseType], { force: false });
+    const result = await db.query.semesterGrades.findMany();
+    setData(result || null);
+  }, [isSyncing]);
+
+  return { data, isSyncing };
+};
+
+/**
  * 특정 학기의 성적 정보를 조회하는 훅
  * @param year 학년도
  * @param semester 학기
+ * @param courseType 과정 유형
  */
-export const useSemesterGrades = (year: number, semester: number) => {
+export const useSemesterGrade = (
+  year: number,
+  semester: number,
+  courseType: CourseType = CourseType.Bachelor,
+) => {
   const [data, setData] = useState<null | SemesterGradeDto>(null);
   const { isSyncing, sync } = useSyncSemesterGrades();
 
   useAsyncEffect(async () => {
-    await sync([CourseType.Bachelor], { force: false });
+    await sync([courseType], { force: false });
     const result = await db.query.semesterGrades.findFirst({
       where: (semesterGrades, { eq, and }) =>
         and(eq(semesterGrades.year, year), eq(semesterGrades.semester, semester)),
@@ -54,13 +77,18 @@ export const useSemesterGrades = (year: number, semester: number) => {
  * 특정 학기의 과목별 성적 목록을 조회하는 훅
  * @param year 학년도
  * @param semester 학기
+ * @param courseType 과정 유형
  */
-export const useClassGrades = (year: number, semester: number) => {
+export const useClassGrades = (
+  year: number,
+  semester: number,
+  courseType: CourseType = CourseType.Bachelor,
+) => {
   const [data, setData] = useState<ClassGradeDto[] | null>(null);
   const { isSyncing, sync } = useSyncClassGrades();
 
   useAsyncEffect(async () => {
-    await sync([CourseType.Bachelor, year, semester], { force: false });
+    await sync([courseType, year, semester], { force: false });
     const result = await db.query.classGrades.findMany({
       where: (classGrades, { eq, and }) =>
         and(eq(classGrades.year, year), eq(classGrades.semester, semester)),
