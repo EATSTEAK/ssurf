@@ -283,11 +283,7 @@ export default function Index() {
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader
-          label={`${general.year}-${general.semester}학기`}
-          scrollY={scrollY}
-          title="채플"
-        />
+        <FloatingHeader label={semesterToString(selectedSemester)} scrollY={scrollY} title="채플" />
       </View>
     </>
   );
