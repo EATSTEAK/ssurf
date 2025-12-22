@@ -58,7 +58,8 @@ export default function Index() {
     isSyncing: isSemesterSyncing,
     error: semesterError,
   } = useSyncSemesterGrades();
-  const { data: summary } = useGradeSummary('certificated');
+  const { data: certiSummary } = useGradeSummary('certificated');
+  const { data: recordedSummary } = useGradeSummary('recorded');
   const { data: semesters } = useSemesterGrades();
 
   const [selectedTab, setSelectedTab] = useState<string>(SUMMARY_LABEL);
@@ -77,7 +78,7 @@ export default function Index() {
   });
 
   const tabs =
-    summary && semesters
+    certiSummary && semesters
       ? [
           SUMMARY_LABEL,
           ...semesters.map((s) => semesterToString({ year: s.year, semester: s.semester })),
@@ -94,7 +95,7 @@ export default function Index() {
     | { key: string; semester?: never; type: 'summary' };
 
   const tabData: TabDataItem[] =
-    summary && semesters
+    certiSummary && semesters
       ? [
           { key: SUMMARY_LABEL, type: 'summary' },
           ...semesters.map((s) => ({
@@ -112,7 +113,7 @@ export default function Index() {
     }
   };
 
-  if (!summary || !semesters) {
+  if (!certiSummary || !recordedSummary || !semesters) {
     return (
       <View style={styles.root}>
         <SafeContainer>
@@ -160,7 +161,11 @@ export default function Index() {
 
   const renderItem = (item: TabDataItem) => {
     return item.type === 'summary' ? (
-      <SemestersWidget semesters={semesters} />
+      <SemestersWidget
+        certiSummary={certiSummary}
+        recordedSummary={recordedSummary}
+        semesters={semesters}
+      />
     ) : (
       <SemesterWidget semester={item.semester} />
     );
@@ -169,10 +174,10 @@ export default function Index() {
   // 선택된 탭에 따라 표시할 성적 데이터 결정
   const displayedSummary =
     selectedTab === SUMMARY_LABEL
-      ? summary
+      ? certiSummary
       : semesters.find(
           (s) => semesterToString({ year: s.year, semester: s.semester }) === selectedTab,
-        ) || summary;
+        ) || certiSummary;
 
   return (
     <>
