@@ -10,6 +10,7 @@ import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { SafeContainer } from '@/components/containers/Container';
 import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
+import { GradeSequenceGraphWidget } from '@/components/grades/widgets/GradeSequenceGraphWidget';
 import { GradeSummaryWidget } from '@/components/grades/widgets/GradeSummaryWidget';
 import { SemestersWidget } from '@/components/grades/widgets/SemestersWidget';
 import { SemesterWidget } from '@/components/grades/widgets/SemesterWidget';
@@ -143,6 +144,8 @@ export default function Index() {
               <Header title="성적" />
               <Space gap={1} />
               <GradeSummaryWidget summary={summary} />
+              <Space gap={1} />
+              <GradeSequenceGraphWidget semesters={semesters} />
             </View>
 
             {/* 탭 */}
