@@ -8,7 +8,6 @@ import { ThemedText } from './ThemedText';
 const styles = StyleSheet.create((theme) => ({
   listContainer: {
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.gap(3),
   },
   scrollView: {
     flexGrow: 0,
@@ -17,6 +16,7 @@ const styles = StyleSheet.create((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     gap: theme.gap(1),
+    paddingHorizontal: theme.gap(3),
   },
   trigger: {
     paddingVertical: theme.gap(1),
