@@ -14,7 +14,9 @@ import {
  * 성적 요약 정보를 조회하는 훅
  * @param type 'certificated' (증명) 또는 'recorded' (학적부)
  */
-export const useGradeSummary = (type: 'certificated' | 'recorded') => {
+export const useGradeSummary = (
+  type: 'certificated' | 'recorded',
+): { data: GradeSummaryDto | null; isSyncing: boolean } => {
   const [data, setData] = useState<GradeSummaryDto | null>(null);
   const { isSyncing, sync } = useSyncGradeSummary();
 
@@ -34,7 +36,9 @@ export const useGradeSummary = (type: 'certificated' | 'recorded') => {
  * @param courseType 과정 유형
  * @returns SemesterGradeDto[]
  */
-export const useSemesterGrades = (courseType: CourseType = CourseType.Bachelor) => {
+export const useSemesterGrades = (
+  courseType: CourseType = CourseType.Bachelor,
+): { data: null | SemesterGradeDto[]; isSyncing: boolean } => {
   const [data, setData] = useState<null | SemesterGradeDto[]>(null);
   const { isSyncing, sync } = useSyncSemesterGrades();
 
@@ -57,7 +61,7 @@ export const useSemesterGrade = (
   year: number,
   semester: number,
   courseType: CourseType = CourseType.Bachelor,
-) => {
+): { data: null | SemesterGradeDto; isSyncing: boolean } => {
   const [data, setData] = useState<null | SemesterGradeDto>(null);
   const { isSyncing, sync } = useSyncSemesterGrades();
 
@@ -83,7 +87,7 @@ export const useClassGrades = (
   year: number,
   semester: number,
   courseType: CourseType = CourseType.Bachelor,
-) => {
+): { data: ClassGradeDto[] | null; isSyncing: boolean } => {
   const [data, setData] = useState<ClassGradeDto[] | null>(null);
   const { isSyncing, sync } = useSyncClassGrades();
 
