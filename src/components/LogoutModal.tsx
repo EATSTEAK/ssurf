@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -41,10 +41,56 @@ export type LogoutModalProps = {
 };
 
 export const LogoutModal = ({ visible, onClose, onLogout }: LogoutModalProps) => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
   const handleLogout = async () => {
-    await onLogout();
-    onClose();
+    setIsLoggingOut(true);
+    try {
+      await onLogout();
+      onClose();
+    } catch (error) {
+      setError(error as Error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
+
+  if (isLoggingOut) {
+    return (
+      <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
+        <Pressable onPress={onClose} style={styles.overlay}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={styles.modalContent}>
+            <ThemedText style={styles.title} typography="headingLg">
+              로그아웃 중...
+            </ThemedText>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    );
+  }
+
+  if (error) {
+    return (
+      <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
+        <Pressable onPress={onClose} style={styles.overlay}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={styles.modalContent}>
+            <ThemedText style={styles.title} typography="headingLg">
+              오류 발생
+            </ThemedText>
+            <ThemedText style={styles.message} typography="bodyLg">
+              {error.message}
+            </ThemedText>
+            <View style={styles.buttonContainer}>
+              <Button onPress={onClose} variant="primary">
+                닫기
+              </Button>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    );
+  }
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>

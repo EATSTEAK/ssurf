@@ -70,11 +70,20 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   }, [userInfo.id, userInfo.password]);
 
   const logout = async () => {
-    await setUserInfo({ id: null, password: null });
-    setSession(null);
-    sessionCreatedAtRef.current = null;
-    await clearAllData();
-    navigate('/');
+    try {
+      await clearAllData();
+      await setUserInfo({ id: null, password: null });
+      setSession(null);
+      sessionCreatedAtRef.current = null;
+
+      navigate('/');
+    } catch (error) {
+      console.error('로그아웃 중 오류 발생:', error);
+      await setUserInfo({ id: null, password: null });
+      setSession(null);
+      sessionCreatedAtRef.current = null;
+      throw error;
+    }
   };
 
   const hasCredential = userInfo.id != null && userInfo.password != null;
