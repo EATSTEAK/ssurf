@@ -6,17 +6,12 @@ import { CardView } from '@/components/containers/CardView';
 import { AttributesView } from '@/components/grades/ui/AttributesView';
 import { SemesterGradeItem } from '@/components/grades/ui/SemesterGradeItem';
 import { ThemedText } from '@/components/primitives/ThemedText';
-
-interface SemesterGrade {
-  gradePointsAverage: number;
-  semester: number;
-  year: number;
-}
+import { SemesterGradeDto } from '@/db/schema/grades';
 
 interface SemestersWidgetProps {
   certiSummary: GradeSummary;
   recordedSummary: GradeSummary;
-  semesters: SemesterGrade[];
+  semesters: SemesterGradeDto[];
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -93,12 +88,8 @@ export function SemestersWidget({
       <CardView>
         <ThemedText typography="headingLg">학기별 성적</ThemedText>
         {semesters?.map((semester) => (
-          <View key={`${semester.year}-${semester.semester}`} style={{ marginTop: 16 }}>
-            <SemesterGradeItem
-              gradePointsAverage={semester.gradePointsAverage}
-              semester={semester.semester}
-              year={semester.year}
-            />
+          <View key={`${semester.year}-${semester.semester}`}>
+            <SemesterGradeItem {...semester} />
           </View>
         ))}
       </CardView>
