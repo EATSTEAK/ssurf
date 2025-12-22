@@ -7,12 +7,12 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { StyleSheet } from 'react-native-unistyles';
 
 import packageJson from '@/../package.json';
+import { LogoutModal } from '@/components/auth/LogoutModal';
 import { CardView } from '@/components/containers/CardView';
 import { SafeContainer } from '@/components/containers/Container';
 import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/components/headers/FloatingHeader';
 import { Header } from '@/components/headers/Header';
-import { LogoutModal } from '@/components/LogoutModal';
 import { ActionList, ActionListItem } from '@/components/primitives/ActionList';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';

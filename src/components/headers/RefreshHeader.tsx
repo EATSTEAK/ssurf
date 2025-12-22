@@ -14,7 +14,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ThemedText } from '@/components/primitives/ThemedText';
-import { Wave } from '@/components/Wave';
+import { Wave } from '@/components/shared/Wave';
 
 const styles = StyleSheet.create((theme) => ({
   refreshHeader: {
