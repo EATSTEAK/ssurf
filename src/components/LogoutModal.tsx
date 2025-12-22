@@ -56,6 +56,11 @@ export const LogoutModal = ({ visible, onClose, onLogout }: LogoutModalProps) =>
     }
   };
 
+  const onCloseWhileError = () => {
+    setError(null);
+    onClose();
+  };
+
   if (isLoggingOut) {
     return (
       <Modal animationType="fade" transparent visible={visible}>
@@ -72,8 +77,8 @@ export const LogoutModal = ({ visible, onClose, onLogout }: LogoutModalProps) =>
 
   if (error) {
     return (
-      <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
-        <Pressable onPress={onClose} style={styles.overlay}>
+      <Modal animationType="fade" onRequestClose={onCloseWhileError} transparent visible={visible}>
+        <Pressable onPress={onCloseWhileError} style={styles.overlay}>
           <Pressable onPress={(e) => e.stopPropagation()} style={styles.modalContent}>
             <ThemedText style={styles.title} typography="headingLg">
               오류 발생
@@ -82,7 +87,7 @@ export const LogoutModal = ({ visible, onClose, onLogout }: LogoutModalProps) =>
               {error.message}
             </ThemedText>
             <View style={styles.buttonContainer}>
-              <Button onPress={onClose} variant="primary">
+              <Button onPress={onCloseWhileError} variant="primary">
                 닫기
               </Button>
             </View>
