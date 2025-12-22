@@ -5,8 +5,10 @@ import { StyleSheet } from 'react-native-unistyles';
 import { ChunkedProgress } from '@/components/primitives/ChunkedProgress';
 import { ThemedText } from '@/components/primitives/ThemedText';
 
-export interface ChapelProgressProps
-  extends Omit<ComponentProps<typeof ChunkedProgress>, 'max' | 'value'> {
+export interface ChapelProgressProps extends Omit<
+  ComponentProps<typeof ChunkedProgress>,
+  'max' | 'value'
+> {
   attendanceLeft: number;
   attendedArray: boolean[];
   totalAttendances: number;
