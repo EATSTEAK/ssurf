@@ -48,6 +48,8 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
+const SUMMARY_LABEL = '전체 학기';
+
 export default function Index() {
   const { sync: syncGradeSummary, isSyncing, error } = useSyncGradeSummary();
   const {
@@ -58,7 +60,7 @@ export default function Index() {
   const { data: summary } = useGradeSummary('certificated');
   const { data: semesters } = useSemesterGrades();
 
-  const [selectedTab, setSelectedTab] = useState<string>('전체');
+  const [selectedTab, setSelectedTab] = useState<string>(SUMMARY_LABEL);
 
   const scrollY = useSharedValue(0);
 
@@ -115,11 +117,18 @@ export default function Index() {
     );
   }
 
-  // 탭 목록 생성: "전체" + 각 학기
   const tabs = [
-    '전체',
+    SUMMARY_LABEL,
     ...semesters.map((s) => semesterToString({ year: s.year, semester: s.semester })),
   ];
+
+  // 선택된 탭에 따라 표시할 성적 데이터 결정
+  const displayedSummary =
+    selectedTab === SUMMARY_LABEL
+      ? summary
+      : semesters.find(
+          (s) => semesterToString({ year: s.year, semester: s.semester }) === selectedTab,
+        ) || summary;
 
   return (
     <>
@@ -142,22 +151,19 @@ export default function Index() {
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
               <Header title="성적" />
+              <ThemedText typography="labelMd">{selectedTab}</ThemedText>
               <Space gap={1} />
-              <GradeSummaryWidget summary={summary} />
+              <GradeSummaryWidget summary={displayedSummary} />
               <Space gap={1} />
               <GradeSequenceGraphWidget semesters={semesters} />
             </View>
-
-            {/* 탭 */}
             <Tabs.Root onValueChange={setSelectedTab} value={selectedTab}>
               <Tabs.List>
                 {tabs.map((tab) => (
                   <Tabs.Trigger key={tab} value={tab} />
                 ))}
               </Tabs.List>
-
-              {/* 탭 콘텐츠 */}
-              <Tabs.Content value="전체">
+              <Tabs.Content value={SUMMARY_LABEL}>
                 <SemestersWidget semesters={semesters} />
               </Tabs.Content>
 
@@ -174,7 +180,7 @@ export default function Index() {
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader scrollY={scrollY} title="성적" />
+        <FloatingHeader label={selectedTab} scrollY={scrollY} title="성적" />
       </View>
     </>
   );
