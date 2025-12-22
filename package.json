@@ -28,6 +28,7 @@
     "@rn-primitives/progress": "^1.2.0",
     "@rn-primitives/tabs": "^1.2.0",
     "@rusaint/react-native": "^0.13.4",
+    "@shopify/react-native-skia": "2.2.12",
     "babel-plugin-inline-import": "^3.0.0",
     "drizzle-orm": "^0.44.7",
     "expo": "~54.0.30",
@@ -61,6 +62,7 @@
     "react-native-web": "~0.21.2",
     "react-native-worklets": "0.5.1",
     "react-simplikit": "^0.0.46",
+    "victory-native": "^41.20.2",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
