@@ -18,15 +18,12 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(1),
     paddingHorizontal: theme.gap(3),
   },
-  trigger: {
+  trigger: (isActive: boolean) => ({
     paddingVertical: theme.gap(1),
     paddingHorizontal: theme.gap(2),
     borderRadius: theme.cornerRadius.md,
-    backgroundColor: theme.colors.surfaceDim,
-  },
-  activeTrigger: {
-    backgroundColor: theme.colors.primary,
-  },
+    backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceDim,
+  }),
   content: {
     paddingTop: theme.gap(2),
   },
@@ -61,11 +58,7 @@ function Trigger({
   const isActive = rootContext.value === value;
 
   return (
-    <TabsPrimitive.Trigger
-      {...props}
-      style={[styles.trigger, isActive && styles.activeTrigger]}
-      value={value}
-    >
+    <TabsPrimitive.Trigger {...props} style={[styles.trigger(isActive)]} value={value}>
       {children || (
         <ThemedText color={isActive ? 'fgPrimary' : 'fgSurface'} typography="labelMd">
           {value}
