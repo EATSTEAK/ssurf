@@ -21,13 +21,13 @@ import { Space } from '@/components/primitives/Space';
 import { Tabs } from '@/components/primitives/Tabs';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { SemesterGradeDto } from '@/db/schema/grades';
-import { useGradeSummary, useSemesterGrades } from '@/hooks/grades/grades';
-import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSyncGrades';
 import {
-  getEstimatedCurrentSemester,
-  getRecentSemesters,
-  semesterToString,
-} from '@/utils/semester';
+  useCheckRecentAttendedSemesters,
+  useGradeSummary,
+  useSemesterGrades,
+} from '@/hooks/grades/grades';
+import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSyncGrades';
+import { semesterToString } from '@/utils/semester';
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -56,6 +56,16 @@ const styles = StyleSheet.create((theme) => ({
 
 const SUMMARY_LABEL = '전체 학기';
 
+type TabDataItem =
+  | {
+      data: SemesterGradeDto | undefined;
+      key: string;
+      semester: number;
+      type: 'semester';
+      year: number;
+    }
+  | { data?: never; key: string; semester?: never; type: 'summary'; year?: never };
+
 export default function Index() {
   const { sync: syncGradeSummary, isSyncing, error } = useSyncGradeSummary();
   const {
@@ -66,6 +76,7 @@ export default function Index() {
   const { data: certiSummary } = useGradeSummary('certificated');
   const { data: recordedSummary } = useGradeSummary('recorded');
   const { data: semesters } = useSemesterGrades();
+  const { attendedSemesters, isChecking } = useCheckRecentAttendedSemesters();
 
   const [selectedTab, setSelectedTab] = useState<string>(SUMMARY_LABEL);
 
@@ -82,14 +93,10 @@ export default function Index() {
     },
   });
 
-  // defaultGradeSemester 기준 최근 2개 학기를 무조건 탭에 포함
   const allSemesterItems = useMemo(() => {
     if (!semesters) {
       return [];
     }
-
-    const defaultGradeSemester = getEstimatedCurrentSemester();
-    const recentTwoSemesters = getRecentSemesters(defaultGradeSemester, 2);
 
     const items: Array<{
       data: SemesterGradeDto | undefined;
@@ -99,26 +106,26 @@ export default function Index() {
       year: number;
     }> = [];
 
-    // 최근 2개 학기를 먼저 추가 (데이터가 있으면 포함)
-    recentTwoSemesters.forEach((recent) => {
+    // 과목이 있는 최근 학기를 먼저 추가 (데이터가 있으면 포함)
+    attendedSemesters.forEach((attended) => {
       const semesterData = semesters.find(
-        (s) => s.year === recent.year && s.semester === recent.semester,
+        (s) => s.year === attended.year && s.semester === attended.semester,
       );
       items.push({
         data: semesterData,
-        key: semesterToString(recent),
-        semester: recent.semester,
+        key: semesterToString(attended),
+        semester: attended.semester,
         type: 'semester' as const,
-        year: recent.year,
+        year: attended.year,
       });
     });
 
-    // 기존 학기들 중 최근 2개에 포함되지 않은 것만 추가
+    // 기존 학기들 중 과목이 있는 최근 학기에 포함되지 않은 것만 추가
     semesters.forEach((s) => {
-      const isRecent = recentTwoSemesters.some(
-        (recent) => recent.year === s.year && recent.semester === s.semester,
+      const isAttended = attendedSemesters.some(
+        (attended) => attended.year === s.year && attended.semester === s.semester,
       );
-      if (!isRecent) {
+      if (!isAttended) {
         items.push({
           data: s,
           key: semesterToString({ semester: s.semester, year: s.year }),
@@ -130,22 +137,12 @@ export default function Index() {
     });
 
     return items;
-  }, [semesters]);
+  }, [semesters, attendedSemesters]);
 
   const tabs =
     certiSummary && allSemesterItems
       ? [SUMMARY_LABEL, ...allSemesterItems.map((item) => item.key)]
       : [];
-
-  type TabDataItem =
-    | {
-        data: SemesterGradeDto | undefined;
-        key: string;
-        semester: number;
-        type: 'semester';
-        year: number;
-      }
-    | { data?: never; key: string; semester?: never; type: 'summary'; year?: never };
 
   const tabData: TabDataItem[] =
     certiSummary && allSemesterItems
@@ -159,7 +156,7 @@ export default function Index() {
     }
   };
 
-  if (!certiSummary || !recordedSummary || !semesters) {
+  if (!certiSummary || !recordedSummary || !semesters || isChecking) {
     return (
       <View style={styles.root}>
         <SafeContainer>
