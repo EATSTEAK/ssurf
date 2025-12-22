@@ -29,6 +29,8 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
+const NOT_AVAILABLE = '성적 미입력';
+
 export function ClassGradeItem({ className, gradePoints, rank, professor }: ClassGradeDto) {
   return (
     <View style={styles.container}>
@@ -37,7 +39,7 @@ export function ClassGradeItem({ className, gradePoints, rank, professor }: Clas
         {professor ? <ThemedText typography="labelMd">/ {professor}</ThemedText> : null}
       </View>
       <View style={styles.gradeView}>
-        <ThemedText typography="headingLg">{rank}</ThemedText>
+        <ThemedText typography="headingLg">{rank === NOT_AVAILABLE ? '-' : rank}</ThemedText>
         <ThemedText>{gradePoints}</ThemedText>
       </View>
     </View>
