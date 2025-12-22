@@ -58,8 +58,8 @@ export const LogoutModal = ({ visible, onClose, onLogout }: LogoutModalProps) =>
 
   if (isLoggingOut) {
     return (
-      <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
-        <Pressable onPress={onClose} style={styles.overlay}>
+      <Modal animationType="fade" transparent visible={visible}>
+        <Pressable style={styles.overlay}>
           <Pressable onPress={(e) => e.stopPropagation()} style={styles.modalContent}>
             <ThemedText style={styles.title} typography="headingLg">
               로그아웃 중...
