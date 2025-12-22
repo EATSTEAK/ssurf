@@ -14,6 +14,13 @@ export default function TabsLayout() {
           android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="bird" />} />,
         })}
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="grades">
+        <Label>성적</Label>
+        {Platform.select({
+          ios: <Icon sf="graduationcap.fill" />,
+          android: <Icon src={<VectorIcon family={MaterialCommunityIcons} name="school" />} />,
+        })}
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="settings">
         <Label>설정</Label>
         {Platform.select({
