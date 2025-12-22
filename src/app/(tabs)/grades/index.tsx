@@ -85,7 +85,6 @@ export default function Index() {
         ]
       : [];
 
-  // FlatList 데이터 구조
   type TabDataItem =
     | {
         key: string;

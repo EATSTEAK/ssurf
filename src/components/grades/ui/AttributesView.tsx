@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -20,7 +21,7 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export function AttributesView({ items }: { items: { label: string; value: number | string }[] }) {
+export function AttributesView({ items }: { items: { label: string; value: ReactNode }[] }) {
   return (
     <View style={styles.summaryView}>
       {items.map((item) => (

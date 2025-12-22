@@ -4,8 +4,8 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { CardView } from '@/components/containers/CardView';
 import { AttributesView } from '@/components/grades/ui/AttributesView';
+import { SemesterGradeItem } from '@/components/grades/ui/SemesterGradeItem';
 import { ThemedText } from '@/components/primitives/ThemedText';
-import { semesterToString } from '@/utils/semester';
 
 interface SemesterGrade {
   gradePointsAverage: number;
@@ -51,18 +51,22 @@ export function SemestersWidget({
         <ThemedText typography="headingLg">전체 학기 (학적부)</ThemedText>
         <AttributesView
           items={[
-            { label: '신청학점', value: recordedSummary.attemptedCredits },
-            { label: '취득학점', value: recordedSummary.earnedCredits },
+            {
+              label: '취득 / 신청 학점 (P/F 학점)',
+              value: `${recordedSummary.earnedCredits} / ${recordedSummary.attemptedCredits} (${recordedSummary.pfEarnedCredits})`,
+            },
+            {
+              label: '평점평균',
+              value: `${Math.round(recordedSummary.gradePointsAverage * 1000) / 1000} / 4.5`,
+            },
+            {
+              label: '산술평균',
+              value: `${Math.round(recordedSummary.arithmeticMean * 1000) / 1000} / 100`,
+            },
             {
               label: '평점계',
               value: Math.round(recordedSummary.gradePointsSum * 1000) / 1000,
             },
-            {
-              label: '평점평균',
-              value: Math.round(recordedSummary.gradePointsAverage * 1000) / 1000,
-            },
-            { label: '산술평균', value: recordedSummary.arithmeticMean },
-            { label: 'P/F학점', value: recordedSummary.pfEarnedCredits },
           ]}
         />
       </CardView>
@@ -70,28 +74,31 @@ export function SemestersWidget({
         <ThemedText typography="headingLg">전체 학기 (증명)</ThemedText>
         <AttributesView
           items={[
-            { label: '수강 학점', value: certiSummary.attemptedCredits },
-            { label: '취득 학점', value: certiSummary.earnedCredits },
+            {
+              label: '취득/신청 학점 (P/F 학점)',
+              value: `${certiSummary.earnedCredits} / ${certiSummary.attemptedCredits} (${certiSummary.pfEarnedCredits})`,
+            },
+            {
+              label: '평점평균',
+              value: `${Math.round(certiSummary.gradePointsAverage * 1000) / 1000} / 4.5`,
+            },
+            {
+              label: '산술평균',
+              value: `${Math.round(certiSummary.arithmeticMean * 1000) / 1000} / 100`,
+            },
             { label: '평점계', value: Math.round(certiSummary.gradePointsSum * 1000) / 1000 },
-            { label: '평점평균', value: Math.round(certiSummary.gradePointsAverage * 1000) / 1000 },
-            { label: '산술평균', value: certiSummary.arithmeticMean },
-            { label: 'P/F학점', value: certiSummary.pfEarnedCredits },
           ]}
         />
       </CardView>
       <CardView>
         <ThemedText typography="headingLg">학기별 성적</ThemedText>
         {semesters?.map((semester) => (
-          <View key={`${semester.year}-${semester.semester}`} style={{ marginTop: 16, gap: 4 }}>
-            <ThemedText typography="headingMd">
-              {semesterToString({ year: semester.year, semester: semester.semester })}
-            </ThemedText>
-            <ThemedText typography="bodyLg">
-              평점 평균:{' '}
-              <ThemedText style={{ fontWeight: 600 }} typography="bodyLg">
-                {Math.round(semester.gradePointsAverage * 1000) / 1000}
-              </ThemedText>
-            </ThemedText>
+          <View key={`${semester.year}-${semester.semester}`} style={{ marginTop: 16 }}>
+            <SemesterGradeItem
+              gradePointsAverage={semester.gradePointsAverage}
+              semester={semester.semester}
+              year={semester.year}
+            />
           </View>
         ))}
       </CardView>
