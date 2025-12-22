@@ -1,7 +1,7 @@
 import { CourseType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -20,9 +20,14 @@ import { AutoHeightFlatList } from '@/components/primitives/AutoHeightFlatList';
 import { Space } from '@/components/primitives/Space';
 import { Tabs } from '@/components/primitives/Tabs';
 import { ThemedText } from '@/components/primitives/ThemedText';
+import { SemesterGradeDto } from '@/db/schema/grades';
 import { useGradeSummary, useSemesterGrades } from '@/hooks/grades/grades';
 import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSyncGrades';
-import { semesterToString } from '@/utils/semester';
+import {
+  getEstimatedCurrentSemester,
+  getRecentSemesters,
+  semesterToString,
+} from '@/utils/semester';
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -77,32 +82,74 @@ export default function Index() {
     },
   });
 
+  // defaultGradeSemester 기준 최근 2개 학기를 무조건 탭에 포함
+  const allSemesterItems = useMemo(() => {
+    if (!semesters) {
+      return [];
+    }
+
+    const defaultGradeSemester = getEstimatedCurrentSemester();
+    const recentTwoSemesters = getRecentSemesters(defaultGradeSemester, 2);
+
+    const items: Array<{
+      data: SemesterGradeDto | undefined;
+      key: string;
+      semester: number;
+      type: 'semester';
+      year: number;
+    }> = [];
+
+    // 최근 2개 학기를 먼저 추가 (데이터가 있으면 포함)
+    recentTwoSemesters.forEach((recent) => {
+      const semesterData = semesters.find(
+        (s) => s.year === recent.year && s.semester === recent.semester,
+      );
+      items.push({
+        data: semesterData,
+        key: semesterToString(recent),
+        semester: recent.semester,
+        type: 'semester' as const,
+        year: recent.year,
+      });
+    });
+
+    // 기존 학기들 중 최근 2개에 포함되지 않은 것만 추가
+    semesters.forEach((s) => {
+      const isRecent = recentTwoSemesters.some(
+        (recent) => recent.year === s.year && recent.semester === s.semester,
+      );
+      if (!isRecent) {
+        items.push({
+          data: s,
+          key: semesterToString({ semester: s.semester, year: s.year }),
+          semester: s.semester,
+          type: 'semester' as const,
+          year: s.year,
+        });
+      }
+    });
+
+    return items;
+  }, [semesters]);
+
   const tabs =
-    certiSummary && semesters
-      ? [
-          SUMMARY_LABEL,
-          ...semesters.map((s) => semesterToString({ year: s.year, semester: s.semester })),
-        ]
+    certiSummary && allSemesterItems
+      ? [SUMMARY_LABEL, ...allSemesterItems.map((item) => item.key)]
       : [];
 
   type TabDataItem =
     | {
+        data: SemesterGradeDto | undefined;
         key: string;
-        semester: NonNullable<typeof semesters>[number];
+        semester: number;
         type: 'semester';
+        year: number;
       }
-    | { key: string; semester?: never; type: 'summary' };
+    | { data?: never; key: string; semester?: never; type: 'summary'; year?: never };
 
   const tabData: TabDataItem[] =
-    certiSummary && semesters
-      ? [
-          { key: SUMMARY_LABEL, type: 'summary' },
-          ...semesters.map((s) => ({
-            key: semesterToString({ year: s.year, semester: s.semester }),
-            semester: s,
-            type: 'semester' as const,
-          })),
-        ]
+    certiSummary && allSemesterItems
+      ? [{ key: SUMMARY_LABEL, type: 'summary' }, ...allSemesterItems]
       : [];
 
   // 페이지 변경 시 탭 업데이트
@@ -159,15 +206,17 @@ export default function Index() {
   };
 
   const renderItem = (item: TabDataItem) => {
-    return item.type === 'summary' ? (
-      <SemestersWidget
-        certiSummary={certiSummary}
-        recordedSummary={recordedSummary}
-        semesters={semesters}
-      />
-    ) : (
-      <SemesterWidget semester={item.semester} />
-    );
+    if (item.type === 'summary') {
+      return (
+        <SemestersWidget
+          certiSummary={certiSummary}
+          recordedSummary={recordedSummary}
+          semesters={semesters}
+        />
+      );
+    }
+
+    return <SemesterWidget data={item.data} semester={item.semester} year={item.year} />;
   };
 
   // 선택된 탭에 따라 표시할 성적 데이터 결정
