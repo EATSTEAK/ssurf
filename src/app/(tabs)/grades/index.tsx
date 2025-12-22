@@ -16,6 +16,7 @@ import { SemestersWidget } from '@/components/grades/widgets/SemestersWidget';
 import { SemesterWidget } from '@/components/grades/widgets/SemesterWidget';
 import { FloatingHeader } from '@/components/headers/FloatingHeader';
 import { Header } from '@/components/headers/Header';
+import { AutoHeightFlatList } from '@/components/primitives/AutoHeightFlatList';
 import { Space } from '@/components/primitives/Space';
 import { Tabs } from '@/components/primitives/Tabs';
 import { ThemedText } from '@/components/primitives/ThemedText';
@@ -75,6 +76,42 @@ export default function Index() {
     },
   });
 
+  const tabs =
+    summary && semesters
+      ? [
+          SUMMARY_LABEL,
+          ...semesters.map((s) => semesterToString({ year: s.year, semester: s.semester })),
+        ]
+      : [];
+
+  // FlatList 데이터 구조
+  type TabDataItem =
+    | {
+        key: string;
+        semester: NonNullable<typeof semesters>[number];
+        type: 'semester';
+      }
+    | { key: string; semester?: never; type: 'summary' };
+
+  const tabData: TabDataItem[] =
+    summary && semesters
+      ? [
+          { key: SUMMARY_LABEL, type: 'summary' },
+          ...semesters.map((s) => ({
+            key: semesterToString({ year: s.year, semester: s.semester }),
+            semester: s,
+            type: 'semester' as const,
+          })),
+        ]
+      : [];
+
+  // 페이지 변경 시 탭 업데이트
+  const handlePageChange = (key: string) => {
+    if (key !== selectedTab) {
+      setSelectedTab(key);
+    }
+  };
+
   if (!summary || !semesters) {
     return (
       <View style={styles.root}>
@@ -117,10 +154,17 @@ export default function Index() {
     );
   }
 
-  const tabs = [
-    SUMMARY_LABEL,
-    ...semesters.map((s) => semesterToString({ year: s.year, semester: s.semester })),
-  ];
+  const handleTabChange = (tab: string) => {
+    setSelectedTab(tab);
+  };
+
+  const renderItem = (item: TabDataItem) => {
+    return item.type === 'summary' ? (
+      <SemestersWidget semesters={semesters} />
+    ) : (
+      <SemesterWidget semester={item.semester} />
+    );
+  };
 
   // 선택된 탭에 따라 표시할 성적 데이터 결정
   const displayedSummary =
@@ -157,26 +201,20 @@ export default function Index() {
               <Space gap={1} />
               <GradeSequenceGraphWidget semesters={semesters} />
             </View>
-            <Tabs.Root onValueChange={setSelectedTab} value={selectedTab}>
+            <Tabs.Root onValueChange={handleTabChange} value={selectedTab}>
               <Tabs.List>
                 {tabs.map((tab) => (
                   <Tabs.Trigger key={tab} value={tab} />
                 ))}
               </Tabs.List>
-              <Tabs.Content value={SUMMARY_LABEL}>
-                <SemestersWidget semesters={semesters} />
-              </Tabs.Content>
-
-              {semesters.map((s) => {
-                const tabValue = semesterToString({ year: s.year, semester: s.semester });
-                return (
-                  <Tabs.Content key={tabValue} value={tabValue}>
-                    <SemesterWidget semester={s} />
-                  </Tabs.Content>
-                );
-              })}
             </Tabs.Root>
-
+            <AutoHeightFlatList
+              data={tabData}
+              keyExtractor={(item) => item.key}
+              onPageChange={handlePageChange}
+              renderItem={renderItem}
+              selectedKey={selectedTab}
+            />
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
