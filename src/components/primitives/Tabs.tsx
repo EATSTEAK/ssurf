@@ -1,6 +1,6 @@
 import * as TabsPrimitive from '@rn-primitives/tabs';
-import { ReactNode } from 'react';
-import { ScrollView } from 'react-native';
+import { createContext, ReactNode, useContext, useEffect, useRef } from 'react';
+import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ThemedText } from './ThemedText';
@@ -29,24 +29,72 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-// Root 컴포넌트
-const Root = TabsPrimitive.Root;
+// Tabs Context for sharing refs
+interface TabsContextValue {
+  scrollViewRef: React.RefObject<null | ScrollView>;
+  setTriggerRef: (key: string, layout: { width: number; x: number }) => void;
+}
 
-// List 컴포넌트 (스크롤 가능한 탭 목록)
-function List({
+const TabsContext = createContext<null | TabsContextValue>(null);
+
+const useTabsContext = () => {
+  const context = useContext(TabsContext);
+  if (!context) {
+    throw new Error('Tabs components must be used within Tabs.Root');
+  }
+  return context;
+};
+
+// Root 컴포넌트에 자동 스크롤 기능 추가
+function Root({
   children,
-  ref,
-  style,
+  value,
   ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & React.RefAttributes<ScrollView>) {
+}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>) {
+  const scrollViewRef = useRef<ScrollView>(null);
+  const triggerRefsMap = useRef(new Map<string, { width: number; x: number }>());
+
+  const setTriggerRef = (key: string, layout: { width: number; x: number }) => {
+    triggerRefsMap.current.set(key, layout);
+  };
+
+  useEffect(() => {
+    if (value && scrollViewRef.current) {
+      const tabInfo = triggerRefsMap.current.get(value);
+      if (tabInfo) {
+        scrollViewRef.current.scrollTo({
+          animated: true,
+          x: tabInfo.x - 100, // 좌측 여백 고려
+        });
+      }
+    }
+  }, [value]);
+
   return (
-    <TabsPrimitive.List {...props} asChild>
+    <TabsPrimitive.Root {...props} value={value}>
+      <TabsContext.Provider
+        value={{
+          scrollViewRef,
+          setTriggerRef,
+        }}
+      >
+        {children}
+      </TabsContext.Provider>
+    </TabsPrimitive.Root>
+  );
+}
+
+function List({ children, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>) {
+  const { scrollViewRef } = useTabsContext();
+
+  return (
+    <TabsPrimitive.List style={styles.listContainer} {...props} asChild>
       <ScrollView
         contentContainerStyle={styles.list}
         horizontal
-        ref={ref}
+        ref={scrollViewRef}
         showsHorizontalScrollIndicator={false}
-        style={[styles.listContainer, style]}
+        style={styles.scrollView}
       >
         {children}
       </ScrollView>
@@ -61,16 +109,24 @@ function Trigger({
   ...props
 }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & { children?: ReactNode }) {
   const rootContext = TabsPrimitive.useRootContext();
+  const { setTriggerRef } = useTabsContext();
   const isActive = rootContext.value === value;
 
   return (
-    <TabsPrimitive.Trigger {...props} style={[styles.trigger(isActive)]} value={value}>
-      {children || (
-        <ThemedText color={isActive ? 'fgPrimary' : 'fgSurface'} typography="labelMd">
-          {value}
-        </ThemedText>
-      )}
-    </TabsPrimitive.Trigger>
+    <View
+      onLayout={(event) => {
+        const { width, x } = event.nativeEvent.layout;
+        setTriggerRef(value, { width, x });
+      }}
+    >
+      <TabsPrimitive.Trigger {...props} style={[styles.trigger(isActive)]} value={value}>
+        {children || (
+          <ThemedText color={isActive ? 'fgPrimary' : 'fgSurface'} typography="labelMd">
+            {value}
+          </ThemedText>
+        )}
+      </TabsPrimitive.Trigger>
+    </View>
   );
 }
 
