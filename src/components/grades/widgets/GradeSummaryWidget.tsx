@@ -16,7 +16,7 @@ export function GradeSummaryWidget({ summary }: GradeSummaryWidgetProps) {
   return (
     <View>
       <ThemedText typography="headingMd">평점 평균</ThemedText>
-      <ThemedText typography="heading3xl">
+      <ThemedText color="primaryInverted" typography="heading3xl">
         {Math.round(summary.gradePointsAverage * 1000) / 1000}
         <ThemedText color="fgSurfaceMuted" typography="labelLg">
           {' '}
