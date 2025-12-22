@@ -1,6 +1,7 @@
 import { CourseType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
+import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -11,12 +12,15 @@ import { SafeContainer } from '@/components/containers/Container';
 import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
 import { GradeSummaryWidget } from '@/components/grades/widgets/GradeSummaryWidget';
 import { SemestersWidget } from '@/components/grades/widgets/SemestersWidget';
+import { SemesterWidget } from '@/components/grades/widgets/SemesterWidget';
 import { FloatingHeader } from '@/components/headers/FloatingHeader';
 import { Header } from '@/components/headers/Header';
 import { Space } from '@/components/primitives/Space';
+import { Tabs } from '@/components/primitives/Tabs';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useGradeSummary, useSemesterGrades } from '@/hooks/grades/grades';
 import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSyncGrades';
+import { semesterToString } from '@/utils/semester';
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -52,6 +56,8 @@ export default function Index() {
   } = useSyncSemesterGrades();
   const { data: summary } = useGradeSummary('certificated');
   const { data: semesters } = useSemesterGrades();
+
+  const [selectedTab, setSelectedTab] = useState<string>('전체');
 
   const scrollY = useSharedValue(0);
 
@@ -108,6 +114,12 @@ export default function Index() {
     );
   }
 
+  // 탭 목록 생성: "전체" + 각 학기
+  const tabs = [
+    '전체',
+    ...semesters.map((s) => semesterToString({ year: s.year, semester: s.semester })),
+  ];
+
   return (
     <>
       <Stack.Screen
@@ -115,6 +127,7 @@ export default function Index() {
           headerShown: true,
           headerTransparent: true,
           title: '성적',
+          headerTitle: () => <></>,
         }}
       />
       <View style={styles.root}>
@@ -131,7 +144,30 @@ export default function Index() {
               <Space gap={1} />
               <GradeSummaryWidget summary={summary} />
             </View>
-            <SemestersWidget semesters={semesters} />
+
+            {/* 탭 */}
+            <Tabs.Root onValueChange={setSelectedTab} value={selectedTab}>
+              <Tabs.List>
+                {tabs.map((tab) => (
+                  <Tabs.Trigger key={tab} value={tab} />
+                ))}
+              </Tabs.List>
+
+              {/* 탭 콘텐츠 */}
+              <Tabs.Content value="전체">
+                <SemestersWidget semesters={semesters} />
+              </Tabs.Content>
+
+              {semesters.map((s) => {
+                const tabValue = semesterToString({ year: s.year, semester: s.semester });
+                return (
+                  <Tabs.Content key={tabValue} value={tabValue}>
+                    <SemesterWidget semester={s} />
+                  </Tabs.Content>
+                );
+              })}
+            </Tabs.Root>
+
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
