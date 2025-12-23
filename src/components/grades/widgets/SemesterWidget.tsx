@@ -23,7 +23,7 @@ const styles = StyleSheet.create((theme) => ({
   emptyView: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    padding: theme.gap(4),
   },
 }));
 
