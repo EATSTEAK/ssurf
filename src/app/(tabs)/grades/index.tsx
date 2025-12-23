@@ -1,4 +1,4 @@
-import { CourseType } from '@rusaint/react-native';
+import { CourseType, YearSemester } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -26,7 +26,11 @@ import {
   useGradeSummary,
   useSemesterGrades,
 } from '@/hooks/grades/grades';
-import { useSyncGradeSummary, useSyncSemesterGrades } from '@/hooks/sync/useSyncGrades';
+import {
+  useSyncClassGrades,
+  useSyncGradeSummary,
+  useSyncSemesterGrades,
+} from '@/hooks/sync/useSyncGrades';
 import { semesterToString } from '@/utils/semester';
 
 const styles = StyleSheet.create((theme) => ({
@@ -73,18 +77,25 @@ export default function Index() {
     isSyncing: isSemesterSyncing,
     error: semesterError,
   } = useSyncSemesterGrades();
+  const { sync: syncClassGrades, isSyncing: isClassSyncing } = useSyncClassGrades();
+
   const { data: certiSummary } = useGradeSummary('certificated');
   const { data: recordedSummary } = useGradeSummary('recorded');
   const { data: semesters } = useSemesterGrades();
   const { attendedSemesters, isChecking } = useCheckRecentAttendedSemesters();
 
-  const [selectedTab, setSelectedTab] = useState<string>(SUMMARY_LABEL);
+  const [selectedTab, setSelectedTab] = useState<null | YearSemester>(null);
 
   const scrollY = useSharedValue(0);
 
-  const handleRefresh = () => {
-    syncGradeSummary([CourseType.Bachelor], { force: true });
-    syncSemesterGrades([CourseType.Bachelor], { force: true });
+  const handleRefresh = async () => {
+    await syncGradeSummary([CourseType.Bachelor], { force: true });
+    await syncSemesterGrades([CourseType.Bachelor], { force: true });
+    if (selectedTab) {
+      await syncClassGrades([CourseType.Bachelor, selectedTab.year, selectedTab.semester], {
+        force: true,
+      });
+    }
   };
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -151,8 +162,11 @@ export default function Index() {
 
   // 페이지 변경 시 탭 업데이트
   const handlePageChange = (key: string) => {
-    if (key !== selectedTab) {
-      setSelectedTab(key);
+    const newTab = key === SUMMARY_LABEL ? null : tabData.find((item) => item.key === key);
+    if (newTab && newTab.type === 'semester') {
+      setSelectedTab({ year: newTab.year, semester: newTab.semester });
+    } else if (key === SUMMARY_LABEL) {
+      setSelectedTab(null);
     }
   };
 
@@ -199,7 +213,12 @@ export default function Index() {
   }
 
   const handleTabChange = (tab: string) => {
-    setSelectedTab(tab);
+    const newTab = tab === SUMMARY_LABEL ? null : tabData.find((item) => item.key === tab);
+    if (newTab && newTab.type === 'semester') {
+      setSelectedTab({ year: newTab.year, semester: newTab.semester });
+    } else if (tab === SUMMARY_LABEL) {
+      setSelectedTab(null);
+    }
   };
 
   const renderItem = (item: TabDataItem) => {
@@ -218,16 +237,19 @@ export default function Index() {
 
   // 선택된 탭에 따라 표시할 성적 데이터 결정
   const displayedSummary =
-    selectedTab === SUMMARY_LABEL
+    selectedTab === null
       ? certiSummary
-      : semesters.find(
-          (s) => semesterToString({ year: s.year, semester: s.semester }) === selectedTab,
-        ) || certiSummary;
+      : semesters.find((s) => s.year === selectedTab.year && s.semester === selectedTab.semester) ||
+        certiSummary;
 
   // 선택된 semester 정보 추출
-  const selectedSemesterData = semesters.find(
-    (s) => semesterToString({ year: s.year, semester: s.semester }) === selectedTab,
-  );
+  const selectedSemesterData =
+    selectedTab === null
+      ? undefined
+      : semesters.find((s) => s.year === selectedTab.year && s.semester === selectedTab.semester);
+
+  // 현재 선택된 탭의 문자열 키
+  const selectedTabKey = selectedTab === null ? SUMMARY_LABEL : semesterToString(selectedTab);
 
   return (
     <>
@@ -243,14 +265,14 @@ export default function Index() {
         <RefreshableScrollView
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isSyncing || isSemesterSyncing}
+          refreshing={isSyncing || isSemesterSyncing || isClassSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
               <Header title="성적" />
-              <ThemedText typography="labelMd">{selectedTab}</ThemedText>
+              <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
               <Space gap={1} />
               <GradeSummaryWidget summary={displayedSummary} />
               <Space gap={1} />
@@ -260,7 +282,7 @@ export default function Index() {
                 semesters={semesters}
               />
             </View>
-            <Tabs.Root onValueChange={handleTabChange} value={selectedTab}>
+            <Tabs.Root onValueChange={handleTabChange} value={selectedTabKey}>
               <Tabs.List>
                 {tabs.map((tab) => (
                   <Tabs.Trigger key={tab} value={tab} />
@@ -272,12 +294,12 @@ export default function Index() {
               keyExtractor={(item) => item.key}
               onPageChange={handlePageChange}
               renderItem={renderItem}
-              selectedKey={selectedTab}
+              selectedKey={selectedTabKey}
             />
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader label={selectedTab} scrollY={scrollY} title="성적" />
+        <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
       </View>
     </>
   );
