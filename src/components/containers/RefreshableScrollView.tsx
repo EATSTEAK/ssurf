@@ -62,7 +62,9 @@ export const RefreshableScrollView = ({
   return (
     <>
       <AnimatedScrollView
-        contentContainerStyle={[styles.scrollView, contentContainerStyle]}
+        contentContainerStyle={
+          contentContainerStyle ? [styles.scrollView, contentContainerStyle] : styles.scrollView
+        }
         onScroll={handleScroll}
         refreshControl={
           <RefreshControl
