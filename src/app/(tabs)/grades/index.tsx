@@ -56,6 +56,11 @@ const styles = StyleSheet.create((theme) => ({
     gap: 16,
     marginBottom: 96,
   },
+  imageView: {
+    width: 150,
+    height: 150,
+    marginBottom: theme.gap(2),
+  },
 }));
 
 const SUMMARY_LABEL = '전체 학기';
@@ -182,11 +187,7 @@ export default function Index() {
           <View style={styles.errorView}>
             {error || semesterError ? (
               <>
-                <Image
-                  contentFit="contain"
-                  source={errorImage}
-                  style={{ width: 150, height: 150, marginBottom: 16 }}
-                />
+                <Image contentFit="contain" source={errorImage} style={styles.imageView} />
                 <ThemedText color="error" typography="headingLg">
                   정보를 가져오는 중 오류가 발생했어요.
                 </ThemedText>
@@ -197,11 +198,7 @@ export default function Index() {
               </>
             ) : (
               <>
-                <Image
-                  contentFit="contain"
-                  source={loadingImage}
-                  style={{ width: 150, height: 150, marginBottom: 16 }}
-                />
+                <Image contentFit="contain" source={loadingImage} style={styles.imageView} />
                 <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
                 <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
               </>
