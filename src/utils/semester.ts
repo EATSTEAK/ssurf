@@ -57,10 +57,10 @@ export const constructSemesters = (
  */
 export const getPreviousSemester = (semester: YearSemester): YearSemester => {
   const semesterOrder = [
-    SemesterType.Winter,
     SemesterType.One,
     SemesterType.Summer,
     SemesterType.Two,
+    SemesterType.Winter,
   ];
 
   const currentIndex = semesterOrder.indexOf(semester.semester);
@@ -70,10 +70,9 @@ export const getPreviousSemester = (semester: YearSemester): YearSemester => {
       semester: semesterOrder[currentIndex - 1],
     };
   }
-  // Winter 학기인 경우 이전 연도의 Two 학기
   return {
     year: semester.year - 1,
-    semester: SemesterType.Two,
+    semester: SemesterType.Winter,
   };
 };
 
