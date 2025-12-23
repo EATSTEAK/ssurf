@@ -77,7 +77,7 @@ export function SemesterWidget({ data, semester, year }: SemesterWidgetProps) {
       <CardView>
         <ThemedText typography="headingLg">과목별 성적</ThemedText>
         {classGrades?.map((classGrade) => (
-          <ClassGradeItem {...classGrade} />
+          <ClassGradeItem key={classGrade.code} {...classGrade} />
         ))}
       </CardView>
     </View>
