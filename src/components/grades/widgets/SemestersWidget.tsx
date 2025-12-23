@@ -48,19 +48,19 @@ export function SemestersWidget({
           items={[
             {
               label: '취득 / 신청 학점 (P/F 학점)',
-              value: `${recordedSummary.earnedCredits} / ${recordedSummary.attemptedCredits} (${recordedSummary.pfEarnedCredits})`,
+              value: `${recordedSummary.earnedCredits.toFixed(1)} / ${recordedSummary.attemptedCredits.toFixed(1)} (${recordedSummary.pfEarnedCredits.toFixed(1)})`,
             },
             {
               label: '평점평균',
-              value: `${Math.round(recordedSummary.gradePointsAverage * 1000) / 1000} / 4.5`,
+              value: `${recordedSummary.gradePointsAverage.toFixed(2)} / 4.50`,
             },
             {
               label: '산술평균',
-              value: `${Math.round(recordedSummary.arithmeticMean * 1000) / 1000} / 100`,
+              value: `${recordedSummary.arithmeticMean.toFixed(1)} / 100`,
             },
             {
               label: '평점계',
-              value: Math.round(recordedSummary.gradePointsSum * 1000) / 1000,
+              value: recordedSummary.gradePointsSum.toFixed(1),
             },
           ]}
         />
@@ -75,13 +75,13 @@ export function SemestersWidget({
             },
             {
               label: '평점평균',
-              value: `${Math.round(certiSummary.gradePointsAverage * 1000) / 1000} / 4.5`,
+              value: `${certiSummary.gradePointsAverage.toFixed(2)} / 4.50`,
             },
             {
               label: '산술평균',
-              value: `${Math.round(certiSummary.arithmeticMean * 1000) / 1000} / 100`,
+              value: `${certiSummary.arithmeticMean.toFixed(1)} / 100`,
             },
-            { label: '평점계', value: Math.round(certiSummary.gradePointsSum * 1000) / 1000 },
+            { label: '평점계', value: certiSummary.gradePointsSum.toFixed(1) },
           ]}
         />
       </CardView>

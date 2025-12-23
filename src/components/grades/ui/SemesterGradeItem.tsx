@@ -44,10 +44,10 @@ export function SemesterGradeItem({
             평점평균
           </ThemedText>
           <ThemedText style={styles.valueText} typography="bodyLg">
-            {Math.round(gradePointsAverage * 1000) / 1000}
+            {gradePointsAverage.toFixed(2)}
             <ThemedText color="fgSurfaceMuted" typography="bodySm">
               {' '}
-              / 4.5
+              / 4.50
             </ThemedText>
           </ThemedText>
         </View>
@@ -56,10 +56,10 @@ export function SemesterGradeItem({
             취득/신청학점
           </ThemedText>
           <ThemedText style={styles.valueText} typography="bodyLg">
-            {Math.round(earnedCredits * 1000) / 1000}
+            {earnedCredits.toFixed(2)}
             <ThemedText color="fgSurfaceMuted" typography="bodySm">
               {' '}
-              / {Math.round(attemptedCredits * 1000) / 1000}
+              / {attemptedCredits.toFixed(2)}
             </ThemedText>
           </ThemedText>
         </View>

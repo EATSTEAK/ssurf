@@ -17,14 +17,14 @@ export function GradeSummaryWidget({ summary }: GradeSummaryWidgetProps) {
     <View>
       <ThemedText typography="headingMd">평점 평균</ThemedText>
       <ThemedText color="primaryInverted" typography="heading3xl">
-        {Math.round(summary.gradePointsAverage * 1000) / 1000}
+        {summary.gradePointsAverage.toFixed(2)}
         <ThemedText color="fgSurfaceMuted" typography="labelLg">
           {' '}
-          / 4.5
+          / 4.50
         </ThemedText>
       </ThemedText>
       <ThemedText typography="bodyMd">
-        {summary.earnedCredits} / {summary.attemptedCredits} 학점 취득
+        {summary.earnedCredits.toFixed(1)} / {summary.attemptedCredits.toFixed(1)} 학점 취득
       </ThemedText>
     </View>
   );
