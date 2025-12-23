@@ -26,10 +26,10 @@ export function AttributesView({ items }: { items: { label: string; value: React
     <View style={styles.summaryView}>
       {items.map((item) => (
         <View key={item.label} style={styles.attributeView}>
-          <ThemedText style={{ color: 'gray' }} typography="bodyMd">
+          <ThemedText color="fgSurfaceMuted" typography="bodyMd">
             {item.label}
           </ThemedText>
-          <ThemedText style={{ fontWeight: 600 }} typography="bodyLg">
+          <ThemedText style={{ fontWeight: '600' }} typography="bodyLg">
             {item.value}
           </ThemedText>
         </View>
