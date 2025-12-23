@@ -31,6 +31,7 @@ export const RefreshableScrollView = ({
   refreshing,
   onRefresh,
   progressViewOffset,
+  contentContainerStyle,
   ...props
 }: Omit<AnimatedProps<ScrollViewProps>, 'refreshControl'> & RefreshControlProps) => {
   const pullDistance = useSharedValue(0);
@@ -61,7 +62,7 @@ export const RefreshableScrollView = ({
   return (
     <>
       <AnimatedScrollView
-        contentContainerStyle={[styles.scrollView, props.contentContainerStyle]}
+        contentContainerStyle={[styles.scrollView, contentContainerStyle]}
         onScroll={handleScroll}
         refreshControl={
           <RefreshControl
