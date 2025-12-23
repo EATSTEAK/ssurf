@@ -20,7 +20,7 @@ import { Header } from '@/components/headers/Header';
 import { Space } from '@/components/primitives/Space';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
-import { SemesterSelector } from '@/components/SemesterSelector';
+import { SemesterSelector } from '@/components/shared/SemesterSelector';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
 import {

@@ -34,12 +34,7 @@ export const syncGradeSummary = async (
     .insert(gradeSummary)
     .values({
       type: 'certificated',
-      attemptedCredits: certificated.attemptedCredits,
-      earnedCredits: certificated.earnedCredits,
-      gradePointsSum: certificated.gradePointsSum,
-      gradePointsAverage: certificated.gradePointsAverage,
-      arithmeticMean: certificated.arithmeticMean,
-      pfEarnedCredits: certificated.pfEarnedCredits,
+      ...certificated,
     })
     .execute();
 
@@ -48,12 +43,7 @@ export const syncGradeSummary = async (
     .insert(gradeSummary)
     .values({
       type: 'recorded',
-      attemptedCredits: recorded.attemptedCredits,
-      earnedCredits: recorded.earnedCredits,
-      gradePointsSum: recorded.gradePointsSum,
-      gradePointsAverage: recorded.gradePointsAverage,
-      arithmeticMean: recorded.arithmeticMean,
-      pfEarnedCredits: recorded.pfEarnedCredits,
+      ...recorded,
     })
     .execute();
 

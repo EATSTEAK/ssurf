@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
+import { Chip } from '@/components/primitives/Chip';
 import { ThemedText } from '@/components/primitives/ThemedText';
 import { ChapelAttendanceDto } from '@/db/schema/chapel';
 
@@ -21,7 +22,7 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(1),
     flexWrap: 'wrap',
   },
-  chip: {
+  chipVariant: {
     variants: {
       attendance: {
         attended: {
@@ -35,10 +36,6 @@ const styles = StyleSheet.create((theme) => ({
         },
       },
     },
-    borderRadius: theme.cornerRadius.md,
-    paddingVertical: theme.gap(0.5),
-    paddingHorizontal: theme.gap(1),
-    alignSelf: 'flex-end',
   },
 }));
 
@@ -62,10 +59,10 @@ export const Attendance = ({ attendance }: { attendance: ChapelAttendanceDto }) 
             {`${attendance.instructor} ${attendance.instructorDepartment}`.trim()}
           </ThemedText>
         </View>
-        <View style={{ flexGrow: 1 }}>
-          <ThemedText color="fgSuccessContainer" style={styles.chip} typography="labelMd">
+        <View style={{ flexGrow: 1, alignItems: 'flex-end' }}>
+          <Chip style={styles.chipVariant}>
             {attendance.date} / {attendance.attendance || '미결'}
-          </ThemedText>
+          </Chip>
         </View>
       </View>
     </View>
