@@ -48,7 +48,7 @@ export const useSemesterGrades = (
     await sync([courseType], { force: false });
     const result = await db.query.semesterGrades.findMany();
     setData(result || null);
-  }, [isSyncing]);
+  }, [courseType, isSyncing]);
 
   return { data, isSyncing };
 };
@@ -74,7 +74,7 @@ export const useSemesterGrade = (
         and(eq(semesterGrades.year, year), eq(semesterGrades.semester, semester)),
     });
     setData(result || null);
-  }, [year, semester, isSyncing]);
+  }, [year, semester, courseType, isSyncing]);
 
   return { data, isSyncing };
 };
@@ -100,7 +100,7 @@ export const useClassGrades = (
         and(eq(classGrades.year, year), eq(classGrades.semester, semester)),
     });
     setData(result || null);
-  }, [year, semester, isSyncing]);
+  }, [year, semester, courseType, isSyncing]);
 
   return { data, isSyncing };
 };
