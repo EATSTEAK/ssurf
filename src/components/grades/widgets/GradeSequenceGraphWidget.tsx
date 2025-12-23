@@ -21,6 +21,8 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     bottom: 0,
     opacity: 0.2,
+    zIndex: 1,
+    elevation: 1,
   },
   chartContainer: {
     height: '100%',
