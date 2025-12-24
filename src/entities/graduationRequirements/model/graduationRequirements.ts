@@ -7,7 +7,7 @@ export const graduationRequirementsGeneral = sqliteTable('graduation_requirement
   updatedAt: t.integer().notNull(),
 });
 
-export type GraduationRequirementsGeneralDto = typeof graduationRequirementsGeneral.$inferSelect;
+export type GraduationRequirementsGeneralModel = typeof graduationRequirementsGeneral.$inferSelect;
 
 export const graduationRequirements = sqliteTable('graduation_requirements', {
   id: t.integer().primaryKey({ autoIncrement: true }),
@@ -20,7 +20,7 @@ export const graduationRequirements = sqliteTable('graduation_requirements', {
   lectures: t.text().notNull(), // JSON string array
 });
 
-export type GraduationRequirementDto = typeof graduationRequirements.$inferSelect;
+export type GraduationRequirementModel = typeof graduationRequirements.$inferSelect;
 
 export const graduationStudent = sqliteTable('graduation_student', {
   id: t.integer().primaryKey({ autoIncrement: true }),
@@ -38,4 +38,4 @@ export const graduationStudent = sqliteTable('graduation_student', {
   completedPoints: t.real().notNull(),
 });
 
-export type GraduationStudentDto = typeof graduationStudent.$inferSelect;
+export type GraduationStudentModel = typeof graduationStudent.$inferSelect;

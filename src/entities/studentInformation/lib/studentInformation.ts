@@ -3,10 +3,10 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { useSyncStudentInformation } from '@/entities/studentInformation/lib/useSyncStudentInformation';
-import { StudentInformationDto } from '@/entities/studentInformation/model/studentInformation';
+import { StudentInformationModel } from '@/entities/studentInformation/model/studentInformation';
 
 export const useStudentInformation = () => {
-  const [data, setData] = useState<null | StudentInformationDto>(null);
+  const [data, setData] = useState<null | StudentInformationModel>(null);
   const { isSyncing, sync } = useSyncStudentInformation();
 
   useAsyncEffect(async () => {

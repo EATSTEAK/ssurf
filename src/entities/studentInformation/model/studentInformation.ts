@@ -34,4 +34,4 @@ export const studentInformation = sqliteTable(
   (table) => [t.primaryKey({ columns: [table.studentNumber] })],
 );
 
-export type StudentInformationDto = typeof studentInformation.$inferSelect;
+export type StudentInformationModel = typeof studentInformation.$inferSelect;

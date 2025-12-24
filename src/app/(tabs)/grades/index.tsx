@@ -18,7 +18,7 @@ import {
   useSyncGradeSummary,
   useSyncSemesterGrades,
 } from '@/entities/grades/lib/useSyncGrades';
-import { SemesterGradeDto } from '@/entities/grades/model/grades';
+import { SemesterGradeModel } from '@/entities/grades/model/grades';
 import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
 import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';
 import { SemesterWidget } from '@/features/grades/ui/sections/SemesterSection';
@@ -67,7 +67,7 @@ const SUMMARY_LABEL = '전체 학기';
 
 type TabDataItem =
   | {
-      data: SemesterGradeDto | undefined;
+      data: SemesterGradeModel | undefined;
       key: string;
       semester: number;
       type: 'semester';
@@ -115,7 +115,7 @@ export default function Index() {
     }
 
     const items: Array<{
-      data: SemesterGradeDto | undefined;
+      data: SemesterGradeModel | undefined;
       key: string;
       semester: number;
       type: 'semester';

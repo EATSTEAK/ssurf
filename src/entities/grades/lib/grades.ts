@@ -8,7 +8,11 @@ import {
   useSyncGradeSummary,
   useSyncSemesterGrades,
 } from '@/entities/grades/lib/useSyncGrades';
-import { ClassGradeDto, GradeSummaryDto, SemesterGradeDto } from '@/entities/grades/model/grades';
+import {
+  ClassGradeModel,
+  GradeSummaryModel,
+  SemesterGradeModel,
+} from '@/entities/grades/model/grades';
 import { getEstimatedCurrentSemester, getRecentSemesters } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
@@ -18,8 +22,8 @@ import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProv
  */
 export const useGradeSummary = (
   type: 'certificated' | 'recorded',
-): { data: GradeSummaryDto | null; isSyncing: boolean } => {
-  const [data, setData] = useState<GradeSummaryDto | null>(null);
+): { data: GradeSummaryModel | null; isSyncing: boolean } => {
+  const [data, setData] = useState<GradeSummaryModel | null>(null);
   const { isSyncing, sync } = useSyncGradeSummary();
 
   useAsyncEffect(async () => {
@@ -40,8 +44,8 @@ export const useGradeSummary = (
  */
 export const useSemesterGrades = (
   courseType: CourseType = CourseType.Bachelor,
-): { data: null | SemesterGradeDto[]; isSyncing: boolean } => {
-  const [data, setData] = useState<null | SemesterGradeDto[]>(null);
+): { data: null | SemesterGradeModel[]; isSyncing: boolean } => {
+  const [data, setData] = useState<null | SemesterGradeModel[]>(null);
   const { isSyncing, sync } = useSyncSemesterGrades();
 
   useAsyncEffect(async () => {
@@ -63,8 +67,8 @@ export const useSemesterGrade = (
   year: number,
   semester: number,
   courseType: CourseType = CourseType.Bachelor,
-): { data: null | SemesterGradeDto; isSyncing: boolean } => {
-  const [data, setData] = useState<null | SemesterGradeDto>(null);
+): { data: null | SemesterGradeModel; isSyncing: boolean } => {
+  const [data, setData] = useState<null | SemesterGradeModel>(null);
   const { isSyncing, sync } = useSyncSemesterGrades();
 
   useAsyncEffect(async () => {
@@ -89,8 +93,8 @@ export const useClassGrades = (
   year: number,
   semester: number,
   courseType: CourseType = CourseType.Bachelor,
-): { data: ClassGradeDto[] | null; isSyncing: boolean } => {
-  const [data, setData] = useState<ClassGradeDto[] | null>(null);
+): { data: ClassGradeModel[] | null; isSyncing: boolean } => {
+  const [data, setData] = useState<ClassGradeModel[] | null>(null);
   const { isSyncing, sync } = useSyncClassGrades();
 
   useAsyncEffect(async () => {

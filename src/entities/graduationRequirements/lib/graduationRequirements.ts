@@ -4,13 +4,13 @@ import { useAsyncEffect } from 'react-simplikit';
 import { db } from '@/db';
 import { useSyncGraduationRequirements } from '@/entities/graduationRequirements/lib/useSyncGraduationRequirements';
 import {
-  GraduationRequirementDto,
-  GraduationRequirementsGeneralDto,
-  GraduationStudentDto,
+  GraduationRequirementModel,
+  GraduationRequirementsGeneralModel,
+  GraduationStudentModel,
 } from '@/entities/graduationRequirements/model/graduationRequirements';
 
 export const useGraduationRequirementsGeneral = () => {
-  const [data, setData] = useState<GraduationRequirementsGeneralDto | null>(null);
+  const [data, setData] = useState<GraduationRequirementsGeneralModel | null>(null);
   const { isSyncing, sync } = useSyncGraduationRequirements();
 
   useAsyncEffect(async () => {
@@ -23,7 +23,7 @@ export const useGraduationRequirementsGeneral = () => {
 };
 
 export const useGraduationRequirements = () => {
-  const [data, setData] = useState<GraduationRequirementDto[] | null>(null);
+  const [data, setData] = useState<GraduationRequirementModel[] | null>(null);
   const { isSyncing, sync } = useSyncGraduationRequirements();
 
   useAsyncEffect(async () => {
@@ -36,7 +36,7 @@ export const useGraduationRequirements = () => {
 };
 
 export const useGraduationStudent = () => {
-  const [data, setData] = useState<GraduationStudentDto | null>(null);
+  const [data, setData] = useState<GraduationStudentModel | null>(null);
   const { isSyncing, sync } = useSyncGraduationRequirements();
 
   useAsyncEffect(async () => {

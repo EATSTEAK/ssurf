@@ -4,10 +4,10 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { useSyncChapel } from '@/entities/chapel/lib/useSyncChapel';
-import { ChapelAttendanceDto, ChapelGeneralDto } from '@/entities/chapel/model/chapel';
+import { ChapelAttendanceModel, ChapelGeneralModel } from '@/entities/chapel/model/chapel';
 
 export const useGeneralChapelInformation = (year: number, semester: SemesterType) => {
-  const [data, setData] = useState<ChapelGeneralDto | null>(null);
+  const [data, setData] = useState<ChapelGeneralModel | null>(null);
   const { isSyncing, sync } = useSyncChapel();
 
   useAsyncEffect(async () => {
@@ -23,7 +23,7 @@ export const useGeneralChapelInformation = (year: number, semester: SemesterType
 };
 
 export const useChapelAttendances = (year: number, semester: SemesterType) => {
-  const [data, setData] = useState<ChapelAttendanceDto[] | null>(null);
+  const [data, setData] = useState<ChapelAttendanceModel[] | null>(null);
   const { isSyncing, sync } = useSyncChapel();
 
   useAsyncEffect(async () => {

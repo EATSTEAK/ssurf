@@ -18,7 +18,7 @@ export const chapelGeneral = sqliteTable(
   (table) => [t.primaryKey({ columns: [table.year, table.semester] })],
 );
 
-export type ChapelGeneralDto = typeof chapelGeneral.$inferSelect;
+export type ChapelGeneralModel = typeof chapelGeneral.$inferSelect;
 
 export const chapelAttendances = sqliteTable(
   'chapel_attendances',
@@ -38,6 +38,6 @@ export const chapelAttendances = sqliteTable(
   (table) => [t.primaryKey({ columns: [table.year, table.semester, table.date] })],
 );
 
-export type ChapelAttendanceDto = typeof chapelAttendances.$inferSelect;
+export type ChapelAttendanceModel = typeof chapelAttendances.$inferSelect;
 
 // TODO: create chapel_absence_requests table

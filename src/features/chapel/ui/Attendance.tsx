@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ChapelAttendanceDto } from '@/entities/chapel/model/chapel';
+import { ChapelAttendanceModel } from '@/entities/chapel/model/chapel';
 import { Chip } from '@/shared/ui/primitives/Chip';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
@@ -39,7 +39,7 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export const Attendance = ({ attendance }: { attendance: ChapelAttendanceDto }) => {
+export const Attendance = ({ attendance }: { attendance: ChapelAttendanceModel }) => {
   styles.useVariants({
     attendance:
       attendance.attendance === '출석'

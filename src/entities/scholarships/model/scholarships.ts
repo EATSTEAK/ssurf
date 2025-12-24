@@ -22,4 +22,4 @@ export const scholarships = sqliteTable(
   (table) => [t.primaryKey({ columns: [table.year, table.semester, table.name] })],
 );
 
-export type ScholarshipDto = typeof scholarships.$inferSelect;
+export type ScholarshipModel = typeof scholarships.$inferSelect;

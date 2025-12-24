@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { SemesterGradeDto } from '@/entities/grades/model/grades';
+import { SemesterGradeModel } from '@/entities/grades/model/grades';
 import { semesterToString } from '@/shared/lib/semester';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
@@ -34,7 +34,7 @@ export function SemesterGradeItem({
   attemptedCredits,
   semesterRankFirst,
   semesterRankSecond,
-}: SemesterGradeDto) {
+}: SemesterGradeModel) {
   return (
     <View style={styles.container}>
       <ThemedText typography="headingMd">{semesterToString({ year, semester })}</ThemedText>

@@ -3,7 +3,7 @@ import { SymbolView } from 'expo-symbols';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { StudentInformationDto } from '@/entities/studentInformation/model/studentInformation';
+import { StudentInformationModel } from '@/entities/studentInformation/model/studentInformation';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { paletteHex } from '@/unistyles';
 
@@ -28,7 +28,7 @@ const styles = StyleSheet.create((theme, rt) => ({
   },
 }));
 
-export const UserProfile = ({ info }: { info: StudentInformationDto }) => {
+export const UserProfile = ({ info }: { info: StudentInformationModel }) => {
   return (
     <View style={styles.profileView}>
       <View style={styles.profileIcon}>
