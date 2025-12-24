@@ -2,9 +2,9 @@ import { GradeSummary } from '@rusaint/react-native';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { AttributesView } from '@/components/grades/ui/AttributesView';
-import { SemesterGradeItem } from '@/components/grades/ui/SemesterGradeItem';
 import { SemesterGradeDto } from '@/db/schema/grades';
+import { AttributesView } from '@/features/grades/ui/AttributesView';
+import { SemesterGradeItem } from '@/features/grades/ui/SemesterGradeItem';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 

@@ -4,13 +4,13 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { ClassGradeDto, GradeSummaryDto, SemesterGradeDto } from '@/db/schema/grades';
+import { getEstimatedCurrentSemester, getRecentSemesters } from '@/shared/lib/semester';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import {
   useSyncClassGrades,
   useSyncGradeSummary,
   useSyncSemesterGrades,
-} from '@/hooks/sync/useSyncGrades';
-import { getEstimatedCurrentSemester, getRecentSemesters } from '@/shared/lib/semester';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+} from '@/shared/sync/useSyncGrades';
 
 /**
  * 성적 요약 정보를 조회하는 훅

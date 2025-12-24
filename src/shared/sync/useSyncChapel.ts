@@ -3,7 +3,7 @@ import { SemesterType } from '@rusaint/react-native';
 import { syncChapelInformation } from '@/db/sync/chapel';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
-import { SyncOptions, useSyncData } from '../../shared/lib/sync/index';
+import { SyncOptions, useSyncData } from './index';
 
 export const useSyncChapel = (options?: SyncOptions) => {
   const { chapelClient } = useRusaintApplication();

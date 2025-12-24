@@ -9,17 +9,17 @@ import { StyleSheet } from 'react-native-unistyles';
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import { Attendance } from '@/components/chapel/Attendance';
-import { ChapelProgress } from '@/components/chapel/ChapelProgress';
-import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
-import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
-import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
+import { Attendance } from '@/features/chapel/ui/Attendance';
+import { ChapelProgress } from '@/features/chapel/ui/ChapelProgress';
+import { ChapelSeatmapView } from '@/features/chapel/ui/ChapelSeatmapView';
 import {
   constructSemesters,
   getEstimatedCurrentSemester,
   semesterToString,
 } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+import { useChapelAttendances, useGeneralChapelInformation } from '@/shared/query/chapel';
+import { useSyncChapel } from '@/shared/sync/useSyncChapel';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';

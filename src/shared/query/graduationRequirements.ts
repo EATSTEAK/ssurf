@@ -7,7 +7,7 @@ import {
   GraduationRequirementsGeneralDto,
   GraduationStudentDto,
 } from '@/db/schema/graduationRequirements';
-import { useSyncGraduationRequirements } from '@/hooks/sync/useSyncGraduationRequirements';
+import { useSyncGraduationRequirements } from '@/shared/sync/useSyncGraduationRequirements';
 
 export const useGraduationRequirementsGeneral = () => {
   const [data, setData] = useState<GraduationRequirementsGeneralDto | null>(null);

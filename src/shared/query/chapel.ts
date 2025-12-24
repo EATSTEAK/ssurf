@@ -4,7 +4,7 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { ChapelAttendanceDto, ChapelGeneralDto } from '@/db/schema/chapel';
-import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
+import { useSyncChapel } from '@/shared/sync/useSyncChapel';
 
 export const useGeneralChapelInformation = (year: number, semester: SemesterType) => {
   const [data, setData] = useState<ChapelGeneralDto | null>(null);

@@ -3,7 +3,7 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { StudentInformationDto } from '@/db/schema/studentInformation';
-import { useSyncStudentInformation } from '@/hooks/sync/useSyncStudentInformation';
+import { useSyncStudentInformation } from '@/shared/sync/useSyncStudentInformation';
 
 export const useStudentInformation = () => {
   const [data, setData] = useState<null | StudentInformationDto>(null);

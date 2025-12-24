@@ -1,8 +1,8 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ChapelSeatmap1F } from '@/components/chapel/seatmap/ChapelSeatmap1F';
-import { ChapelSeatmap2F3F } from '@/components/chapel/seatmap/ChapelSeatmap2F3F';
+import { ChapelSeatmap1F } from '@/features/chapel/ui/seatmap/ChapelSeatmap1F';
+import { ChapelSeatmap2F3F } from '@/features/chapel/ui/seatmap/ChapelSeatmap2F3F';
 
 interface ChapelSeatmapViewProps {
   floor: 1 | 2 | 3;
