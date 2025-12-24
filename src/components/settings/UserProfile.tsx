@@ -3,8 +3,8 @@ import { SymbolView } from 'expo-symbols';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ThemedText } from '@/components/primitives/ThemedText';
 import { StudentInformationDto } from '@/db/schema/studentInformation';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { paletteHex } from '@/unistyles';
 
 const styles = StyleSheet.create((theme, rt) => ({

@@ -16,7 +16,7 @@ import {
 import { createContext, useContext, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
-import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
+import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
 export interface RusaintApplicationContext {
   chapelClient: ChapelApplicationInterface | null;
   courseScheduleClient: CourseScheduleApplicationInterface | null;

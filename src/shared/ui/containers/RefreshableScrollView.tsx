@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { RefreshHeader } from '@/components/headers/RefreshHeader';
+import { RefreshHeader } from '@/shared/ui/headers/RefreshHeader';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 

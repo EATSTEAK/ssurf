@@ -12,22 +12,22 @@ import loadingImage from '@/assets/loading.png';
 import { Attendance } from '@/components/chapel/Attendance';
 import { ChapelProgress } from '@/components/chapel/ChapelProgress';
 import { ChapelSeatmapView } from '@/components/chapel/ChapelSeatmapView';
-import { CardView } from '@/components/containers/CardView';
-import { SafeContainer } from '@/components/containers/Container';
-import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
-import { FloatingHeader } from '@/components/headers/FloatingHeader';
-import { Header } from '@/components/headers/Header';
-import { Space } from '@/components/primitives/Space';
-import { ThemedText } from '@/components/primitives/ThemedText';
-import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
-import { SemesterSelector } from '@/components/shared/SemesterSelector';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/hooks/chapel/chapel';
 import { useSyncChapel } from '@/hooks/sync/useSyncChapel';
 import {
   constructSemesters,
   getEstimatedCurrentSemester,
   semesterToString,
-} from '@/utils/semester';
+} from '@/shared/lib/semester';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+import { CardView } from '@/shared/ui/containers/CardView';
+import { SafeContainer } from '@/shared/ui/containers/Container';
+import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
+import { Header } from '@/shared/ui/headers/Header';
+import { Space } from '@/shared/ui/primitives/Space';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
+import { SemesterSelector } from '@/shared/ui/SemesterSelector';
 
 const styles = StyleSheet.create((theme) => ({
   root: {

@@ -3,7 +3,7 @@ import { ComponentProps } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { propagateState } from '@/utils/propagateState';
+import { propagateState } from '@/shared/lib/propagateState';
 
 const styles = StyleSheet.create((theme) => ({
   root: {

@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useRef, useState } from 'react'
 import { useAsyncEffect } from 'react-simplikit';
 
 import { clearAllData } from '@/db';
-import { useExpoSecureStore } from '@/hooks/useExpoSecureStore';
+import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
   hasCredential: boolean;

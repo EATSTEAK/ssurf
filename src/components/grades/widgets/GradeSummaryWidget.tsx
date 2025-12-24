@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { ThemedText } from '@/components/primitives/ThemedText';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 interface GradeSummary {
   attemptedCredits: number;

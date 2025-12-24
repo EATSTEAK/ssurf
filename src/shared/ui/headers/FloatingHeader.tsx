@@ -8,7 +8,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ThemedText } from '@/components/primitives/ThemedText';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 export interface FloatingHeaderProps {
   label?: string;

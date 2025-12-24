@@ -1,7 +1,7 @@
-import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
 import { syncStudentInformation } from '@/db/sync/studentInformation';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
-import { SyncOptions, useSyncData } from './index';
+import { SyncOptions, useSyncData } from '../../shared/lib/sync/index';
 
 export const useSyncStudentInformation = (options?: SyncOptions) => {
   const { studentInformationClient } = useRusaintApplication();

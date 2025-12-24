@@ -1,13 +1,13 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { CardView } from '@/components/containers/CardView';
 import { AttributesView } from '@/components/grades/ui/AttributesView';
 import { ClassGradeItem } from '@/components/grades/ui/ClassGradeItem';
-import { ThemedText } from '@/components/primitives/ThemedText';
 import { SemesterGradeDto } from '@/db/schema/grades';
 import { useClassGrades } from '@/hooks/grades/grades';
-import { semesterToString } from '@/utils/semester';
+import { semesterToString } from '@/shared/lib/semester';
+import { CardView } from '@/shared/ui/containers/CardView';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 interface SemesterWidgetProps {
   data?: SemesterGradeDto;

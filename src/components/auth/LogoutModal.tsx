@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { Button } from '@/components/primitives/Button';
-import { ThemedText } from '@/components/primitives/ThemedText';
+import { Button } from '@/shared/ui/primitives/Button';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   overlay: {

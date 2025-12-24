@@ -1,9 +1,9 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ThemedText } from '@/components/primitives/ThemedText';
 import { SemesterGradeDto } from '@/db/schema/grades';
-import { semesterToString } from '@/utils/semester';
+import { semesterToString } from '@/shared/lib/semester';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   container: {

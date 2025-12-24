@@ -7,8 +7,8 @@ import {
 } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
+import { propagateState } from '@/shared/lib/propagateState';
 import { palette } from '@/unistyles';
-import { propagateState } from '@/utils/propagateState';
 
 const styles = StyleSheet.create((theme, rt) => ({
   list: {

@@ -1,7 +1,7 @@
 import { View, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ThemedText, ThemedTextProps } from '@/components/primitives/ThemedText';
+import { ThemedText, ThemedTextProps } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   chip: (backgroundColor: keyof typeof theme.colors) => ({

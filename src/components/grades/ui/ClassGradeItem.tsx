@@ -1,8 +1,8 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ThemedText } from '@/components/primitives/ThemedText';
 import { ClassGradeDto } from '@/db/schema/grades';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   container: {

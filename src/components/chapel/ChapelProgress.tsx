@@ -2,8 +2,8 @@ import { ComponentProps } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ChunkedProgress } from '@/components/primitives/ChunkedProgress';
-import { ThemedText } from '@/components/primitives/ThemedText';
+import { ChunkedProgress } from '@/shared/ui/primitives/ChunkedProgress';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 export interface ChapelProgressProps extends Omit<
   ComponentProps<typeof ChunkedProgress>,

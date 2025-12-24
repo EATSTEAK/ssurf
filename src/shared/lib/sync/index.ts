@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { db } from '@/db';
-import { useSyncStore } from '@/stores/syncStore';
+import { useSyncStore } from '@/shared/stores/syncStore';
 
 export interface SyncFunctionOptions {
   force?: boolean;

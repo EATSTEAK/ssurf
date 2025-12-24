@@ -13,8 +13,8 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ThemedText } from '@/components/primitives/ThemedText';
-import { Wave } from '@/components/shared/Wave';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
+import { Wave } from '@/shared/ui/Wave';
 
 const styles = StyleSheet.create((theme) => ({
   refreshHeader: {

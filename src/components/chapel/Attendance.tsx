@@ -1,9 +1,9 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { Chip } from '@/components/primitives/Chip';
-import { ThemedText } from '@/components/primitives/ThemedText';
 import { ChapelAttendanceDto } from '@/db/schema/chapel';
+import { Chip } from '@/shared/ui/primitives/Chip';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   container: {

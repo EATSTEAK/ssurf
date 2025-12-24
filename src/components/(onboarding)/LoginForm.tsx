@@ -5,10 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 import { useLoading } from 'react-simplikit';
 
-import { Button } from '@/components/primitives/Button';
-import { TextField } from '@/components/primitives/TextField';
-import { ThemedText } from '@/components/primitives/ThemedText';
-import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
+import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
+import { Button } from '@/shared/ui/primitives/Button';
+import { TextField } from '@/shared/ui/primitives/TextField';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   view: {

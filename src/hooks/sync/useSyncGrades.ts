@@ -1,7 +1,7 @@
-import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
 import { syncClassGrades, syncGradeSummary, syncSemesterGrades } from '@/db/sync/grades';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
-import { SyncOptions, useSyncData } from './index';
+import { SyncOptions, useSyncData } from '../../shared/lib/sync/index';
 
 /**
  * 성적 요약 정보를 동기화하는 훅

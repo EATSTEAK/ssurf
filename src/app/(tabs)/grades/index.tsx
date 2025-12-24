@@ -8,18 +8,10 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import { SafeContainer } from '@/components/containers/Container';
-import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
 import { GradeSequenceGraphWidget } from '@/components/grades/widgets/GradeSequenceGraphWidget';
 import { GradeSummaryWidget } from '@/components/grades/widgets/GradeSummaryWidget';
 import { SemestersWidget } from '@/components/grades/widgets/SemestersWidget';
 import { SemesterWidget } from '@/components/grades/widgets/SemesterWidget';
-import { FloatingHeader } from '@/components/headers/FloatingHeader';
-import { Header } from '@/components/headers/Header';
-import { AutoHeightFlatList } from '@/components/primitives/AutoHeightFlatList';
-import { Space } from '@/components/primitives/Space';
-import { Tabs } from '@/components/primitives/Tabs';
-import { ThemedText } from '@/components/primitives/ThemedText';
 import { SemesterGradeDto } from '@/db/schema/grades';
 import {
   useCheckRecentAttendedSemesters,
@@ -31,7 +23,15 @@ import {
   useSyncGradeSummary,
   useSyncSemesterGrades,
 } from '@/hooks/sync/useSyncGrades';
-import { semesterToString } from '@/utils/semester';
+import { semesterToString } from '@/shared/lib/semester';
+import { SafeContainer } from '@/shared/ui/containers/Container';
+import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
+import { Header } from '@/shared/ui/headers/Header';
+import { AutoHeightFlatList } from '@/shared/ui/primitives/AutoHeightFlatList';
+import { Space } from '@/shared/ui/primitives/Space';
+import { Tabs } from '@/shared/ui/primitives/Tabs';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   root: {

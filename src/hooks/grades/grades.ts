@@ -2,7 +2,6 @@ import { CourseType } from '@rusaint/react-native';
 import { useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
-import { useRusaintApplication } from '@/components/providers/RusaintApplicationProvider';
 import { db } from '@/db';
 import { ClassGradeDto, GradeSummaryDto, SemesterGradeDto } from '@/db/schema/grades';
 import {
@@ -10,7 +9,8 @@ import {
   useSyncGradeSummary,
   useSyncSemesterGrades,
 } from '@/hooks/sync/useSyncGrades';
-import { getEstimatedCurrentSemester, getRecentSemesters } from '@/utils/semester';
+import { getEstimatedCurrentSemester, getRecentSemesters } from '@/shared/lib/semester';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 /**
  * 성적 요약 정보를 조회하는 훅

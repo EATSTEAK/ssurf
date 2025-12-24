@@ -2,11 +2,11 @@ import { GradeSummary } from '@rusaint/react-native';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { CardView } from '@/components/containers/CardView';
 import { AttributesView } from '@/components/grades/ui/AttributesView';
 import { SemesterGradeItem } from '@/components/grades/ui/SemesterGradeItem';
-import { ThemedText } from '@/components/primitives/ThemedText';
 import { SemesterGradeDto } from '@/db/schema/grades';
+import { CardView } from '@/shared/ui/containers/CardView';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 interface SemestersWidgetProps {
   certiSummary: GradeSummary;
