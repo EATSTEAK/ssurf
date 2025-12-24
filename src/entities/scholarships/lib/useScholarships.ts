@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { useSyncScholarships } from '@/entities/scholarships/lib/useSyncScholarships';
+import { useSyncScholarships } from '@/entities/scholarships/lib/sync/useSyncScholarships';
 import { ScholarshipModel } from '@/entities/scholarships/model/scholarships';
 
 export const useScholarships = () => {

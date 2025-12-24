@@ -7,8 +7,8 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { StyleSheet } from 'react-native-unistyles';
 
 import packageJson from '@/../package.json';
-import { useStudentInformation } from '@/entities/studentInformation/lib/studentInformation';
-import { useSyncStudentInformation } from '@/entities/studentInformation/lib/useSyncStudentInformation';
+import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync/useSyncStudentInformation';
+import { useStudentInformation } from '@/entities/studentInformation/lib/useStudentInformation';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import { UserProfile } from '@/features/settings/ui/UserProfile';
 import { SsurfLined } from '@/icons/SsurfLined';
@@ -23,7 +23,6 @@ import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { paletteHex } from '@/unistyles';
-
 const styles = StyleSheet.create((theme, rt) => ({
   root: {
     width: '100%',

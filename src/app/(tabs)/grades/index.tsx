@@ -8,16 +8,12 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import {
-  useCheckRecentAttendedSemesters,
-  useGradeSummary,
-  useSemesterGrades,
-} from '@/entities/grades/lib/grades';
-import {
-  useSyncClassGrades,
-  useSyncGradeSummary,
-  useSyncSemesterGrades,
-} from '@/entities/grades/lib/useSyncGrades';
+import { useSyncClassGrades } from '@/entities/grades/lib/sync/useSyncClassGrades';
+import { useSyncGradeSummary } from '@/entities/grades/lib/sync/useSyncGradeSummary';
+import { useSyncSemesterGrades } from '@/entities/grades/lib/sync/useSyncSemesterGrades';
+import { useCheckRecentAttendedSemesters } from '@/entities/grades/lib/useCheckRecentAttendedSemesters';
+import { useGradeSummary } from '@/entities/grades/lib/useGradeSummary';
+import { useSemesterGrades } from '@/entities/grades/lib/useSemesterGrades';
 import { SemesterGradeModel } from '@/entities/grades/model/grades';
 import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
 import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';

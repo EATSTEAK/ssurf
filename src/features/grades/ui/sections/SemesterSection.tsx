@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useClassGrades } from '@/entities/grades/lib/grades';
+import { useClassGrades } from '@/entities/grades/lib/useClassGrades';
 import { SemesterGradeModel } from '@/entities/grades/model/grades';
 import { AttributesView } from '@/features/grades/ui/AttributesView';
 import { ClassGradeItem } from '@/features/grades/ui/ClassGradeItem';

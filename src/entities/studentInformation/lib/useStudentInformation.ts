@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { useSyncStudentInformation } from '@/entities/studentInformation/lib/useSyncStudentInformation';
+import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync/useSyncStudentInformation';
 import { StudentInformationModel } from '@/entities/studentInformation/model/studentInformation';
 
 export const useStudentInformation = () => {
