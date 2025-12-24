@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
+import { useSyncGraduationRequirements } from '@/entities/graduationRequirements/lib/useSyncGraduationRequirements';
 import {
   GraduationRequirementDto,
   GraduationRequirementsGeneralDto,
   GraduationStudentDto,
-} from '@/db/schema/graduationRequirements';
-import { useSyncGraduationRequirements } from '@/shared/sync/useSyncGraduationRequirements';
+} from '@/entities/graduationRequirements/model/graduationRequirements';
 
 export const useGraduationRequirementsGeneral = () => {
   const [data, setData] = useState<GraduationRequirementsGeneralDto | null>(null);

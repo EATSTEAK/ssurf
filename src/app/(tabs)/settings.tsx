@@ -7,13 +7,13 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { StyleSheet } from 'react-native-unistyles';
 
 import packageJson from '@/../package.json';
+import { useStudentInformation } from '@/entities/studentInformation/lib/studentInformation';
+import { useSyncStudentInformation } from '@/entities/studentInformation/lib/useSyncStudentInformation';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import { UserProfile } from '@/features/settings/ui/UserProfile';
 import { SsurfLined } from '@/icons/SsurfLined';
 import { REV } from '@/index';
 import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
-import { useStudentInformation } from '@/shared/query/studentInformation';
-import { useSyncStudentInformation } from '@/shared/sync/useSyncStudentInformation';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';

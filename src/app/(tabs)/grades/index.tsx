@@ -8,22 +8,22 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import { SemesterGradeDto } from '@/db/schema/grades';
+import {
+  useCheckRecentAttendedSemesters,
+  useGradeSummary,
+  useSemesterGrades,
+} from '@/entities/grades/lib/grades';
+import {
+  useSyncClassGrades,
+  useSyncGradeSummary,
+  useSyncSemesterGrades,
+} from '@/entities/grades/lib/useSyncGrades';
+import { SemesterGradeDto } from '@/entities/grades/model/grades';
 import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
 import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';
 import { SemesterWidget } from '@/features/grades/ui/sections/SemesterSection';
 import { SemestersWidget } from '@/features/grades/ui/sections/SemestersSection';
 import { semesterToString } from '@/shared/lib/semester';
-import {
-  useCheckRecentAttendedSemesters,
-  useGradeSummary,
-  useSemesterGrades,
-} from '@/shared/query/grades';
-import {
-  useSyncClassGrades,
-  useSyncGradeSummary,
-  useSyncSemesterGrades,
-} from '@/shared/sync/useSyncGrades';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';

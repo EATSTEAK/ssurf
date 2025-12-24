@@ -5,12 +5,12 @@ import {
 } from '@rusaint/react-native';
 
 import { db } from '@/db';
-import { cache } from '@/db/schema/cache';
 import {
   graduationRequirements,
   graduationRequirementsGeneral,
   graduationStudent,
-} from '@/db/schema/graduationRequirements';
+} from '@/entities/graduationRequirements/model/graduationRequirements';
+import { cache } from '@/shared/model/schema/cache';
 
 export const syncGraduationRequirementsInformation = async (
   client: GraduationRequirementsApplicationInterface,

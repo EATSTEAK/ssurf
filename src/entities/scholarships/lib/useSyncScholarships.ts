@@ -1,7 +1,6 @@
-import { syncScholarships } from '@/db/sync/scholarships';
+import { syncScholarships } from '@/entities/scholarships/api/scholarships';
+import { SyncOptions, useSyncData } from '@/shared/lib/sync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
-
-import { SyncOptions, useSyncData } from './index';
 
 export const useSyncScholarships = (options?: SyncOptions) => {
   const { scholarshipsClient } = useRusaintApplication();

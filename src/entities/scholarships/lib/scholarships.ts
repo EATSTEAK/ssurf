@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { ScholarshipDto } from '@/db/schema/scholarships';
-import { useSyncScholarships } from '@/shared/sync/useSyncScholarships';
+import { useSyncScholarships } from '@/entities/scholarships/lib/useSyncScholarships';
+import { ScholarshipDto } from '@/entities/scholarships/model/scholarships';
 
 export const useScholarships = () => {
   const [data, setData] = useState<null | ScholarshipDto[]>(null);

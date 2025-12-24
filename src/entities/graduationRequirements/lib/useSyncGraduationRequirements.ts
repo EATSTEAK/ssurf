@@ -1,7 +1,6 @@
-import { syncGraduationRequirementsInformation } from '@/db/sync/graduationRequirements';
+import { syncGraduationRequirementsInformation } from '@/entities/graduationRequirements/api/graduationRequirements';
+import { SyncOptions, useSyncData } from '@/shared/lib/sync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
-
-import { SyncOptions, useSyncData } from './index';
 
 export const useSyncGraduationRequirements = (options?: SyncOptions) => {
   const { graduationRequirementsClient } = useRusaintApplication();

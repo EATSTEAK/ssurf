@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { SemesterGradeDto } from '@/db/schema/grades';
+import { SemesterGradeDto } from '@/entities/grades/model/grades';
 import { semesterToString } from '@/shared/lib/semester';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 

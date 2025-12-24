@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ChapelAttendanceDto } from '@/db/schema/chapel';
+import { ChapelAttendanceDto } from '@/entities/chapel/model/chapel';
 import { Chip } from '@/shared/ui/primitives/Chip';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 

@@ -8,8 +8,8 @@ import {
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/db';
-import { cache } from '@/db/schema/cache';
-import { classGrades, gradeSummary, semesterGrades } from '@/db/schema/grades';
+import { classGrades, gradeSummary, semesterGrades } from '@/entities/grades/model/grades';
+import { cache } from '@/shared/model/schema/cache';
 
 /**
  * 전체 학기의 성적 요약을 동기화합니다.

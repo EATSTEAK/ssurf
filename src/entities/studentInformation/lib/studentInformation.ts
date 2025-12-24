@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { StudentInformationDto } from '@/db/schema/studentInformation';
-import { useSyncStudentInformation } from '@/shared/sync/useSyncStudentInformation';
+import { useSyncStudentInformation } from '@/entities/studentInformation/lib/useSyncStudentInformation';
+import { StudentInformationDto } from '@/entities/studentInformation/model/studentInformation';
 
 export const useStudentInformation = () => {
   const [data, setData] = useState<null | StudentInformationDto>(null);

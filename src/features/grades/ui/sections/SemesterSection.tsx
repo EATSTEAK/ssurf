@@ -1,11 +1,11 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { SemesterGradeDto } from '@/db/schema/grades';
+import { useClassGrades } from '@/entities/grades/lib/grades';
+import { SemesterGradeDto } from '@/entities/grades/model/grades';
 import { AttributesView } from '@/features/grades/ui/AttributesView';
 import { ClassGradeItem } from '@/features/grades/ui/ClassGradeItem';
 import { semesterToString } from '@/shared/lib/semester';
-import { useClassGrades } from '@/shared/query/grades';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 

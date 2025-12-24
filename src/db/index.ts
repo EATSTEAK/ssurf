@@ -1,12 +1,12 @@
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { openDatabaseSync } from 'expo-sqlite';
 
-import * as cacheSchemas from '@/db/schema/cache';
-import * as chapelSchemas from '@/db/schema/chapel';
-import * as gradesSchemas from '@/db/schema/grades';
-import * as graduationRequirementsSchemas from '@/db/schema/graduationRequirements';
-import * as scholarshipsSchemas from '@/db/schema/scholarships';
-import * as studentInformationSchemas from '@/db/schema/studentInformation';
+import * as chapelSchemas from '@/entities/chapel/model/chapel';
+import * as gradesSchemas from '@/entities/grades/model/grades';
+import * as graduationRequirementsSchemas from '@/entities/graduationRequirements/model/graduationRequirements';
+import * as scholarshipsSchemas from '@/entities/scholarships/model/scholarships';
+import * as studentInformationSchemas from '@/entities/studentInformation/model/studentInformation';
+import * as cacheSchemas from '@/shared/model/schema/cache';
 
 const schema = {
   ...chapelSchemas,
