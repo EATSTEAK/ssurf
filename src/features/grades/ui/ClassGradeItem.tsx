@@ -2,39 +2,39 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ClassGradeEntity } from '@/entities/grades/model';
+import { useBlurGrade } from '@/features/grades/providers/BlurGradeProvider';
 import { Chip } from '@/shared/ui/primitives/Chip';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
   container: {
+    alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',
     gap: theme.gap(0.5),
-    alignItems: 'center',
     justifyContent: 'space-between',
   },
   contentView: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.gap(0.5),
     flexShrink: 1,
+    gap: theme.gap(0.5),
   },
   nameView: {
-    display: 'flex',
-    flexDirection: 'row',
     alignItems: 'center',
     columnGap: theme.gap(0.25),
+    display: 'flex',
+    flexDirection: 'row',
     flexWrap: 'wrap',
   },
   gradeView: {
+    alignItems: 'center',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    width: 48,
     flexShrink: 0,
+    width: 48,
   },
-  rank: (rank: string) => ({
-    fontWeight: '600',
+  rank: (rank: string, isBlurred: boolean) => ({
     color:
       rank === NOT_AVAILABLE
         ? theme.colors.fgSurfaceMuted
@@ -43,6 +43,11 @@ const styles = StyleSheet.create((theme) => ({
           : rank[0] === 'B'
             ? theme.colors.secondaryInverted
             : theme.colors.errorInverted,
+    fontWeight: '600',
+    opacity: isBlurred ? 0.1 : 1,
+  }),
+  score: (isBlurred: boolean) => ({
+    opacity: isBlurred ? 0.1 : 1,
   }),
 }));
 
@@ -84,10 +89,12 @@ const NOT_AVAILABLE = '성적 미입력';
 export function ClassGradeItem({
   className,
   gradePoints,
-  rank,
   professor,
+  rank,
   scoreValue,
 }: ClassGradeEntity) {
+  const { isBlurred } = useBlurGrade();
+
   return (
     <View style={styles.container}>
       <View style={styles.contentView}>
@@ -107,10 +114,10 @@ export function ClassGradeItem({
         </View>
       </View>
       <View style={styles.gradeView}>
-        <ThemedText style={styles.rank(rank)} typography="headingLg">
+        <ThemedText style={styles.rank(rank, isBlurred)} typography="headingLg">
           {rank === NOT_AVAILABLE ? '-' : rank === '' ? '*' : rank}
         </ThemedText>
-        <ThemedText>
+        <ThemedText style={styles.score(isBlurred)}>
           {rankToRating(rank)}
           {scoreValue !== null && ` / ${scoreValue}`}
         </ThemedText>

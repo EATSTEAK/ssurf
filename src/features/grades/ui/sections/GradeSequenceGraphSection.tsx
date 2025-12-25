@@ -6,6 +6,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Area, CartesianChart, Line } from 'victory-native';
 
 import { SemesterGradeEntity } from '@/entities/grades/model';
+import { useBlurGrade } from '@/features/grades/providers/BlurGradeProvider';
 
 interface GradeSequenceGraphWidgetProps {
   selectedSemester?: number;
@@ -14,20 +15,20 @@ interface GradeSequenceGraphWidgetProps {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+  container: (isBlurred: boolean) => ({
     bottom: 0,
-    opacity: 0.2,
-    zIndex: 1,
     elevation: 1,
-  },
+    left: 0,
+    opacity: isBlurred ? 0.02 : 0.2,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 1,
+  }),
   chartContainer: {
     height: '100%',
-    width: '100%',
     paddingVertical: theme.gap(2),
+    width: '100%',
   },
 }));
 
@@ -37,6 +38,7 @@ export function GradeSequenceGraphWidget({
   semesters,
 }: GradeSequenceGraphWidgetProps) {
   const { theme } = useUnistyles();
+  const { isBlurred } = useBlurGrade();
 
   // 애니메이션을 위한 Reanimated shared values
   const outerRadius = useSharedValue(0);
@@ -121,7 +123,7 @@ export function GradeSequenceGraphWidget({
   const yMin = Math.max(0, minValue - 0.5);
 
   return (
-    <View pointerEvents="none" style={styles.container}>
+    <View pointerEvents="none" style={styles.container(isBlurred)}>
       <View style={styles.chartContainer}>
         <CartesianChart
           axisOptions={{
