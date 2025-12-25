@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ClassGradeEntity } from '@/entities/grades/model';
+import { Chip } from '@/shared/ui/primitives/Chip';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
@@ -80,7 +81,13 @@ const rankToRating = (rank: string) => {
 
 const NOT_AVAILABLE = '성적 미입력';
 
-export function ClassGradeItem({ className, gradePoints, rank, professor }: ClassGradeEntity) {
+export function ClassGradeItem({
+  className,
+  gradePoints,
+  rank,
+  professor,
+  scoreValue,
+}: ClassGradeEntity) {
   return (
     <View style={styles.container}>
       <View style={styles.contentView}>
@@ -88,15 +95,25 @@ export function ClassGradeItem({ className, gradePoints, rank, professor }: Clas
           <ThemedText typography="headingMd">{className}</ThemedText>
           {professor ? <ThemedText typography="labelMd">/ {professor}</ThemedText> : null}
         </View>
-        <ThemedText color="fgSurfaceMuted" typography="bodySm">
-          {gradePoints.toFixed(1)}학점
-        </ThemedText>
+        <View style={styles.nameView}>
+          <ThemedText color="fgSurfaceMuted" typography="bodySm">
+            {gradePoints.toFixed(1)}학점
+          </ThemedText>
+          {rank === '' && (
+            <Chip backgroundColor="errorContainer" color="fgErrorContainer">
+              강의평가 미수행
+            </Chip>
+          )}
+        </View>
       </View>
       <View style={styles.gradeView}>
         <ThemedText style={styles.rank(rank)} typography="headingLg">
-          {rank === NOT_AVAILABLE ? '-' : rank}
+          {rank === NOT_AVAILABLE ? '-' : rank === '' ? '*' : rank}
         </ThemedText>
-        <ThemedText>{rankToRating(rank)}</ThemedText>
+        <ThemedText>
+          {rankToRating(rank)}
+          {scoreValue !== null && ` / ${scoreValue}`}
+        </ThemedText>
       </View>
     </View>
   );
