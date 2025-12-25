@@ -11,10 +11,10 @@ import {
   useSyncGradeSummary,
   useSyncSemesterGrades,
 } from '@/entities/grades/lib/sync';
-import { GradeTabView } from '@/features/grades/model';
+import { GradeOverviewTabView, GradeTabView, SemesterGradeTabView } from '@/features/grades/model';
 
 interface UseGradeTabViewResult {
-  data: GradeTabView[];
+  data: GradeTabView[] | null;
   error: Error | null;
   isLoading: boolean;
   refresh: (selectedTab?: null | { semester: number; year: number }) => Promise<void>;
@@ -39,63 +39,52 @@ export function useGradeTabView(): UseGradeTabViewResult {
   const { data: certiSummary } = useGradeSummary('certificated');
   const { data: recordedSummary } = useGradeSummary('recorded');
   const { data: semesters } = useSemesterGrades();
-  const { attendedSemesters, isChecking } = useCheckRecentAttendedSemesters();
+  const { attendedSemesters: recentAttendedSemesters, isChecking } =
+    useCheckRecentAttendedSemesters();
 
-  const isLoading =
-    isSyncing ||
-    isSemesterSyncing ||
-    isClassSyncing ||
-    isChecking ||
-    !certiSummary ||
-    !recordedSummary ||
-    !semesters;
+  const isLoading = isSyncing || isSemesterSyncing || isClassSyncing || isChecking;
 
   const error = summaryError || semesterError || null;
 
-  const data = useMemo<GradeTabView[]>(() => {
+  const data = useMemo<GradeTabView[] | null>(() => {
     if (!certiSummary || !recordedSummary || !semesters) {
-      return [];
+      return null;
     }
 
-    const semesterItems: GradeTabView[] = [];
-
-    // 과목이 있는 최근 학기를 먼저 추가 (데이터가 있으면 포함)
-    attendedSemesters.forEach((attended) => {
-      const semesterData = semesters.find(
-        (s) => s.year === attended.year && s.semester === attended.semester,
-      );
-      semesterItems.push({
-        data: semesterData,
-        semester: attended.semester,
-        type: 'semester',
-        year: attended.year,
-      });
-    });
-
-    // 기존 학기들 중 과목이 있는 최근 학기에 포함되지 않은 것만 추가
-    semesters.forEach((s) => {
-      const isAttended = attendedSemesters.some(
-        (attended) => attended.year === s.year && attended.semester === s.semester,
-      );
-      if (!isAttended) {
-        semesterItems.push({
-          data: s,
-          semester: s.semester,
-          type: 'semester',
-          year: s.year,
-        });
-      }
-    });
-
-    return [
+    const summary: GradeTabView[] = [
       {
         certificated: certiSummary,
         recorded: recordedSummary,
         type: 'overview',
-      },
-      ...semesterItems,
+      } satisfies GradeOverviewTabView,
     ];
-  }, [certiSummary, recordedSummary, semesters, attendedSemesters]);
+
+    return summary.concat(
+      // 수강중이거나 성적 처리가 되지 않은 학기 추가
+      recentAttendedSemesters
+        .filter(
+          (recent) =>
+            !semesters.some((s) => s.year === recent.year && s.semester === recent.semester),
+        )
+        .map(
+          (attended) =>
+            ({
+              semester: attended.semester,
+              type: 'semester',
+              year: attended.year,
+            }) satisfies SemesterGradeTabView,
+        ),
+      semesters.map(
+        (s) =>
+          ({
+            data: s,
+            semester: s.semester,
+            type: 'semester',
+            year: s.year,
+          }) satisfies SemesterGradeTabView,
+      ),
+    );
+  }, [certiSummary, recordedSummary, semesters, recentAttendedSemesters]);
 
   const refresh = async (selectedTab?: null | { semester: number; year: number }) => {
     await syncGradeSummary([CourseType.Bachelor], { force: true });

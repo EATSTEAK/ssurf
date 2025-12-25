@@ -74,17 +74,11 @@ export default function Index() {
   });
 
   const tabMap = useMemo(
-    () => Object.fromEntries(data.map((item) => [getTabKey(item), item])),
+    () => Object.fromEntries((data ?? []).map((item) => [getTabKey(item), item])),
     [data],
   );
-  const tabs = data.map(getTabKey);
-  const overview = data.find((item): item is GradeOverviewTabView => item.type === 'overview');
-  const semesters = data
-    .filter((item): item is SemesterGradeTabView => item.type === 'semester')
-    .map((item) => item.data)
-    .filter((s) => s !== undefined);
 
-  if (isLoading || !overview) {
+  if (!data) {
     return (
       <View style={styles.root}>
         <SafeContainer>
@@ -115,6 +109,13 @@ export default function Index() {
       </View>
     );
   }
+
+  const tabs = data.map(getTabKey);
+  const overview = data.find((item): item is GradeOverviewTabView => item.type === 'overview');
+  const semesters = data
+    .filter((item): item is SemesterGradeTabView => item.type === 'semester')
+    .map((item) => item.data)
+    .filter((s) => s !== undefined);
 
   const selectedTab = tabMap[selectedTabKey];
   const selectedSemesterData = selectedTab?.type === 'semester' ? selectedTab.data : undefined;
