@@ -1,6 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Link } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
@@ -18,6 +16,7 @@ import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
+import { LogoutIcon } from '@/shared/ui/icons';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
@@ -77,20 +76,7 @@ export default function Index() {
             <ThemedText typography="headingLg">계정 설정</ThemedText>
             <ActionList>
               <ActionListItem
-                icon={
-                  <SymbolView
-                    fallback={
-                      <MaterialCommunityIcons
-                        color={styles.actionListSymbol.color}
-                        name="logout"
-                        size={24}
-                      />
-                    }
-                    name="rectangle.portrait.and.arrow.right"
-                    size={24}
-                    tintColor={styles.actionListSymbol.color}
-                  />
-                }
+                icon={<LogoutIcon color={styles.actionListSymbol.color} size={24} />}
                 onPress={() => setIsLogoutModalVisible(true)}
               >
                 <ThemedText typography="bodyLg">로그아웃</ThemedText>
