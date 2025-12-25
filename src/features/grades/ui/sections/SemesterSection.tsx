@@ -25,6 +25,10 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     padding: theme.gap(4),
   },
+  classGradesView: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
 }));
 
 export function SemesterWidget({ data, semester, year }: SemesterWidgetProps) {
@@ -79,11 +83,15 @@ export function SemesterWidget({ data, semester, year }: SemesterWidgetProps) {
           </View>
         )}
       </CardView>
-      <CardView>
-        <ThemedText typography="headingLg">과목별 성적</ThemedText>
-        {classGrades?.map((classGrade) => (
-          <ClassGradeItem key={classGrade.code} {...classGrade} />
-        ))}
+      <CardView style={{ paddingHorizontal: 0 }}>
+        <ThemedText style={{ paddingHorizontal: 16 }} typography="headingLg">
+          과목별 성적
+        </ThemedText>
+        <View style={styles.classGradesView}>
+          {classGrades?.map((classGrade) => (
+            <ClassGradeItem key={classGrade.code} {...classGrade} />
+          ))}
+        </View>
       </CardView>
     </View>
   );
