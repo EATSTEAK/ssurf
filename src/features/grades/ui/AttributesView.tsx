@@ -21,7 +21,16 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export function AttributesView({ items }: { items: { label: string; value: ReactNode }[] }) {
+export interface AttributeItem {
+  base?: ReactNode;
+  label: string;
+  value: ReactNode;
+}
+export interface AttributesViewProps {
+  items: AttributeItem[];
+}
+
+export function AttributesView({ items }: AttributesViewProps) {
   return (
     <View style={styles.summaryView}>
       {items.map((item) => (
@@ -31,6 +40,18 @@ export function AttributesView({ items }: { items: { label: string; value: React
           </ThemedText>
           <ThemedText style={{ fontWeight: '600' }} typography="bodyLg">
             {item.value}
+            {item.base ? (
+              <>
+                {' '}
+                <ThemedText
+                  color="fgSurfaceMuted"
+                  style={{ fontWeight: '400' }}
+                  typography="bodySm"
+                >
+                  / {item.base}
+                </ThemedText>
+              </>
+            ) : null}
           </ThemedText>
         </View>
       ))}

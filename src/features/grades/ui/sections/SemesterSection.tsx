@@ -44,24 +44,29 @@ export function SemesterWidget({ data, semester, year }: SemesterWidgetProps) {
             items={[
               {
                 label: '취득 / 신청 학점 (P/F 학점)',
-                value: `${data.earnedCredits.toFixed(1)} / ${data.attemptedCredits.toFixed(1)} (${data.pfEarnedCredits.toFixed(1)})`,
+                value: `${data.earnedCredits.toFixed(1)}`,
+                base: `${data.attemptedCredits.toFixed(1)} (${data.pfEarnedCredits.toFixed(1)})`,
               },
               {
                 label: '평점평균',
-                value: `${data.gradePointsAverage.toFixed(2)} / 4.50`,
+                value: `${data.gradePointsAverage.toFixed(2)}`,
+                base: '4.50',
               },
               {
                 label: '산술평균',
-                value: `${data.arithmeticMean.toFixed(1)} / 100`,
+                value: `${data.arithmeticMean.toFixed(1)}`,
+                base: '100',
               },
               { label: '평점계', value: data.gradePointsSum.toFixed(1) },
               {
                 label: '학기별석차',
-                value: `${data.semesterRankFirst}/${data.semesterRankSecond}`,
+                value: `${data.semesterRankFirst}`,
+                base: `${data.semesterRankSecond}`,
               },
               {
                 label: '전체석차',
-                value: `${data.generalRankFirst}/${data.generalRankSecond}`,
+                value: `${data.generalRankFirst}`,
+                base: `${data.generalRankSecond}`,
               },
             ]}
           />
