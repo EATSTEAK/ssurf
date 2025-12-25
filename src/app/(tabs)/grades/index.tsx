@@ -1,14 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useGradeTabView } from '@/features/grades/lib/useGradeTabView';
 import { GradeOverviewTabView, GradeTabView, SemesterGradeTabView } from '@/features/grades/model';
+import { BlurGradeProvider, useBlurGrade } from '@/features/grades/providers/BlurGradeProvider';
 import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
 import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';
 import { SemesterWidget } from '@/features/grades/ui/sections/SemesterSection';
@@ -51,6 +53,11 @@ const styles = StyleSheet.create((theme) => ({
     height: 150,
     marginBottom: theme.gap(2),
   },
+  eyeIcon: {
+    width: 12,
+    height: 12,
+    color: theme.colors.fgSurface,
+  },
 }));
 
 const SUMMARY_LABEL = '전체 학기';
@@ -62,9 +69,11 @@ function getTabKey(item: GradeTabView): string {
   return semesterToString({ semester: item.semester, year: item.year });
 }
 
-export default function Index() {
-  const { data, refresh, isLoading, error } = useGradeTabView();
+function GradesContent() {
+  const { data, error, isLoading, refresh } = useGradeTabView();
   const [selectedTabKey, setSelectedTabKey] = useState<string>(SUMMARY_LABEL);
+  const { isBlurred, toggleBlur } = useBlurGrade();
+  const { theme } = useUnistyles();
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
@@ -84,7 +93,18 @@ export default function Index() {
         <SafeContainer>
           {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
-            <Header title="성적" />
+            <Pressable onPress={toggleBlur}>
+              <Header
+                action={
+                  <Ionicons
+                    name={isBlurred ? 'eye-off-outline' : 'eye-outline'}
+                    size={16}
+                    style={styles.eyeIcon}
+                  />
+                }
+                title="성적"
+              />
+            </Pressable>
           </View>
           <Space gap={1} />
           <View style={styles.errorView}>
@@ -167,7 +187,18 @@ export default function Index() {
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
-              <Header title="성적" />
+              <Header
+                action={
+                  <Pressable onPress={toggleBlur}>
+                    <Ionicons
+                      color={theme.colors.fgSurface}
+                      name={isBlurred ? 'eye-off-outline' : 'eye-outline'}
+                      size={24}
+                    />
+                  </Pressable>
+                }
+                title="성적"
+              />
               <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
               <Space gap={1} />
               <GradeSummaryWidget summary={displayedSummary} />
@@ -198,5 +229,13 @@ export default function Index() {
         <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
       </View>
     </>
+  );
+}
+
+export default function Index() {
+  return (
+    <BlurGradeProvider>
+      <GradesContent />
+    </BlurGradeProvider>
   );
 }
