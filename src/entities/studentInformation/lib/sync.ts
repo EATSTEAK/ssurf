@@ -1,4 +1,4 @@
-import { syncStudentInformation } from '@/entities/studentInformation/api/studentInformation';
+import { syncStudentInformation } from '@/entities/studentInformation/service';
 import { SyncOptions, useSyncData } from '@/shared/lib/sync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 

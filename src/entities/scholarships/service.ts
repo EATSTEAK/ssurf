@@ -1,7 +1,7 @@
 import { ScholarshipsApplicationInterface } from '@rusaint/react-native';
 
 import { db } from '@/db';
-import { scholarships } from '@/entities/scholarships/model/scholarships';
+import { scholarships } from '@/entities/scholarships/model';
 import { cache } from '@/shared/model/schema/cache';
 
 export const syncScholarships = async (client: ScholarshipsApplicationInterface) => {

@@ -8,13 +8,17 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import { useSyncClassGrades } from '@/entities/grades/lib/sync/useSyncClassGrades';
-import { useSyncGradeSummary } from '@/entities/grades/lib/sync/useSyncGradeSummary';
-import { useSyncSemesterGrades } from '@/entities/grades/lib/sync/useSyncSemesterGrades';
-import { useCheckRecentAttendedSemesters } from '@/entities/grades/lib/useCheckRecentAttendedSemesters';
-import { useGradeSummary } from '@/entities/grades/lib/useGradeSummary';
-import { useSemesterGrades } from '@/entities/grades/lib/useSemesterGrades';
-import { SemesterGradeModel } from '@/entities/grades/model/grades';
+import {
+  useCheckRecentAttendedSemesters,
+  useGradeSummary,
+  useSemesterGrades,
+} from '@/entities/grades/lib/queries';
+import {
+  useSyncClassGrades,
+  useSyncGradeSummary,
+  useSyncSemesterGrades,
+} from '@/entities/grades/lib/sync';
+import { SemesterGradeEntity } from '@/entities/grades/model';
 import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
 import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';
 import { SemesterWidget } from '@/features/grades/ui/sections/SemesterSection';
@@ -63,7 +67,7 @@ const SUMMARY_LABEL = '전체 학기';
 
 type TabDataItem =
   | {
-      data: SemesterGradeModel | undefined;
+      data: SemesterGradeEntity | undefined;
       key: string;
       semester: number;
       type: 'semester';
@@ -111,7 +115,7 @@ export default function Index() {
     }
 
     const items: Array<{
-      data: SemesterGradeModel | undefined;
+      data: SemesterGradeEntity | undefined;
       key: string;
       semester: number;
       type: 'semester';

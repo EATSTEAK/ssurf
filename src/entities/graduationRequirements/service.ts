@@ -9,7 +9,7 @@ import {
   graduationRequirements,
   graduationRequirementsGeneral,
   graduationStudent,
-} from '@/entities/graduationRequirements/model/graduationRequirements';
+} from '@/entities/graduationRequirements/model';
 import { cache } from '@/shared/model/schema/cache';
 
 export const syncGraduationRequirementsInformation = async (

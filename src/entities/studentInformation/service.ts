@@ -1,7 +1,7 @@
 import { StudentInformation, StudentInformationApplicationInterface } from '@rusaint/react-native';
 
 import { db } from '@/db';
-import { studentInformation } from '@/entities/studentInformation/model/studentInformation';
+import { studentInformation } from '@/entities/studentInformation/model';
 import { cache } from '@/shared/model/schema/cache';
 
 export const syncStudentInformation = async (client: StudentInformationApplicationInterface) => {

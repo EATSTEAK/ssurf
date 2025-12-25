@@ -1,4 +1,4 @@
-import { syncScholarships } from '@/entities/scholarships/api/scholarships';
+import { syncScholarships } from '@/entities/scholarships/service';
 import { SyncOptions, useSyncData } from '@/shared/lib/sync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 

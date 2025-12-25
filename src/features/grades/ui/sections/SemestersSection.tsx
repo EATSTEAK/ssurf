@@ -2,7 +2,7 @@ import { GradeSummary } from '@rusaint/react-native';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { SemesterGradeModel } from '@/entities/grades/model/grades';
+import { SemesterGradeEntity } from '@/entities/grades/model';
 import { AttributesView } from '@/features/grades/ui/AttributesView';
 import { SemesterGradeItem } from '@/features/grades/ui/SemesterGradeItem';
 import { CardView } from '@/shared/ui/containers/CardView';
@@ -11,7 +11,7 @@ import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 interface SemestersWidgetProps {
   certiSummary: GradeSummary;
   recordedSummary: GradeSummary;
-  semesters: SemesterGradeModel[];
+  semesters: SemesterGradeEntity[];
 }
 
 const styles = StyleSheet.create((theme) => ({

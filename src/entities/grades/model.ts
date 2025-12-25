@@ -15,7 +15,7 @@ export const gradeSummary = sqliteTable('grade_summary', {
   pfEarnedCredits: t.real().notNull(), // P/F 학점계
 });
 
-export type GradeSummaryModel = typeof gradeSummary.$inferSelect;
+export type GradeSummaryEntity = typeof gradeSummary.$inferSelect;
 
 /**
  * 학기별 성적 테이블
@@ -43,7 +43,7 @@ export const semesterGrades = sqliteTable(
   (table) => [t.primaryKey({ columns: [table.year, table.semester] })],
 );
 
-export type SemesterGradeModel = typeof semesterGrades.$inferSelect;
+export type SemesterGradeEntity = typeof semesterGrades.$inferSelect;
 
 /**
  * 과목별 성적 테이블
@@ -66,4 +66,4 @@ export const classGrades = sqliteTable(
   (table) => [t.primaryKey({ columns: [table.year, table.semester, table.code] })],
 );
 
-export type ClassGradeModel = typeof classGrades.$inferSelect;
+export type ClassGradeEntity = typeof classGrades.$inferSelect;

@@ -5,12 +5,12 @@ import { Easing, useSharedValue, withSpring, withTiming } from 'react-native-rea
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Area, CartesianChart, Line } from 'victory-native';
 
-import { SemesterGradeModel } from '@/entities/grades/model/grades';
+import { SemesterGradeEntity } from '@/entities/grades/model';
 
 interface GradeSequenceGraphWidgetProps {
   selectedSemester?: number;
   selectedYear?: number;
-  semesters: SemesterGradeModel[];
+  semesters: SemesterGradeEntity[];
 }
 
 const styles = StyleSheet.create((theme) => ({

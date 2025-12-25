@@ -2,7 +2,7 @@ import { ChapelApplicationInterface, ChapelInformation, SemesterType } from '@ru
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/db';
-import { chapelAttendances, chapelGeneral } from '@/entities/chapel/model/chapel';
+import { chapelAttendances, chapelGeneral } from '@/entities/chapel/model';
 import { cache } from '@/shared/model/schema/cache';
 
 export const syncChapelInformation = async (

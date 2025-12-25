@@ -8,7 +8,7 @@ import {
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/db';
-import { classGrades, gradeSummary, semesterGrades } from '@/entities/grades/model/grades';
+import { classGrades, gradeSummary, semesterGrades } from '@/entities/grades/model';
 import { cache } from '@/shared/model/schema/cache';
 
 /**

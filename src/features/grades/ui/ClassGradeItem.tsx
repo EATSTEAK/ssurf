@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { ClassGradeModel } from '@/entities/grades/model/grades';
+import { ClassGradeEntity } from '@/entities/grades/model';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
@@ -80,7 +80,7 @@ const rankToRating = (rank: string) => {
 
 const NOT_AVAILABLE = '성적 미입력';
 
-export function ClassGradeItem({ className, gradePoints, rank, professor }: ClassGradeModel) {
+export function ClassGradeItem({ className, gradePoints, rank, professor }: ClassGradeEntity) {
   return (
     <View style={styles.container}>
       <View style={styles.contentView}>

@@ -1,6 +1,6 @@
 import { SemesterType } from '@rusaint/react-native';
 
-import { syncChapelInformation } from '@/entities/chapel/api/chapel';
+import { syncChapelInformation } from '@/entities/chapel/service';
 import { SyncOptions, useSyncData } from '@/shared/lib/sync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 

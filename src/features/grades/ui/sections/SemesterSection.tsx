@@ -1,8 +1,8 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useClassGrades } from '@/entities/grades/lib/useClassGrades';
-import { SemesterGradeModel } from '@/entities/grades/model/grades';
+import { useClassGrades } from '@/entities/grades/lib/queries';
+import { SemesterGradeEntity } from '@/entities/grades/model';
 import { AttributesView } from '@/features/grades/ui/AttributesView';
 import { ClassGradeItem } from '@/features/grades/ui/ClassGradeItem';
 import { semesterToString } from '@/shared/lib/semester';
@@ -10,7 +10,7 @@ import { CardView } from '@/shared/ui/containers/CardView';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 interface SemesterWidgetProps {
-  data?: SemesterGradeModel;
+  data?: SemesterGradeEntity;
   semester: number;
   year: number;
 }

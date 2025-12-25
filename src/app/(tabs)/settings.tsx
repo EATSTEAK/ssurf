@@ -7,8 +7,8 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { StyleSheet } from 'react-native-unistyles';
 
 import packageJson from '@/../package.json';
-import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync/useSyncStudentInformation';
-import { useStudentInformation } from '@/entities/studentInformation/lib/useStudentInformation';
+import { useStudentInformation } from '@/entities/studentInformation/lib/queries';
+import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import { UserProfile } from '@/features/settings/ui/UserProfile';
 import { SsurfLined } from '@/icons/SsurfLined';
