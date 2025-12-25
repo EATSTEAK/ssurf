@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Animated, {
   Easing,
   Extrapolation,
@@ -44,9 +44,11 @@ interface RefreshHeaderProps {
 
 export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
   const insets = useSafeAreaInsets();
+  const isShowing = useSharedValue(isSyncing);
   const animatingOut = useSharedValue(false);
   const prevIsSyncingRef = useRef(isSyncing);
   const waveOffset = useSharedValue(0);
+  const [showingComplete, setShowingComplete] = useState(false);
 
   useEffect(() => {
     if (isSyncing) {
@@ -69,18 +71,35 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
     const wasSyncing = prevIsSyncingRef.current;
     prevIsSyncingRef.current = isSyncing;
 
-    if (wasSyncing && !isSyncing && animatingOut.value === false) {
-      // isSyncing이 false가 되었을 때 애니메이션 시작
-      animatingOut.value = true;
+    if (isSyncing) {
+      // sync 시작 시 즉시 표시
+      isShowing.value = true;
+      animatingOut.value = false;
+    } else if (wasSyncing && !isSyncing && animatingOut.value === false) {
+      // isSyncing이 false가 되었을 때 "새로고침 완료!" 표시 (비동기)
+      const completeShowTimer = setTimeout(() => {
+        setShowingComplete(true);
+      }, 0);
 
-      // 애니메이션이 끝난 후 상태 리셋
-      const timer = setTimeout(() => {
+      // 500ms 후 완료 메시지 숨기고 사라지는 애니메이션 시작
+      const completeTimer = setTimeout(() => {
+        setShowingComplete(false);
+        animatingOut.value = true;
+      }, 500);
+
+      // 800ms 후 isShowing과 애니메이션 상태 리셋
+      const animationTimer = setTimeout(() => {
+        isShowing.value = false;
         animatingOut.value = false;
-      }, 300);
+      }, 800);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(completeShowTimer);
+        clearTimeout(completeTimer);
+        clearTimeout(animationTimer);
+      };
     }
-  }, [animatingOut, isSyncing]);
+  }, [animatingOut, isSyncing, isShowing]);
 
   const refreshHeaderAnimatedStyle = useAnimatedStyle(() => {
     const pullOpacity = interpolate(pullDistance.value, [0, 80], [0, 1], Extrapolation.CLAMP);
@@ -91,8 +110,8 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
       Extrapolation.CLAMP,
     );
 
-    // syncing 중일 때
-    if (isSyncing) {
+    // isShowing이 true일 때 (syncing 중이거나 완료 메시지 표시 중)
+    if (isShowing.value && !animatingOut.value) {
       return {
         opacity: withTiming(1, { duration: 200 }),
         height: withSpring(insets.top + 36, { damping: 20, stiffness: 200 }),
@@ -121,7 +140,7 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
     const translateY = interpolate(pullDistance.value, [0, 80], [-20, 0], Extrapolation.CLAMP);
     const opacity = interpolate(pullDistance.value, [0, 40, 80], [0, 0.5, 1], Extrapolation.CLAMP);
 
-    if (isSyncing) {
+    if (isShowing.value && !animatingOut.value) {
       return {
         transform: [{ translateY: withSpring(0, { damping: 20, stiffness: 200 }) }],
         opacity: withTiming(1, { duration: 200 }),
@@ -161,7 +180,7 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
       >
         <Animated.View style={refreshContentStyle}>
           <ThemedText color="fgPrimary" typography="bodyMd">
-            {isSyncing ? '불러오는 중...' : '당겨서 새로고침'}
+            {showingComplete ? '새로고침 완료!' : isSyncing ? '불러오는 중...' : '당겨서 새로고침'}
           </ThemedText>
         </Animated.View>
       </SafeAreaView>
