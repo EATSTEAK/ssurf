@@ -12,66 +12,69 @@ export const syncChapelInformation = async (
 ) => {
   const info: ChapelInformation = await client.information(year, semester);
 
-  // Save general information
-  await db
-    .delete(chapelGeneral)
-    .where(and(eq(chapelGeneral.year, year), eq(chapelGeneral.semester, semester)))
-    .execute();
-  await db
-    .insert(chapelGeneral)
-    .values({
-      year: info.year,
-      semester: info.semester,
-      division: info.generalInformation.division,
-      time: info.generalInformation.chapelTime,
-      room: info.generalInformation.chapelRoom,
-      floor: info.generalInformation.floorLevel,
-      seat: info.generalInformation.seatNumber,
-      absenceTime: info.generalInformation.absenceTime,
-      result: info.generalInformation.result,
-      note: info.generalInformation.note,
-    })
-    .execute();
-
-  // Save attendance information
-  await db
-    .delete(chapelAttendances)
-    .where(and(eq(chapelAttendances.year, year), eq(chapelAttendances.semester, semester)))
-    .execute();
-  if (info.attendances.length > 0) {
-    await db
-      .insert(chapelAttendances)
-      .values(
-        info.attendances.map((attendance) => ({
-          year: info.year,
-          semester: info.semester,
-          date: attendance.classDate,
-          division: attendance.division,
-          category: attendance.category,
-          instructor: attendance.instructor,
-          instructorDepartment: attendance.instructorDepartment,
-          title: attendance.title,
-          attendance: attendance.attendance,
-          result: attendance.result,
-          note: attendance.note,
-        })),
-      )
+  // 트랜잭션으로 아토믹하게 처리
+  await db.transaction(async (tx) => {
+    // Save general information
+    await tx
+      .delete(chapelGeneral)
+      .where(and(eq(chapelGeneral.year, year), eq(chapelGeneral.semester, semester)))
       .execute();
-  }
+    await tx
+      .insert(chapelGeneral)
+      .values({
+        year: info.year,
+        semester: info.semester,
+        division: info.generalInformation.division,
+        time: info.generalInformation.chapelTime,
+        room: info.generalInformation.chapelRoom,
+        floor: info.generalInformation.floorLevel,
+        seat: info.generalInformation.seatNumber,
+        absenceTime: info.generalInformation.absenceTime,
+        result: info.generalInformation.result,
+        note: info.generalInformation.note,
+      })
+      .execute();
 
-  // Update cache
-  const cacheKey = `chapel.information.${year}-${semester}`;
-  await db
-    .insert(cache)
-    .values({
-      key: cacheKey,
-      updatedAt: Date.now(),
-    })
-    .onConflictDoUpdate({
-      target: cache.key,
-      set: {
+    // Save attendance information
+    await tx
+      .delete(chapelAttendances)
+      .where(and(eq(chapelAttendances.year, year), eq(chapelAttendances.semester, semester)))
+      .execute();
+    if (info.attendances.length > 0) {
+      await tx
+        .insert(chapelAttendances)
+        .values(
+          info.attendances.map((attendance) => ({
+            year: info.year,
+            semester: info.semester,
+            date: attendance.classDate,
+            division: attendance.division,
+            category: attendance.category,
+            instructor: attendance.instructor,
+            instructorDepartment: attendance.instructorDepartment,
+            title: attendance.title,
+            attendance: attendance.attendance,
+            result: attendance.result,
+            note: attendance.note,
+          })),
+        )
+        .execute();
+    }
+
+    // Update cache
+    const cacheKey = `chapel.information.${year}-${semester}`;
+    await tx
+      .insert(cache)
+      .values({
+        key: cacheKey,
         updatedAt: Date.now(),
-      },
-    })
-    .execute();
+      })
+      .onConflictDoUpdate({
+        target: cache.key,
+        set: {
+          updatedAt: Date.now(),
+        },
+      })
+      .execute();
+  });
 };
