@@ -1,4 +1,3 @@
-import { CourseType, YearSemester } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -8,17 +7,8 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import {
-  useCheckRecentAttendedSemesters,
-  useGradeSummary,
-  useSemesterGrades,
-} from '@/entities/grades/lib/queries';
-import {
-  useSyncClassGrades,
-  useSyncGradeSummary,
-  useSyncSemesterGrades,
-} from '@/entities/grades/lib/sync';
-import { SemesterGradeEntity } from '@/entities/grades/model';
+import { useGradeTabView } from '@/features/grades/lib/useGradeTabView';
+import { GradeOverviewTabView, GradeTabView, SemesterGradeTabView } from '@/features/grades/model';
 import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
 import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';
 import { SemesterWidget } from '@/features/grades/ui/sections/SemesterSection';
@@ -65,117 +55,36 @@ const styles = StyleSheet.create((theme) => ({
 
 const SUMMARY_LABEL = '전체 학기';
 
-type TabDataItem =
-  | {
-      data: SemesterGradeEntity | undefined;
-      key: string;
-      semester: number;
-      type: 'semester';
-      year: number;
-    }
-  | { data?: never; key: string; semester?: never; type: 'summary'; year?: never };
+function getTabKey(item: GradeTabView): string {
+  if (item.type === 'overview') {
+    return SUMMARY_LABEL;
+  }
+  return semesterToString({ semester: item.semester, year: item.year });
+}
 
 export default function Index() {
-  const { sync: syncGradeSummary, isSyncing, error } = useSyncGradeSummary();
-  const {
-    sync: syncSemesterGrades,
-    isSyncing: isSemesterSyncing,
-    error: semesterError,
-  } = useSyncSemesterGrades();
-  const { sync: syncClassGrades, isSyncing: isClassSyncing } = useSyncClassGrades();
-
-  const { data: certiSummary } = useGradeSummary('certificated');
-  const { data: recordedSummary } = useGradeSummary('recorded');
-  const { data: semesters } = useSemesterGrades();
-  const { attendedSemesters, isChecking } = useCheckRecentAttendedSemesters();
-
-  const [selectedTab, setSelectedTab] = useState<null | YearSemester>(null);
+  const { data, refresh, isLoading, error } = useGradeTabView();
+  const [selectedTabKey, setSelectedTabKey] = useState<string>(SUMMARY_LABEL);
 
   const scrollY = useSharedValue(0);
-
-  const handleRefresh = async () => {
-    await syncGradeSummary([CourseType.Bachelor], { force: true });
-    await syncSemesterGrades([CourseType.Bachelor], { force: true });
-    if (selectedTab) {
-      await syncClassGrades([CourseType.Bachelor, selectedTab.year, selectedTab.semester], {
-        force: true,
-      });
-    }
-  };
-
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
     },
   });
 
-  const allSemesterItems = useMemo(() => {
-    if (!semesters) {
-      return [];
-    }
+  const tabMap = useMemo(
+    () => Object.fromEntries(data.map((item) => [getTabKey(item), item])),
+    [data],
+  );
+  const tabs = data.map(getTabKey);
+  const overview = data.find((item): item is GradeOverviewTabView => item.type === 'overview');
+  const semesters = data
+    .filter((item): item is SemesterGradeTabView => item.type === 'semester')
+    .map((item) => item.data)
+    .filter((s) => s !== undefined);
 
-    const items: Array<{
-      data: SemesterGradeEntity | undefined;
-      key: string;
-      semester: number;
-      type: 'semester';
-      year: number;
-    }> = [];
-
-    // 과목이 있는 최근 학기를 먼저 추가 (데이터가 있으면 포함)
-    attendedSemesters.forEach((attended) => {
-      const semesterData = semesters.find(
-        (s) => s.year === attended.year && s.semester === attended.semester,
-      );
-      items.push({
-        data: semesterData,
-        key: semesterToString(attended),
-        semester: attended.semester,
-        type: 'semester' as const,
-        year: attended.year,
-      });
-    });
-
-    // 기존 학기들 중 과목이 있는 최근 학기에 포함되지 않은 것만 추가
-    semesters.forEach((s) => {
-      const isAttended = attendedSemesters.some(
-        (attended) => attended.year === s.year && attended.semester === s.semester,
-      );
-      if (!isAttended) {
-        items.push({
-          data: s,
-          key: semesterToString({ semester: s.semester, year: s.year }),
-          semester: s.semester,
-          type: 'semester' as const,
-          year: s.year,
-        });
-      }
-    });
-
-    return items;
-  }, [semesters, attendedSemesters]);
-
-  const tabs =
-    certiSummary && allSemesterItems
-      ? [SUMMARY_LABEL, ...allSemesterItems.map((item) => item.key)]
-      : [];
-
-  const tabData: TabDataItem[] =
-    certiSummary && allSemesterItems
-      ? [{ key: SUMMARY_LABEL, type: 'summary' }, ...allSemesterItems]
-      : [];
-
-  // 페이지 변경 시 탭 업데이트
-  const handlePageChange = (key: string) => {
-    const newTab = key === SUMMARY_LABEL ? null : tabData.find((item) => item.key === key);
-    if (newTab && newTab.type === 'semester') {
-      setSelectedTab({ year: newTab.year, semester: newTab.semester });
-    } else if (key === SUMMARY_LABEL) {
-      setSelectedTab(null);
-    }
-  };
-
-  if (!certiSummary || !recordedSummary || !semesters || isChecking) {
+  if (isLoading || !overview) {
     return (
       <View style={styles.root}>
         <SafeContainer>
@@ -185,16 +94,14 @@ export default function Index() {
           </View>
           <Space gap={1} />
           <View style={styles.errorView}>
-            {error || semesterError ? (
+            {error ? (
               <>
                 <Image contentFit="contain" source={errorImage} style={styles.imageView} />
                 <ThemedText color="error" typography="headingLg">
                   정보를 가져오는 중 오류가 발생했어요.
                 </ThemedText>
                 <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
-                <ThemedText typography="bodySm">
-                  {error?.message || semesterError?.message}
-                </ThemedText>
+                <ThemedText typography="bodySm">{error?.message}</ThemedText>
               </>
             ) : (
               <>
@@ -209,21 +116,28 @@ export default function Index() {
     );
   }
 
-  const handleTabChange = (tab: string) => {
-    const newTab = tab === SUMMARY_LABEL ? null : tabData.find((item) => item.key === tab);
-    if (newTab && newTab.type === 'semester') {
-      setSelectedTab({ year: newTab.year, semester: newTab.semester });
-    } else if (tab === SUMMARY_LABEL) {
-      setSelectedTab(null);
+  const selectedTab = tabMap[selectedTabKey];
+  const selectedSemesterData = selectedTab?.type === 'semester' ? selectedTab.data : undefined;
+  const displayedSummary = selectedSemesterData ?? overview!.certificated;
+
+  const handleTabSelect = (key: string) => {
+    setSelectedTabKey(key);
+  };
+
+  const handleRefresh = async () => {
+    if (selectedTab?.type === 'semester') {
+      await refresh({ semester: selectedTab.semester, year: selectedTab.year });
+    } else {
+      await refresh(null);
     }
   };
 
-  const renderItem = (item: TabDataItem) => {
-    if (item.type === 'summary') {
+  const renderItem = (item: GradeTabView) => {
+    if (item.type === 'overview') {
       return (
         <SemestersWidget
-          certiSummary={certiSummary}
-          recordedSummary={recordedSummary}
+          certiSummary={item.certificated}
+          recordedSummary={item.recorded}
           semesters={semesters}
         />
       );
@@ -231,22 +145,6 @@ export default function Index() {
 
     return <SemesterWidget data={item.data} semester={item.semester} year={item.year} />;
   };
-
-  // 선택된 탭에 따라 표시할 성적 데이터 결정
-  const displayedSummary =
-    selectedTab === null
-      ? certiSummary
-      : semesters.find((s) => s.year === selectedTab.year && s.semester === selectedTab.semester) ||
-        certiSummary;
-
-  // 선택된 semester 정보 추출
-  const selectedSemesterData =
-    selectedTab === null
-      ? undefined
-      : semesters.find((s) => s.year === selectedTab.year && s.semester === selectedTab.semester);
-
-  // 현재 선택된 탭의 문자열 키
-  const selectedTabKey = selectedTab === null ? SUMMARY_LABEL : semesterToString(selectedTab);
 
   return (
     <>
@@ -262,7 +160,7 @@ export default function Index() {
         <RefreshableScrollView
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isSyncing || isSemesterSyncing || isClassSyncing}
+          refreshing={isLoading}
           scrollEventThrottle={16}
         >
           <SafeContainer>
@@ -279,7 +177,7 @@ export default function Index() {
                 semesters={semesters}
               />
             </View>
-            <Tabs.Root onValueChange={handleTabChange} value={selectedTabKey}>
+            <Tabs.Root onValueChange={handleTabSelect} value={selectedTabKey}>
               <Tabs.List>
                 {tabs.map((tab) => (
                   <Tabs.Trigger key={tab} value={tab} />
@@ -287,9 +185,9 @@ export default function Index() {
               </Tabs.List>
             </Tabs.Root>
             <AutoHeightFlatList
-              data={tabData}
-              keyExtractor={(item) => item.key}
-              onPageChange={handlePageChange}
+              data={data}
+              keyExtractor={getTabKey}
+              onPageChange={handleTabSelect}
               renderItem={renderItem}
               selectedKey={selectedTabKey}
             />
