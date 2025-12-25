@@ -1,10 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
@@ -20,6 +19,7 @@ import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
+import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
 import { AutoHeightFlatList } from '@/shared/ui/primitives/AutoHeightFlatList';
 import { Space } from '@/shared/ui/primitives/Space';
 import { Tabs } from '@/shared/ui/primitives/Tabs';
@@ -54,9 +54,12 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.gap(2),
   },
   eyeIcon: {
-    width: 12,
-    height: 12,
-    color: theme.colors.fgSurface,
+    size: 16,
+    color: theme.colorsHex.fgSurface,
+  },
+  eyeOffIcon: {
+    size: 16,
+    color: theme.colorsHex.fgSurfaceMuted,
   },
 }));
 
@@ -73,7 +76,6 @@ function GradesContent() {
   const { data, error, isLoading, refresh } = useGradeTabView();
   const [selectedTabKey, setSelectedTabKey] = useState<string>(SUMMARY_LABEL);
   const { isBlurred, toggleBlur } = useBlurGrade();
-  const { theme } = useUnistyles();
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
@@ -94,16 +96,7 @@ function GradesContent() {
           {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
             <Pressable onPress={toggleBlur}>
-              <Header
-                action={
-                  <Ionicons
-                    name={isBlurred ? 'eye-off-outline' : 'eye-outline'}
-                    size={16}
-                    style={styles.eyeIcon}
-                  />
-                }
-                title="성적"
-              />
+              <Header title="성적" />
             </Pressable>
           </View>
           <Space gap={1} />
@@ -187,18 +180,18 @@ function GradesContent() {
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
-              <Header
-                action={
-                  <Pressable onPress={toggleBlur}>
-                    <Ionicons
-                      color={theme.colors.fgSurface}
-                      name={isBlurred ? 'eye-off-outline' : 'eye-outline'}
-                      size={24}
-                    />
-                  </Pressable>
-                }
-                title="성적"
-              />
+              <Pressable onPress={toggleBlur}>
+                <Header
+                  action={
+                    isBlurred ? (
+                      <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
+                    ) : (
+                      <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
+                    )
+                  }
+                  title="성적"
+                />
+              </Pressable>
               <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
               <Space gap={1} />
               <GradeSummaryWidget summary={displayedSummary} />

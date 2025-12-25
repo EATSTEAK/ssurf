@@ -69,3 +69,6 @@ const createIcon = (
 
 export const LogoutIcon = createIcon('LogoutIcon', 'logout', 'rectangle.portrait.and.arrow.right');
 export const ProfileIcon = createIcon('ProfileIcon', 'account', 'person');
+export const EyeIcon = createIcon('EyeIcon', 'eye', 'eye');
+export const EyeOffIcon = createIcon('EyeOffIcon', 'eye-off', 'eye.slash');
+export const ChevronRightIcon = createIcon('ChevronRightIcon', 'chevron-right', 'chevron.right');
