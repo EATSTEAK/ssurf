@@ -35,7 +35,7 @@ export const useGradeSummary = (type: 'certificated' | 'recorded') => {
 /**
  * 모든 학기의 성적 정보를 조회하는 훅
  * @param courseType 과정 유형
- * @returns SemesterGradeModel[]
+ * @returns SemesterGradeEntity[]
  */
 export const useSemesterGrades = (courseType: CourseType = CourseType.Bachelor) => {
   const { isSyncing, sync } = useSyncSemesterGrades();
