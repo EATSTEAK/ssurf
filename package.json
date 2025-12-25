@@ -17,7 +17,8 @@
     "lint": "expo lint",
     "lint:fix": "expo lint --fix .",
     "format": "prettier --check .",
-    "format:fix": "prettier --write ."
+    "format:fix": "prettier --write .",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@expo/ui": "0.2.0-beta.9",

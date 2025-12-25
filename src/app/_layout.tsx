@@ -3,15 +3,15 @@ import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { ThemedText } from '@/components/primitives/ThemedText';
-import { RusaintApplicationProvider } from '@/components/providers/RusaintApplicationProvider';
-import {
-  RusaintSessionProvider,
-  useRusaintSession,
-} from '@/components/providers/RusaintSessionProvider';
 import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
 import { SsurfLined } from '@/icons/SsurfLined';
+import { RusaintApplicationProvider } from '@/shared/providers/RusaintApplicationProvider';
+import {
+  RusaintSessionProvider,
+  useRusaintSession,
+} from '@/shared/providers/RusaintSessionProvider';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 function RootLayoutNav() {
   const { theme } = useUnistyles();

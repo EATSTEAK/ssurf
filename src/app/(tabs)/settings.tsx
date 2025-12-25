@@ -7,23 +7,22 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { StyleSheet } from 'react-native-unistyles';
 
 import packageJson from '@/../package.json';
-import { LogoutModal } from '@/components/auth/LogoutModal';
-import { CardView } from '@/components/containers/CardView';
-import { SafeContainer } from '@/components/containers/Container';
-import { RefreshableScrollView } from '@/components/containers/RefreshableScrollView';
-import { FloatingHeader } from '@/components/headers/FloatingHeader';
-import { Header } from '@/components/headers/Header';
-import { ActionList, ActionListItem } from '@/components/primitives/ActionList';
-import { Space } from '@/components/primitives/Space';
-import { ThemedText } from '@/components/primitives/ThemedText';
-import { useRusaintSession } from '@/components/providers/RusaintSessionProvider';
-import { UserProfile } from '@/components/settings/UserProfile';
-import { useStudentInformation } from '@/hooks/studentInformation/studentInformation';
-import { useSyncStudentInformation } from '@/hooks/sync/useSyncStudentInformation';
+import { useStudentInformation } from '@/entities/studentInformation/lib/queries';
+import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync';
+import { LogoutModal } from '@/features/auth/ui/LogoutModal';
+import { UserProfile } from '@/features/settings/ui/UserProfile';
 import { SsurfLined } from '@/icons/SsurfLined';
 import { REV } from '@/index';
+import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
+import { CardView } from '@/shared/ui/containers/CardView';
+import { SafeContainer } from '@/shared/ui/containers/Container';
+import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
+import { Header } from '@/shared/ui/headers/Header';
+import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
+import { Space } from '@/shared/ui/primitives/Space';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { paletteHex } from '@/unistyles';
-
 const styles = StyleSheet.create((theme, rt) => ({
   root: {
     width: '100%',
