@@ -9,15 +9,27 @@ platform :ios do
     # Xcode 버전 선택
     xcodes(version: ENV["XCODE_VERSION"], select_for_current_build_only: true)
     
-    # 인증서 및 프로비저닝 프로파일 관리
-    setup_ci if ENV['CI']
+    # CI 환경 설정 (임시 키체인 생성)
+    if ENV['CI']
+      create_keychain(
+        name: ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain",
+        password: ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password",
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    end
     
+    # 인증서 및 프로비저닝 프로파일 관리
     match(
       type: "appstore",
       app_identifier: "dev.eatsteak.ssurf",
       readonly: is_ci,
       git_url: ENV["MATCH_GIT_URL"],
-      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
+      keychain_name: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain") : nil,
+      keychain_password: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password") : nil
     )
 
     # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
@@ -61,15 +73,27 @@ platform :ios do
     # Xcode 버전 선택
     xcodes(version: ENV["XCODE_VERSION"], select_for_current_build_only: true)
     
-    # 인증서 및 프로비저닝 프로파일 관리
-    setup_ci if ENV['CI']
+    # CI 환경 설정 (임시 키체인 생성)
+    if ENV['CI']
+      create_keychain(
+        name: ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain",
+        password: ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password",
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    end
     
+    # 인증서 및 프로비저닝 프로파일 관리
     match(
       type: "appstore",
       app_identifier: "dev.eatsteak.ssurf",
       readonly: is_ci,
       git_url: ENV["MATCH_GIT_URL"],
-      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
+      keychain_name: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain") : nil,
+      keychain_password: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password") : nil
     )
 
     # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
