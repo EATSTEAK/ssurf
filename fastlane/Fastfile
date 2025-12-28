@@ -20,6 +20,16 @@ platform :ios do
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
     )
 
+    # 코드 서명 설정 업데이트
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "./ios/ssurf.xcodeproj",
+      team_id: ENV["APPLE_TEAM_ID"],
+      bundle_identifier: "dev.eatsteak.ssurf",
+      profile_name: "match AppStore dev.eatsteak.ssurf",
+      code_sign_identity: "iPhone Distribution"
+    )
+
     # 앱 빌드
     gym(
       scheme: "ssurf",
@@ -70,6 +80,16 @@ platform :ios do
       readonly: is_ci,
       git_url: ENV["MATCH_GIT_URL"],
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
+    )
+
+    # 코드 서명 설정 업데이트
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "./ios/ssurf.xcodeproj",
+      team_id: ENV["APPLE_TEAM_ID"],
+      bundle_identifier: "dev.eatsteak.ssurf",
+      profile_name: "match AppStore dev.eatsteak.ssurf",
+      code_sign_identity: "iPhone Distribution"
     )
 
     # 앱 빌드
