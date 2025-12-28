@@ -20,28 +20,18 @@ platform :ios do
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
     )
 
-    # 코드 서명 설정 업데이트
+    # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "./ios/ssurf.xcodeproj",
-      team_id: ENV["APPLE_TEAM_ID"],
-      bundle_identifier: "dev.eatsteak.ssurf",
-      profile_name: "match AppStore dev.eatsteak.ssurf",
-      code_sign_identity: "iPhone Distribution"
+      team_id: ENV["APPLE_TEAM_ID"]
     )
 
     # 앱 빌드
     gym(
       scheme: "ssurf",
       workspace: "./ios/ssurf.xcworkspace",
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "dev.eatsteak.ssurf" => "match AppStore dev.eatsteak.ssurf"
-        }
-      },
-      output_directory: "./build",
-      output_name: "ssurf.ipa"
+      export_method: "app-store"
     )
 
     # App Store Connect API Key 설정
@@ -82,28 +72,18 @@ platform :ios do
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
     )
 
-    # 코드 서명 설정 업데이트
+    # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "./ios/ssurf.xcodeproj",
-      team_id: ENV["APPLE_TEAM_ID"],
-      bundle_identifier: "dev.eatsteak.ssurf",
-      profile_name: "match AppStore dev.eatsteak.ssurf",
-      code_sign_identity: "iPhone Distribution"
+      team_id: ENV["APPLE_TEAM_ID"]
     )
 
     # 앱 빌드
     gym(
       scheme: "ssurf",
       workspace: "./ios/ssurf.xcworkspace",
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "dev.eatsteak.ssurf" => "match AppStore dev.eatsteak.ssurf"
-        }
-      },
-      output_directory: "./build",
-      output_name: "ssurf.ipa"
+      export_method: "app-store"
     )
 
     # App Store Connect API Key 설정
