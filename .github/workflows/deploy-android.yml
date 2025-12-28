@@ -23,6 +23,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 디스크 공간 확보
+        run: |
+          echo "디스크 공간 확인 (정리 전):"
+          df -h
+
+          # 불필요한 소프트웨어 제거
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+
+          echo "디스크 공간 확인 (정리 후):"
+          df -h
+
       - name: 코드 체크아웃
         uses: actions/checkout@v6
 
@@ -61,6 +76,18 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
+
+      - name: Gradle 캐시 설정
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Keystore 디코딩
         run: |
@@ -94,6 +121,17 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m" -Dorg.gradle.daemon=false
+
+      - name: 빌드 캐시 정리
+        if: always()
+        run: |
+          # Gradle 캐시 중 불필요한 부분 정리
+          rm -rf ~/.gradle/caches/transforms-*
+          rm -rf ~/.gradle/caches/*/plugin-resolution/
+          rm -rf android/build/intermediates
+          echo "빌드 캐시 정리 완료"
+          df -h
 
       - name: 배포 완료 알림
         if: success()
