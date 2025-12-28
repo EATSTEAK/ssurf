@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: 코드 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 태그 정보 추출
         id: tag
@@ -45,16 +45,8 @@ jobs:
               echo "배포 타입: Beta (기타)"
             fi
           fi
-
-      - name: Node.js 설정
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: pnpm 설치
         uses: pnpm/action-setup@v4
-        with:
-          version: 10.26.0
 
       - name: 의존성 설치
         run: pnpm install --frozen-lockfile
@@ -69,8 +61,8 @@ jobs:
           bundler-cache: false
 
       - name: Fastlane 의존성 설치
+        working-directory: fastlane
         run: |
-          cd fastlane
           bundle install
 
       - name: 배포 레인 결정
@@ -83,6 +75,7 @@ jobs:
           fi
 
       - name: Fastlane으로 빌드 및 배포
+        working-directory: fastlane
         run: bundle exec fastlane ios ${{ steps.lane.outputs.lane }}
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
