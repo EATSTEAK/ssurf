@@ -11,6 +11,7 @@ platform :ios do
     
     match(
       type: "appstore",
+      app_identifier: "dev.eatsteak.ssurf",
       readonly: is_ci,
       git_url: ENV["MATCH_GIT_URL"],
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
@@ -59,6 +60,7 @@ platform :ios do
     
     match(
       type: "appstore",
+      app_identifier: "dev.eatsteak.ssurf",
       readonly: is_ci,
       git_url: ENV["MATCH_GIT_URL"],
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
