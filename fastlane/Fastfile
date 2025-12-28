@@ -7,7 +7,7 @@ platform :ios do
   desc "TestFlight에 새 베타 빌드 업로드"
   lane :beta do
     # Xcode 버전 선택
-    xcversion(version: "26.0.1")
+    xcodes(version: "26.0.1")
     
     # 인증서 및 프로비저닝 프로파일 관리
     setup_ci if ENV['CI']
@@ -59,7 +59,7 @@ platform :ios do
   desc "프로덕션 빌드를 App Store에 배포"
   lane :release do
     # Xcode 버전 선택
-    xcversion(version: "26.0.1")
+    xcodes(version: "26.0.1")
     
     # 인증서 및 프로비저닝 프로파일 관리
     setup_ci if ENV['CI']
