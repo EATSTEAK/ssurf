@@ -1,0 +1,111 @@
+name: Android Deployment
+
+on:
+  push:
+    tags:
+      - 'v*' # v로 시작하는 시멘틱 버전 (예: v1.0.0)
+      - 'b*' # b로 시작하는 빌드 번호 (예: b2025122701)
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: '배포 레인'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - beta
+          - release
+
+jobs:
+  build-and-deploy:
+    name: Android 빌드 및 배포
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 태그 정보 추출
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            TAG=${GITHUB_REF#refs/tags/}
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            
+            # v*.*.* 형태의 시멘틱 버전이면 release
+            if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "lane=release" >> $GITHUB_OUTPUT
+              echo "배포 타입: Release (시멘틱 버전)"
+            # b로 시작하는 빌드 번호면 internal
+            elif [[ "$TAG" =~ ^b[0-9]+ ]]; then
+              echo "lane=internal" >> $GITHUB_OUTPUT
+              echo "배포 타입: Internal Testing (빌드 번호)"
+            else
+              echo "lane=internal" >> $GITHUB_OUTPUT
+              echo "배포 타입: Internal Testing (기타)"
+            fi
+          fi
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: pnpm 설치
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.0
+
+      - name: 의존성 설치
+        run: pnpm install --frozen-lockfile
+
+      - name: Expo Prebuild (Android)
+        run: npx expo prebuild -p android --clean
+
+      - name: JDK 17 설정
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Keystore 디코딩
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
+
+      - name: Ruby 설정 (Fastlane용)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: false
+
+      - name: Fastlane 의존성 설치
+        run: |
+          cd fastlane
+          bundle install
+
+      - name: 배포 레인 결정
+        id: lane
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "lane=${{ github.event.inputs.lane }}" >> $GITHUB_OUTPUT
+          else
+            echo "lane=${{ steps.tag.outputs.lane }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fastlane으로 빌드 및 배포
+        run: bundle exec fastlane android ${{ steps.lane.outputs.lane }}
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: 배포 완료 알림
+        if: success()
+        run: |
+          echo "🎉 Android 배포가 완료되었습니다!"
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "태그: ${{ steps.tag.outputs.tag }}"
+          fi
+          echo "레인: ${{ steps.lane.outputs.lane }}"

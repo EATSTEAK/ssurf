@@ -1,4 +1,4 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Learn more https://docs.github.com/en/get-started/getting-started-with/git/ignoring-files
 
 # dependencies
 node_modules/
@@ -38,6 +38,16 @@ yarn-error.*
 
 app-example
 
-# generated native folders
+# Native 프로젝트 (expo prebuild로 자동 생성됨)
 /ios
 /android
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/README.md
+
+# 빌드 결과물
+build/
