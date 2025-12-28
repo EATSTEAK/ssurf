@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -9,6 +9,7 @@ import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useGradeTabView } from '@/features/grades/lib/useGradeTabView';
 import { GradeOverviewTabView, GradeTabView, SemesterGradeTabView } from '@/features/grades/model';
+import { BlurGradeProvider, useBlurGrade } from '@/features/grades/providers/BlurGradeProvider';
 import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
 import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';
 import { SemesterWidget } from '@/features/grades/ui/sections/SemesterSection';
@@ -18,6 +19,7 @@ import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
+import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
 import { AutoHeightFlatList } from '@/shared/ui/primitives/AutoHeightFlatList';
 import { Space } from '@/shared/ui/primitives/Space';
 import { Tabs } from '@/shared/ui/primitives/Tabs';
@@ -51,6 +53,14 @@ const styles = StyleSheet.create((theme) => ({
     height: 150,
     marginBottom: theme.gap(2),
   },
+  eyeIcon: {
+    size: 16,
+    color: theme.colorsHex.fgSurface,
+  },
+  eyeOffIcon: {
+    size: 16,
+    color: theme.colorsHex.fgSurfaceMuted,
+  },
 }));
 
 const SUMMARY_LABEL = '전체 학기';
@@ -62,9 +72,10 @@ function getTabKey(item: GradeTabView): string {
   return semesterToString({ semester: item.semester, year: item.year });
 }
 
-export default function Index() {
-  const { data, refresh, isLoading, error } = useGradeTabView();
+function GradesContent() {
+  const { data, error, isLoading, refresh } = useGradeTabView();
   const [selectedTabKey, setSelectedTabKey] = useState<string>(SUMMARY_LABEL);
+  const { isBlurred, toggleBlur } = useBlurGrade();
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
@@ -84,7 +95,9 @@ export default function Index() {
         <SafeContainer>
           {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
-            <Header title="성적" />
+            <Pressable onPress={toggleBlur}>
+              <Header title="성적" />
+            </Pressable>
           </View>
           <Space gap={1} />
           <View style={styles.errorView}>
@@ -167,7 +180,18 @@ export default function Index() {
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
-              <Header title="성적" />
+              <Pressable onPress={toggleBlur}>
+                <Header
+                  action={
+                    isBlurred ? (
+                      <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
+                    ) : (
+                      <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
+                    )
+                  }
+                  title="성적"
+                />
+              </Pressable>
               <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
               <Space gap={1} />
               <GradeSummaryWidget summary={displayedSummary} />
@@ -198,5 +222,13 @@ export default function Index() {
         <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
       </View>
     </>
+  );
+}
+
+export default function Index() {
+  return (
+    <BlurGradeProvider>
+      <GradesContent />
+    </BlurGradeProvider>
   );
 }

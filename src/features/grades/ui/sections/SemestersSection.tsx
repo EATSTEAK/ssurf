@@ -48,15 +48,18 @@ export function SemestersWidget({
           items={[
             {
               label: '취득 / 신청 학점 (P/F 학점)',
-              value: `${recordedSummary.earnedCredits.toFixed(1)} / ${recordedSummary.attemptedCredits.toFixed(1)} (${recordedSummary.pfEarnedCredits.toFixed(1)})`,
+              value: `${recordedSummary.earnedCredits.toFixed(1)}`,
+              base: `${recordedSummary.attemptedCredits.toFixed(1)} (${recordedSummary.pfEarnedCredits.toFixed(1)})`,
             },
             {
               label: '평점평균',
-              value: `${recordedSummary.gradePointsAverage.toFixed(2)} / 4.50`,
+              value: `${recordedSummary.gradePointsAverage.toFixed(2)}`,
+              base: '4.50',
             },
             {
               label: '산술평균',
-              value: `${recordedSummary.arithmeticMean.toFixed(1)} / 100`,
+              value: `${recordedSummary.arithmeticMean.toFixed(1)}`,
+              base: '100',
             },
             {
               label: '평점계',
@@ -71,15 +74,18 @@ export function SemestersWidget({
           items={[
             {
               label: '취득/신청 학점 (P/F 학점)',
-              value: `${certiSummary.earnedCredits} / ${certiSummary.attemptedCredits} (${certiSummary.pfEarnedCredits})`,
+              value: `${certiSummary.earnedCredits}`,
+              base: `${certiSummary.attemptedCredits} (${certiSummary.pfEarnedCredits})`,
             },
             {
               label: '평점평균',
-              value: `${certiSummary.gradePointsAverage.toFixed(2)} / 4.50`,
+              value: `${certiSummary.gradePointsAverage.toFixed(2)}`,
+              base: '4.50',
             },
             {
               label: '산술평균',
-              value: `${certiSummary.arithmeticMean.toFixed(1)} / 100`,
+              value: `${certiSummary.arithmeticMean.toFixed(1)}`,
+              base: '100',
             },
             { label: '평점계', value: certiSummary.gradePointsSum.toFixed(1) },
           ]}

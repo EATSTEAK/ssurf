@@ -5,12 +5,12 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
-import { SsurfLined } from '@/icons/SsurfLined';
 import { RusaintApplicationProvider } from '@/shared/providers/RusaintApplicationProvider';
 import {
   RusaintSessionProvider,
   useRusaintSession,
 } from '@/shared/providers/RusaintSessionProvider';
+import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 function RootLayoutNav() {
