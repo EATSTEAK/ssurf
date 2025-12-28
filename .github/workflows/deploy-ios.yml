@@ -59,6 +59,10 @@ jobs:
               echo "배포 타입: Beta (기타)"
             fi
           fi
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ vars.XCODE_VERSION }}
+
       - name: pnpm 설치
         uses: pnpm/action-setup@v4
 
@@ -99,6 +103,7 @@ jobs:
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          XCODE_VERSION: ${{ vars.XCODE_VERSION }}
 
       - name: 배포 완료 알림
         if: success()
