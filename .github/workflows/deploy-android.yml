@@ -30,7 +30,6 @@ jobs:
 
           # 불필요한 소프트웨어 제거
           sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force
