@@ -147,11 +147,18 @@ end
 platform :android do
   desc "Google Play Console Internal Testing 트랙에 새 빌드 업로드"
   lane :internal do
-    # AAB 빌드
     gradle(
       task: "bundle",
       build_type: "Release",
-      project_dir: "./android"
+      project_dir: "./android",
+      properties: {
+        "org.gradle.parallel" => "true",
+        "org.gradle.caching" => "true",
+        "org.gradle.configureondemand" => "true",
+        "android.injected.build.abi" => "armeabi-v7a,arm64-v8a"
+      },
+      print_command: false,
+      print_command_output: true
     )
 
     # Google Play Console에 업로드 (Internal Testing 트랙)
@@ -172,11 +179,19 @@ platform :android do
 
   desc "Google Play Console Beta 트랙에 배포"
   lane :beta do
-    # AAB 빌드
+    # AAB 빌드 (최적화된 설정)
     gradle(
       task: "bundle",
       build_type: "Release",
-      project_dir: "./android"
+      project_dir: "./android",
+      properties: {
+        "org.gradle.parallel" => "true",
+        "org.gradle.caching" => "true",
+        "org.gradle.configureondemand" => "true",
+        "android.injected.build.abi" => "armeabi-v7a,arm64-v8a"
+      },
+      print_command: false,
+      print_command_output: true
     )
 
     # Google Play Console에 업로드 (Beta 트랙)
@@ -197,11 +212,19 @@ platform :android do
 
   desc "Google Play Console Production 트랙에 배포"
   lane :release do
-    # AAB 빌드
+    # AAB 빌드 (최적화된 설정)
     gradle(
       task: "bundle",
       build_type: "Release",
-      project_dir: "./android"
+      project_dir: "./android",
+      properties: {
+        "org.gradle.parallel" => "true",
+        "org.gradle.caching" => "true",
+        "org.gradle.configureondemand" => "true",
+        "android.injected.build.abi" => "armeabi-v7a,arm64-v8a,x86,x86_64"
+      },
+      print_command: false,
+      print_command_output: true
     )
 
     # Google Play Console에 업로드 (Production 트랙)
