@@ -30,8 +30,6 @@ jobs:
           # 불필요한 소프트웨어 제거
           sudo rm -rf /Users/runner/Library/Android
           sudo rm -rf ~/Library/Android
-          sudo rm -rf /Applications/Xcode_*.app
-          # 현재 사용 중인 Xcode 외 다른 버전 삭제
 
           echo "디스크 공간 확인 (정리 후):"
           df -h
