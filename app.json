@@ -2,7 +2,7 @@
   "expo": {
     "name": "ssurf",
     "slug": "ssurf",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "ssurf",
@@ -14,7 +14,8 @@
       "config": {
         "usesNonExemptEncryption": false
       },
-      "icon": "./assets/app.icon"
+      "icon": "./assets/app.icon",
+      "buildNumber": "2025122801"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +26,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "dev.eatsteak.ssurf"
+      "package": "dev.eatsteak.ssurf",
+      "versionCode": 2025122801
     },
     "web": {
       "output": "static",
