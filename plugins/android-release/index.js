@@ -31,15 +31,15 @@ function addReleaseSigning(buildGradle) {
     /release\s*\{[^}]*storeFile\s+file\s*\(['"]release\.keystore['"]\)[^}]*\}/s;
 
   const envBasedReleaseConfig = `release {
-            def keystorePassword = System.getenv("KEYSTORE_PASSWORD")
-            def keyAlias = System.getenv("KEY_ALIAS")
-            def keyPassword = System.getenv("KEY_PASSWORD")
+            def ksPassword = System.getenv("KEYSTORE_PASSWORD")
+            def kAlias = System.getenv("KEY_ALIAS")
+            def kPassword = System.getenv("KEY_PASSWORD")
             
-            if (keystorePassword && keyAlias && keyPassword) {
+            if (ksPassword && kAlias && kPassword) {
                 storeFile file('release.keystore')
-                storePassword keystorePassword
-                keyAlias keyAlias
-                keyPassword keyPassword
+                storePassword ksPassword
+                keyAlias kAlias
+                keyPassword kPassword
             }
         }`;
 
