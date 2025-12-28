@@ -33,10 +33,14 @@ platform :ios do
     )
 
     # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
+    # match가 설치한 프로파일의 UUID를 환경 변수에서 가져와 명시적으로 지정
+    profile_env_name = "sigh_dev.eatsteak.ssurf_appstore"
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "./ios/ssurf.xcodeproj",
-      team_id: ENV["APPLE_TEAM_ID"]
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "iPhone Distribution",
+      profile_uuid: ENV[profile_env_name]
     )
 
     # 앱 빌드
@@ -97,10 +101,14 @@ platform :ios do
     )
 
     # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
+    # match가 설치한 프로파일의 UUID를 환경 변수에서 가져와 명시적으로 지정
+    profile_env_name = "sigh_dev.eatsteak.ssurf_appstore"
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "./ios/ssurf.xcodeproj",
-      team_id: ENV["APPLE_TEAM_ID"]
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "iPhone Distribution",
+      profile_uuid: ENV[profile_env_name]
     )
 
     # 앱 빌드
