@@ -100,6 +100,11 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
 
+      - name: Google Play Service Account JSON 생성
+        working-directory: fastlane
+        run: |
+          echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > google-play-service-account.json
+
       - name: Ruby 설정 (Fastlane용)
         uses: ruby/setup-ruby@v1
         with:
@@ -124,7 +129,6 @@ jobs:
         working-directory: fastlane
         run: bundle exec fastlane android ${{ steps.lane.outputs.lane }}
         env:
-          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
