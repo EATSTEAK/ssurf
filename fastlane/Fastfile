@@ -157,7 +157,7 @@ platform :android do
         "org.gradle.configureondemand" => "true",
         "android.injected.build.abi" => "armeabi-v7a,arm64-v8a"
       },
-      print_command: false,
+      print_command: true,
       print_command_output: true
     )
 
@@ -172,7 +172,6 @@ platform :android do
       skip_upload_apk: true,
       json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
       package_name: "dev.eatsteak.ssurf",
-      release_status: "completed"
     )
 
     UI.success("✅ Internal Testing 업로드 완료!")
