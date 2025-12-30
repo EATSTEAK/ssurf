@@ -1,0 +1,7 @@
+# iOS 앱 식별 정보
+app_identifier("dev.eatsteak.ssurf") # Bundle Identifier
+apple_id(ENV["APPLE_ID"]) # Apple ID (환경 변수로 제공)
+
+# Android 앱 식별 정보
+json_key_file("google-play-service-account.json")
+package_name("dev.eatsteak.ssurf")

@@ -1,0 +1,181 @@
+name: Android Deployment
+
+on:
+  push:
+    tags:
+      - 'v*' # v로 시작하는 시멘틱 버전 (예: v1.0.0)
+      - 'b*' # b로 시작하는 빌드 번호 (예: b2025122701)
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: '배포 레인'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - beta
+          - release
+
+jobs:
+  build-and-deploy:
+    name: Android 빌드 및 배포
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 디스크 공간 확보
+        run: |
+          echo "디스크 공간 확인 (정리 전):"
+          df -h
+
+          # 불필요한 소프트웨어 제거
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+
+          echo "디스크 공간 확인 (정리 후):"
+          df -h
+
+      - name: 코드 체크아웃
+        uses: actions/checkout@v6
+
+      - name: 태그 정보 추출
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            TAG=${GITHUB_REF#refs/tags/}
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            
+            # v*.*.* 형태의 시멘틱 버전이면 release
+            if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "lane=release" >> $GITHUB_OUTPUT
+              echo "배포 타입: Release (시멘틱 버전)"
+            # b로 시작하는 빌드 번호면 internal
+            elif [[ "$TAG" =~ ^b[0-9]+ ]]; then
+              echo "lane=internal" >> $GITHUB_OUTPUT
+              echo "배포 타입: Internal Testing (빌드 번호)"
+            else
+              echo "lane=internal" >> $GITHUB_OUTPUT
+              echo "배포 타입: Internal Testing (기타)"
+            fi
+          fi
+
+      - name: pnpm 설치
+        uses: pnpm/action-setup@v4
+
+      - name: 의존성 설치
+        run: pnpm install --frozen-lockfile
+
+      - name: Expo Prebuild (Android)
+        run: pnpm expo prebuild -p android --clean
+
+      - name: JDK 17 설정
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Gradle 캐시 설정
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Gradle Build Cache 설정
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches/build-cache-*
+          key: ${{ runner.os }}-gradle-build-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-build-cache-
+
+      - name: Keystore 디코딩
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
+
+      - name: Google Play Service Account JSON 생성
+        run: |
+          echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > google-play-service-account.json
+
+      - name: Ruby 설정 (Fastlane용)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: false
+
+      - name: Fastlane 의존성 설치
+        working-directory: fastlane
+        run: |
+          bundle install
+
+      - name: 배포 레인 결정
+        id: lane
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "lane=${{ github.event.inputs.lane }}" >> $GITHUB_OUTPUT
+          else
+            echo "lane=${{ steps.tag.outputs.lane }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fastlane으로 빌드 및 배포
+        working-directory: fastlane
+        run: bundle exec fastlane android ${{ steps.lane.outputs.lane }} --verbose
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # CI 최적화: daemon 비활성화, 병렬 빌드, 캐싱 활성화
+          GRADLE_OPTS: >-
+            -Dorg.gradle.jvmargs="-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseParallelGC"
+            -Dorg.gradle.daemon=false
+            -Dorg.gradle.parallel=true
+            -Dorg.gradle.caching=true
+            -Dorg.gradle.configureondemand=true
+            -Dorg.gradle.vfs.watch=false
+            -Dkotlin.incremental=false
+            -Dkotlin.compiler.execution.strategy=in-process
+          # CI 환경 표시
+          CI: true
+
+      - name: 빌드 로그 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-logs-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/logs/
+            android/build/reports/
+            fastlane/logs/
+            fastlane/report.xml
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: 빌드 캐시 정리
+        if: always()
+        run: |
+          # Gradle 캐시 중 불필요한 부분만 정리 (다음 빌드 속도 유지)
+          rm -rf ~/.gradle/caches/transforms-*
+          rm -rf ~/.gradle/caches/*/plugin-resolution/
+          rm -rf ~/.gradle/caches/*/scripts/
+          rm -rf ~/.gradle/caches/*/scripts-remapped/
+          rm -rf android/build/intermediates
+          rm -rf android/app/build/intermediates
+          # build-cache는 보존 (캐시 액션이 관리)
+          echo "빌드 캐시 정리 완료"
+          df -h
+
+      - name: 배포 완료 알림
+        if: success()
+        run: |
+          echo "🎉 Android 배포가 완료되었습니다!"
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "태그: ${{ steps.tag.outputs.tag }}"
+          fi
+          echo "레인: ${{ steps.lane.outputs.lane }}"

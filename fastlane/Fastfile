@@ -1,0 +1,250 @@
+# Fastlane 설정
+# iOS 및 Android 앱 빌드 및 배포
+# 빌드 번호는 app.json에서 관리되며, expo prebuild 시 자동으로 적용됩니다
+
+# iOS 플랫폼
+platform :ios do
+  desc "TestFlight에 새 베타 빌드 업로드"
+  lane :beta do
+    # Xcode 버전 선택
+    xcodes(version: ENV["XCODE_VERSION"], select_for_current_build_only: true)
+    
+    # CI 환경 설정 (임시 키체인 생성)
+    if ENV['CI']
+      create_keychain(
+        name: ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain",
+        password: ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password",
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    end
+    
+    # 인증서 및 프로비저닝 프로파일 관리
+    match(
+      type: "appstore",
+      app_identifier: "dev.eatsteak.ssurf",
+      readonly: is_ci,
+      git_url: ENV["MATCH_GIT_URL"],
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
+      keychain_name: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain") : nil,
+      keychain_password: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password") : nil
+    )
+
+    # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
+    # match가 설치한 프로파일의 UUID를 환경 변수에서 가져와 명시적으로 지정
+    profile_env_name = "sigh_dev.eatsteak.ssurf_appstore"
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "./ios/ssurf.xcodeproj",
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "iPhone Distribution",
+      profile_uuid: ENV[profile_env_name]
+    )
+
+    # 앱 빌드
+    gym(
+      scheme: "ssurf",
+      workspace: "./ios/ssurf.xcworkspace",
+      export_method: "app-store"
+    )
+
+    # App Store Connect API Key 설정
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
+      is_key_content_base64: true,
+      duration: 1200,
+      in_house: false
+    )
+
+    # TestFlight에 업로드
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+      skip_submission: true,
+      distribute_external: false,
+      changelog: ENV["CHANGELOG"] || "버그 수정 및 개선 사항"
+    )
+
+    UI.success("✅ TestFlight 업로드 완료!")
+  end
+
+  desc "프로덕션 빌드를 App Store에 배포"
+  lane :release do
+    # Xcode 버전 선택
+    xcodes(version: ENV["XCODE_VERSION"], select_for_current_build_only: true)
+    
+    # CI 환경 설정 (임시 키체인 생성)
+    if ENV['CI']
+      create_keychain(
+        name: ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain",
+        password: ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password",
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    end
+    
+    # 인증서 및 프로비저닝 프로파일 관리
+    match(
+      type: "appstore",
+      app_identifier: "dev.eatsteak.ssurf",
+      readonly: is_ci,
+      git_url: ENV["MATCH_GIT_URL"],
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
+      keychain_name: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_NAME"] || "fastlane_keychain") : nil,
+      keychain_password: ENV['CI'] ? (ENV["MATCH_KEYCHAIN_PASSWORD"] || "temp_password") : nil
+    )
+
+    # Xcode 프로젝트를 Manual Signing으로 설정 (Expo prebuild는 기본적으로 Automatic)
+    # match가 설치한 프로파일의 UUID를 환경 변수에서 가져와 명시적으로 지정
+    profile_env_name = "sigh_dev.eatsteak.ssurf_appstore"
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "./ios/ssurf.xcodeproj",
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "iPhone Distribution",
+      profile_uuid: ENV[profile_env_name]
+    )
+
+    # 앱 빌드
+    gym(
+      scheme: "ssurf",
+      workspace: "./ios/ssurf.xcworkspace",
+      export_method: "app-store"
+    )
+
+    # App Store Connect API Key 설정
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
+      is_key_content_base64: true,
+      duration: 1200,
+      in_house: false
+    )
+
+    # App Store에 업로드 (수동 심사 제출)
+    upload_to_app_store(
+      api_key: api_key,
+      skip_metadata: true,
+      skip_screenshots: true,
+      skip_binary_upload: false,
+      submit_for_review: false,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false
+    )
+
+    UI.success("✅ App Store 업로드 완료! App Store Connect에서 수동으로 심사 제출하세요.")
+  end
+end
+
+# Android 플랫폼
+platform :android do
+  desc "Google Play Console Internal Testing 트랙에 새 빌드 업로드"
+  lane :internal do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "./android",
+      properties: {
+        "org.gradle.parallel" => "true",
+        "org.gradle.caching" => "true",
+        "org.gradle.configureondemand" => "true",
+        "android.injected.build.abi" => "armeabi-v7a,arm64-v8a",
+        "android.injected.testOnly" => "false"
+      },
+      print_command: true,
+      print_command_output: true
+    )
+
+    # Google Play Console에 업로드 (Internal Testing 트랙)
+    upload_to_play_store(
+      track: 'internal',
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      release_status: 'draft',
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_apk: true,
+      json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
+      package_name: "dev.eatsteak.ssurf",
+    )
+
+    UI.success("✅ Internal Testing 업로드 완료!")
+  end
+
+  desc "Google Play Console Beta 트랙에 배포"
+  lane :beta do
+    # AAB 빌드 (최적화된 설정)
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "./android",
+      properties: {
+        "org.gradle.parallel" => "true",
+        "org.gradle.caching" => "true",
+        "org.gradle.configureondemand" => "true",
+        "android.injected.build.abi" => "armeabi-v7a,arm64-v8a,x86,x86_64",
+        "android.injected.testOnly" => "false"
+      },
+      print_command: false,
+      print_command_output: true
+    )
+
+    # Google Play Console에 업로드 (Beta 트랙)
+    upload_to_play_store(
+      track: 'beta',
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_apk: true,
+      json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
+      package_name: "dev.eatsteak.ssurf",
+      release_status: "completed"
+    )
+
+    UI.success("✅ Beta 트랙 업로드 완료!")
+  end
+
+  desc "Google Play Console Production 트랙에 배포"
+  lane :release do
+    # AAB 빌드 (최적화된 설정)
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "./android",
+      properties: {
+        "org.gradle.parallel" => "true",
+        "org.gradle.caching" => "true",
+        "org.gradle.configureondemand" => "true",
+        "android.injected.build.abi" => "armeabi-v7a,arm64-v8a,x86,x86_64",
+        "android.injected.testOnly" => "false"
+      },
+      print_command: false,
+      print_command_output: true
+    )
+
+    # Google Play Console에 업로드 (Production 트랙)
+    # rollout_fraction을 사용하여 단계적 출시 가능 (예: 0.1 = 10%)
+    upload_to_play_store(
+      track: 'production',
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_apk: true,
+      json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
+      package_name: "dev.eatsteak.ssurf",
+      release_status: "completed"
+      # rollout_fraction: 0.1 # 10% 단계적 출시 (필요시 주석 해제)
+    )
+
+    UI.success("✅ Production 트랙 업로드 완료!")
+  end
+end
