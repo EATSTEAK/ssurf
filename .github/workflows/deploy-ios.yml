@@ -101,6 +101,19 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           XCODE_VERSION: ${{ vars.XCODE_VERSION }}
 
+      - name: 빌드 로그 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-logs-${{ github.run_number }}
+          path: |
+            ios/build/
+            fastlane/logs/
+            fastlane/report.xml
+            ~/Library/Logs/gym/
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: 배포 완료 알림
         if: success()
         run: |

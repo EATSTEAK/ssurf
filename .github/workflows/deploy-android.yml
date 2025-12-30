@@ -144,14 +144,16 @@ jobs:
           # CI 환경 표시
           CI: true
 
-      - name: 빌드 아티팩트 업로드
+      - name: 빌드 로그 업로드
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-${{ github.run_number }}
+          name: android-build-logs-${{ github.run_number }}
           path: |
-            android/app/build/outputs/bundle/release/*.aab
-            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/logs/
+            android/build/reports/
+            fastlane/logs/
+            fastlane/report.xml
           retention-days: 30
           if-no-files-found: warn
 
