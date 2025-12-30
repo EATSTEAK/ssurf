@@ -31,16 +31,10 @@ function addReleaseSigning(buildGradle) {
     /release\s*\{[^}]*storeFile\s+file\s*\(['"]release\.keystore['"]\)[^}]*\}/s;
 
   const envBasedReleaseConfig = `release {
-            def ksPassword = System.getenv("KEYSTORE_PASSWORD")
-            def kAlias = System.getenv("KEY_ALIAS")
-            def kPassword = System.getenv("KEY_PASSWORD")
-            
-            if (ksPassword && kAlias && kPassword) {
-                storeFile file('release.keystore')
-                storePassword ksPassword
-                keyAlias kAlias
-                keyPassword kPassword
-            }
+            storeFile file('release.keystore')
+            storePassword System.getenv("KEYSTORE_PASSWORD")
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD")
         }`;
 
   // signingConfigs 블록 내의 release 설정을 교체
