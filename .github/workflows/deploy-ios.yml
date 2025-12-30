@@ -65,7 +65,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Expo Prebuild (iOS)
-        run: npx expo prebuild -p ios --clean
+        run: pnpm expo prebuild -p ios --clean
 
       - name: Ruby 설정 (Fastlane용)
         uses: ruby/setup-ruby@v1
