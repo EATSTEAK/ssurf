@@ -126,7 +126,7 @@ jobs:
 
       - name: Fastlane으로 빌드 및 배포
         working-directory: fastlane
-        run: bundle exec fastlane android ${{ steps.lane.outputs.lane }}
+        run: bundle exec fastlane android ${{ steps.lane.outputs.lane }} --verbose
         env:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
