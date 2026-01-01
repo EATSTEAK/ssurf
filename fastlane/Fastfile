@@ -178,6 +178,40 @@ platform :android do
     UI.success("✅ Internal Testing 업로드 완료!")
   end
 
+  desc "Google Play Console Alpha 트랙에 배포"
+  lane :alpha do
+    # AAB 빌드 (최적화된 설정)
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "./android",
+      properties: {
+        "org.gradle.parallel" => "true",
+        "org.gradle.caching" => "true",
+        "org.gradle.configureondemand" => "true",
+        "android.injected.build.abi" => "armeabi-v7a,arm64-v8a,x86,x86_64",
+        "android.injected.testOnly" => "false"
+      },
+      print_command: false,
+      print_command_output: true
+    )
+
+    # Google Play Console에 업로드 (Alpha 트랙)
+    upload_to_play_store(
+      track: 'alpha',
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_apk: true,
+      json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
+      package_name: "dev.eatsteak.ssurf",
+      release_status: "completed"
+    )
+
+    UI.success("✅ Beta 트랙 업로드 완료!")
+  end
+
   desc "Google Play Console Beta 트랙에 배포"
   lane :beta do
     # AAB 빌드 (최적화된 설정)

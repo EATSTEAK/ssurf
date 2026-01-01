@@ -15,7 +15,7 @@
         "usesNonExemptEncryption": false
       },
       "icon": "./assets/app.icon",
-      "buildNumber": "2025123001"
+      "buildNumber": "2026010101"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +27,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "dev.eatsteak.ssurf",
-      "versionCode": 2025123001
+      "versionCode": 2026010101
     },
     "web": {
       "output": "static",
