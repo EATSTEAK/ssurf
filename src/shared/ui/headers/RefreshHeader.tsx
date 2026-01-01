@@ -17,6 +17,15 @@ import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { Wave } from '@/shared/ui/Wave';
 
 const styles = StyleSheet.create((theme) => ({
+  safeArea: {
+    width: '100%',
+    overflow: 'visible',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
   refreshHeader: {
     position: 'absolute',
     top: 0,
@@ -168,18 +177,7 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
 
   return (
     <Animated.View style={[styles.refreshHeader, refreshHeaderAnimatedStyle]}>
-      <SafeAreaView
-        edges={{ top: 'additive' }}
-        style={{
-          width: '100%',
-          overflow: 'visible',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingVertical: 4,
-        }}
-      >
+      <SafeAreaView edges={{ top: 'additive' }} style={styles.safeArea}>
         <Animated.View style={refreshContentStyle}>
           <ThemedText color="fgPrimary" typography="bodyMd">
             {showingComplete ? '새로고침 완료!' : isSyncing ? '불러오는 중...' : '당겨서 새로고침'}
