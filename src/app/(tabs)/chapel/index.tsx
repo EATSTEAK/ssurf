@@ -111,6 +111,10 @@ export default function Index() {
   const passable = totalAttendances - absentCount >= requiredAttendances;
 
   const handleRefresh = () => {
+    // 로딩 중이면 리프레시하지 않음
+    if (isSyncing) {
+      return;
+    }
     syncChapel([selectedSemester.year, selectedSemester.semester], { force: true });
   };
 
@@ -129,52 +133,56 @@ export default function Index() {
   if (!general) {
     return (
       <View style={styles.root}>
-        <SafeContainer>
-          {Platform.OS === 'ios' && <Space gap={2} />}
-          <View style={styles.topView}>
-            <Header title="채플" />
-            <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
-          </View>
-          <Space gap={1} />
-          <View style={styles.errorView}>
-            {error ? (
-              error.message === RUSAINT_NO_CHAPEL ? (
-                <>
-                  <Image
-                    contentFit="contain"
-                    source={emptyImage}
-                    style={{ width: 150, height: 150, marginBottom: 16 }}
-                  />
-                  <ThemedText typography="headingLg">선택한 학기의 채플 정보가 없어요.</ThemedText>
-                  <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
-                </>
+        <RefreshableScrollView onRefresh={handleRefresh} refreshing={isSyncing}>
+          <SafeContainer>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.topView}>
+              <Header title="채플" />
+              <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
+            </View>
+            <Space gap={1} />
+            <View style={styles.errorView}>
+              {error ? (
+                error.message === RUSAINT_NO_CHAPEL ? (
+                  <>
+                    <Image
+                      contentFit="contain"
+                      source={emptyImage}
+                      style={{ width: 150, height: 150, marginBottom: 16 }}
+                    />
+                    <ThemedText typography="headingLg">
+                      선택한 학기의 채플 정보가 없어요.
+                    </ThemedText>
+                    <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      contentFit="contain"
+                      source={errorImage}
+                      style={{ width: 150, height: 150, marginBottom: 16 }}
+                    />
+                    <ThemedText color="error" typography="headingLg">
+                      정보를 가져오는 중 오류가 발생했어요.
+                    </ThemedText>
+                    <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
+                    <ThemedText typography="bodySm">{error.message}</ThemedText>
+                  </>
+                )
               ) : (
                 <>
                   <Image
                     contentFit="contain"
-                    source={errorImage}
+                    source={loadingImage}
                     style={{ width: 150, height: 150, marginBottom: 16 }}
                   />
-                  <ThemedText color="error" typography="headingLg">
-                    정보를 가져오는 중 오류가 발생했어요.
-                  </ThemedText>
-                  <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
-                  <ThemedText typography="bodySm">{error.message}</ThemedText>
+                  <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
+                  <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
                 </>
-              )
-            ) : (
-              <>
-                <Image
-                  contentFit="contain"
-                  source={loadingImage}
-                  style={{ width: 150, height: 150, marginBottom: 16 }}
-                />
-                <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
-                <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
-              </>
-            )}
-          </View>
-        </SafeContainer>
+              )}
+            </View>
+          </SafeContainer>
+        </RefreshableScrollView>
       </View>
     );
   }
