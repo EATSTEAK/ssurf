@@ -34,6 +34,8 @@ const styles = StyleSheet.create((theme) => ({
     width: '100%',
     height: 20,
     overflow: 'visible',
+    zIndex: 10,
+    elevation: 10,
   },
 }));
 
@@ -184,7 +186,7 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
           </ThemedText>
         </Animated.View>
       </SafeAreaView>
-      <Animated.View style={[styles.waveContainer, waveAnimatedStyle, refreshContentStyle]}>
+      <Animated.View style={[styles.waveContainer, waveAnimatedStyle]}>
         <Wave height="20" style={{ marginTop: 20 }} width="200%" />
       </Animated.View>
     </Animated.View>
