@@ -14,6 +14,7 @@ on:
         type: choice
         options:
           - internal
+          - alpha
           - beta
           - release
 
@@ -53,11 +54,11 @@ jobs:
               echo "배포 타입: Release (시멘틱 버전)"
             # b로 시작하는 빌드 번호면 internal
             elif [[ "$TAG" =~ ^b[0-9]+ ]]; then
-              echo "lane=internal" >> $GITHUB_OUTPUT
-              echo "배포 타입: Internal Testing (빌드 번호)"
+              echo "lane=alpha" >> $GITHUB_OUTPUT
+              echo "배포 타입: Alpha Testing (빌드 번호)"
             else
-              echo "lane=internal" >> $GITHUB_OUTPUT
-              echo "배포 타입: Internal Testing (기타)"
+              echo "lane=alpha" >> $GITHUB_OUTPUT
+              echo "배포 타입: Alpha Testing (기타)"
             fi
           fi
 
