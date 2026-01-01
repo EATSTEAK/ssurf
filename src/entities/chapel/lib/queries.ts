@@ -13,6 +13,7 @@ export const useChapelAttendances = (year: number, semester: SemesterType) => {
       where: (chapelAttendances, { eq, and }) =>
         and(eq(chapelAttendances.year, year), eq(chapelAttendances.semester, semester)),
     }),
+    [year, semester],
   );
 
   useAsyncEffect(async () => {
@@ -30,6 +31,7 @@ export const useGeneralChapelInformation = (year: number, semester: SemesterType
       where: (chapelGeneral, { eq, and }) =>
         and(eq(chapelGeneral.year, year), eq(chapelGeneral.semester, semester)),
     }),
+    [year, semester],
   );
 
   useAsyncEffect(async () => {

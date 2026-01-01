@@ -1,16 +1,22 @@
 import { SemesterType, YearSemester } from '@rusaint/react-native';
 
-export const getEstimatedCurrentSemester = (): YearSemester => {
+export const getEstimatedCurrentSemester = (excludeSeasonal: boolean = false): YearSemester => {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1; // getMonth() is zero-based
   if (month < 3) {
+    if (excludeSeasonal) {
+      return { year: year - 1, semester: SemesterType.Two };
+    }
     return { year, semester: SemesterType.Winter };
   }
   if (month < 7) {
     return { year, semester: SemesterType.One };
   }
   if (month < 9) {
+    if (excludeSeasonal) {
+      return { year, semester: SemesterType.One };
+    }
     return { year, semester: SemesterType.Summer };
   }
   return { year, semester: SemesterType.Two };

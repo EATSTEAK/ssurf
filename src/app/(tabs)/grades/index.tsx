@@ -89,36 +89,46 @@ function GradesContent() {
     [data],
   );
 
+  const handleErrorRefresh = async () => {
+    // 로딩 중이면 리프레시하지 않음
+    if (isLoading) {
+      return;
+    }
+    await refresh(null);
+  };
+
   if (!data) {
     return (
       <View style={styles.root}>
-        <SafeContainer>
-          {Platform.OS === 'ios' && <Space gap={2} />}
-          <View style={styles.topView}>
-            <Pressable onPress={toggleBlur}>
-              <Header title="성적" />
-            </Pressable>
-          </View>
-          <Space gap={1} />
-          <View style={styles.errorView}>
-            {error ? (
-              <>
-                <Image contentFit="contain" source={errorImage} style={styles.imageView} />
-                <ThemedText color="error" typography="headingLg">
-                  정보를 가져오는 중 오류가 발생했어요.
-                </ThemedText>
-                <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
-                <ThemedText typography="bodySm">{error?.message}</ThemedText>
-              </>
-            ) : (
-              <>
-                <Image contentFit="contain" source={loadingImage} style={styles.imageView} />
-                <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
-                <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
-              </>
-            )}
-          </View>
-        </SafeContainer>
+        <RefreshableScrollView onRefresh={handleErrorRefresh} refreshing={isLoading}>
+          <SafeContainer>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.topView}>
+              <Pressable onPress={toggleBlur}>
+                <Header title="성적" />
+              </Pressable>
+            </View>
+            <Space gap={1} />
+            <View style={styles.errorView}>
+              {error ? (
+                <>
+                  <Image contentFit="contain" source={errorImage} style={styles.imageView} />
+                  <ThemedText color="error" typography="headingLg">
+                    정보를 가져오는 중 오류가 발생했어요.
+                  </ThemedText>
+                  <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
+                  <ThemedText typography="bodySm">{error?.message}</ThemedText>
+                </>
+              ) : (
+                <>
+                  <Image contentFit="contain" source={loadingImage} style={styles.imageView} />
+                  <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
+                  <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
+                </>
+              )}
+            </View>
+          </SafeContainer>
+        </RefreshableScrollView>
       </View>
     );
   }

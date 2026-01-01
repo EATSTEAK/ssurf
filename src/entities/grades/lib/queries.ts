@@ -23,11 +23,12 @@ export const useGradeSummary = (type: 'certificated' | 'recorded') => {
     db.query.gradeSummary.findFirst({
       where: (gradeSummary, { eq }) => eq(gradeSummary.type, type),
     }),
+    [type],
   );
 
   useAsyncEffect(async () => {
     await sync([CourseType.Bachelor], { force: false });
-  }, []);
+  }, [type]);
 
   return { data: data ?? null, isSyncing, error, updatedAt };
 };
@@ -40,7 +41,7 @@ export const useGradeSummary = (type: 'certificated' | 'recorded') => {
 export const useSemesterGrades = (courseType: CourseType = CourseType.Bachelor) => {
   const { isSyncing, sync } = useSyncSemesterGrades();
 
-  const { data, error, updatedAt } = useLiveQuery(db.query.semesterGrades.findMany());
+  const { data, error, updatedAt } = useLiveQuery(db.query.semesterGrades.findMany(), [courseType]);
 
   useAsyncEffect(async () => {
     await sync([courseType], { force: false });
@@ -67,6 +68,7 @@ export const useSemesterGrade = (
       where: (semesterGrades, { eq, and }) =>
         and(eq(semesterGrades.year, year), eq(semesterGrades.semester, semester)),
     }),
+    [year, semester, courseType],
   );
 
   useAsyncEffect(async () => {
@@ -94,6 +96,7 @@ export const useClassGrades = (
       where: (classGrades, { eq, and }) =>
         and(eq(classGrades.year, year), eq(classGrades.semester, semester)),
     }),
+    [year, semester, courseType],
   );
 
   useAsyncEffect(async () => {
