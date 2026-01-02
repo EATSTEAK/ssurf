@@ -186,6 +186,67 @@ function GradesContent() {
   };
 
   return (
+    <View style={styles.root}>
+      <RefreshableScrollView
+        onRefresh={handleRefresh}
+        onScroll={scrollHandler}
+        refreshing={isLoading}
+        scrollEventThrottle={16}
+      >
+        <SafeContainer>
+          {Platform.OS === 'ios' && <Space gap={2} />}
+          <View style={styles.topView}>
+            <View style={styles.topInnerView}>
+              <Pressable onPress={toggleBlur}>
+                <Header
+                  action={
+                    isBlurred ? (
+                      <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
+                    ) : (
+                      <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
+                    )
+                  }
+                  title="성적"
+                />
+              </Pressable>
+              <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
+              <Space gap={1} />
+            </View>
+            <GradeSummarySection
+              isSemesterSummary={!!selectedSemesterData}
+              summary={displayedSummary}
+            />
+            <Space gap={1} />
+            <GradeSequenceGraphSection
+              selectedSemester={selectedSemesterData?.semester}
+              selectedYear={selectedSemesterData?.year}
+              semesters={semesters}
+            />
+          </View>
+          <Tabs.Root onValueChange={handleTabSelect} value={selectedTabKey}>
+            <Tabs.List>
+              {tabs.map((tab) => (
+                <Tabs.Trigger key={tab} value={tab} />
+              ))}
+            </Tabs.List>
+          </Tabs.Root>
+          <AutoHeightFlatList
+            data={data}
+            keyExtractor={getTabKey}
+            onPageChange={handleTabSelect}
+            renderItem={renderItem}
+            selectedKey={selectedTabKey}
+          />
+          <Space gap={8} />
+        </SafeContainer>
+      </RefreshableScrollView>
+      <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
+    </View>
+  );
+}
+
+export default function Index() {
+  return (
     <>
       <Stack.Screen
         options={{
@@ -195,70 +256,9 @@ function GradesContent() {
           headerTitle: () => <></>,
         }}
       />
-      <View style={styles.root}>
-        <RefreshableScrollView
-          onRefresh={handleRefresh}
-          onScroll={scrollHandler}
-          refreshing={isLoading}
-          scrollEventThrottle={16}
-        >
-          <SafeContainer>
-            {Platform.OS === 'ios' && <Space gap={2} />}
-            <View style={styles.topView}>
-              <View style={styles.topInnerView}>
-                <Pressable onPress={toggleBlur}>
-                  <Header
-                    action={
-                      isBlurred ? (
-                        <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
-                      ) : (
-                        <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
-                      )
-                    }
-                    title="성적"
-                  />
-                </Pressable>
-                <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
-                <Space gap={1} />
-              </View>
-              <GradeSummarySection
-                isSemesterSummary={!!selectedSemesterData}
-                summary={displayedSummary}
-              />
-              <Space gap={1} />
-              <GradeSequenceGraphSection
-                selectedSemester={selectedSemesterData?.semester}
-                selectedYear={selectedSemesterData?.year}
-                semesters={semesters}
-              />
-            </View>
-            <Tabs.Root onValueChange={handleTabSelect} value={selectedTabKey}>
-              <Tabs.List>
-                {tabs.map((tab) => (
-                  <Tabs.Trigger key={tab} value={tab} />
-                ))}
-              </Tabs.List>
-            </Tabs.Root>
-            <AutoHeightFlatList
-              data={data}
-              keyExtractor={getTabKey}
-              onPageChange={handleTabSelect}
-              renderItem={renderItem}
-              selectedKey={selectedTabKey}
-            />
-            <Space gap={8} />
-          </SafeContainer>
-        </RefreshableScrollView>
-        <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
-      </View>
+      <BlurGradeProvider>
+        <GradesContent />
+      </BlurGradeProvider>
     </>
-  );
-}
-
-export default function Index() {
-  return (
-    <BlurGradeProvider>
-      <GradesContent />
-    </BlurGradeProvider>
   );
 }
