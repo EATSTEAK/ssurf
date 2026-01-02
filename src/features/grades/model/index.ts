@@ -1,4 +1,9 @@
 import { GradeSummaryEntity, SemesterGradeEntity } from '@/entities/grades/model';
+import {
+  GraduationRequirementEntity,
+  GraduationRequirementsGeneralEntity,
+  GraduationStudentEntity,
+} from '@/entities/graduationRequirements/model';
 
 export interface SemesterGradeTabView {
   data?: SemesterGradeEntity;
@@ -24,3 +29,9 @@ export type GradeTabSelection =
   | {
       type: 'overview';
     };
+
+export interface GraduationView {
+  general: GraduationRequirementsGeneralEntity;
+  requirements: GraduationRequirementEntity[];
+  student: GraduationStudentEntity;
+}

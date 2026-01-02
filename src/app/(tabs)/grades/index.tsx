@@ -8,6 +8,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useGradeTabView } from '@/features/grades/lib/useGradeTabView';
+import { useGraduationView } from '@/features/grades/lib/useGraduationView';
 import { GradeOverviewTabView, GradeTabView, SemesterGradeTabView } from '@/features/grades/model';
 import { BlurGradeProvider, useBlurGrade } from '@/features/grades/providers/BlurGradeProvider';
 import { GradeSequenceGraphSection } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
@@ -38,7 +39,14 @@ const styles = StyleSheet.create((theme) => ({
     display: 'flex',
     gap: theme.gap(1),
     flexDirection: 'column',
-    padding: theme.gap(3),
+    paddingVertical: theme.gap(3),
+  },
+  topInnerView: {
+    width: '100%',
+    display: 'flex',
+    gap: theme.gap(1),
+    flexDirection: 'column',
+    paddingHorizontal: theme.gap(3),
   },
   errorView: {
     display: 'flex',
@@ -74,6 +82,12 @@ function getTabKey(item: GradeTabView): string {
 
 function GradesContent() {
   const { data, error, isLoading, refresh } = useGradeTabView();
+  const {
+    data: graduation,
+    error: graduationError,
+    isLoading: isGraduationLoading,
+    refresh: graduationRefresh,
+  } = useGraduationView();
   const [selectedTabKey, setSelectedTabKey] = useState<string>(SUMMARY_LABEL);
   const { isBlurred, toggleBlur } = useBlurGrade();
 
@@ -91,19 +105,23 @@ function GradesContent() {
 
   const handleErrorRefresh = async () => {
     // 로딩 중이면 리프레시하지 않음
-    if (isLoading) {
+    if (isLoading || isGraduationLoading) {
       return;
     }
     await refresh(null);
+    await graduationRefresh();
   };
 
-  if (!data) {
+  if (!data || !graduation) {
     return (
       <View style={styles.root}>
-        <RefreshableScrollView onRefresh={handleErrorRefresh} refreshing={isLoading}>
+        <RefreshableScrollView
+          onRefresh={handleErrorRefresh}
+          refreshing={isLoading || isGraduationLoading}
+        >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
-            <View style={styles.topView}>
+            <View style={styles.topInnerView}>
               <Pressable onPress={toggleBlur}>
                 <Header title="성적" />
               </Pressable>
@@ -118,6 +136,15 @@ function GradesContent() {
                   </ThemedText>
                   <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
                   <ThemedText typography="bodySm">{error?.message}</ThemedText>
+                </>
+              ) : graduationError ? (
+                <>
+                  <Image contentFit="contain" source={errorImage} style={styles.imageView} />
+                  <ThemedText color="error" typography="headingLg">
+                    정보를 가져오는 중 오류가 발생했어요.
+                  </ThemedText>
+                  <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
+                  <ThemedText typography="bodySm">{graduationError?.message}</ThemedText>
                 </>
               ) : (
                 <>
@@ -178,25 +205,17 @@ function GradesContent() {
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTransparent: true,
-          title: '성적',
-          headerTitle: () => <></>,
-        }}
-      />
-      <View style={styles.root}>
-        <RefreshableScrollView
-          onRefresh={handleRefresh}
-          onScroll={scrollHandler}
-          refreshing={isLoading}
-          scrollEventThrottle={16}
-        >
-          <SafeContainer>
-            {Platform.OS === 'ios' && <Space gap={2} />}
-            <View style={styles.topView}>
+    <View style={styles.root}>
+      <RefreshableScrollView
+        onRefresh={handleRefresh}
+        onScroll={scrollHandler}
+        refreshing={isLoading || isGraduationLoading}
+        scrollEventThrottle={16}
+      >
+        <SafeContainer>
+          {Platform.OS === 'ios' && <Space gap={2} />}
+          <View style={styles.topView}>
+            <View style={styles.topInnerView}>
               <Pressable onPress={toggleBlur}>
                 <Header
                   action={
@@ -211,44 +230,56 @@ function GradesContent() {
               </Pressable>
               <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
               <Space gap={1} />
-              <GradeSummarySection
-                isSemesterSummary={!!selectedSemesterData}
-                summary={displayedSummary}
-              />
-              <Space gap={1} />
-              <GradeSequenceGraphSection
-                selectedSemester={selectedSemesterData?.semester}
-                selectedYear={selectedSemesterData?.year}
-                semesters={semesters}
-              />
             </View>
-            <Tabs.Root onValueChange={handleTabSelect} value={selectedTabKey}>
-              <Tabs.List>
-                {tabs.map((tab) => (
-                  <Tabs.Trigger key={tab} value={tab} />
-                ))}
-              </Tabs.List>
-            </Tabs.Root>
-            <AutoHeightFlatList
-              data={data}
-              keyExtractor={getTabKey}
-              onPageChange={handleTabSelect}
-              renderItem={renderItem}
-              selectedKey={selectedTabKey}
+            <GradeSummarySection
+              graduationGeneral={graduation.general}
+              graduationStudent={graduation.student}
+              isSemesterSummary={!!selectedSemesterData}
+              summary={displayedSummary}
             />
-            <Space gap={8} />
-          </SafeContainer>
-        </RefreshableScrollView>
-        <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
-      </View>
-    </>
+            <Space gap={1} />
+            <GradeSequenceGraphSection
+              selectedSemester={selectedSemesterData?.semester}
+              selectedYear={selectedSemesterData?.year}
+              semesters={semesters}
+            />
+          </View>
+          <Tabs.Root onValueChange={handleTabSelect} value={selectedTabKey}>
+            <Tabs.List>
+              {tabs.map((tab) => (
+                <Tabs.Trigger key={tab} value={tab} />
+              ))}
+            </Tabs.List>
+          </Tabs.Root>
+          <AutoHeightFlatList
+            data={data}
+            keyExtractor={getTabKey}
+            onPageChange={handleTabSelect}
+            renderItem={renderItem}
+            selectedKey={selectedTabKey}
+          />
+          <Space gap={8} />
+        </SafeContainer>
+      </RefreshableScrollView>
+      <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
+    </View>
   );
 }
 
 export default function Index() {
   return (
-    <BlurGradeProvider>
-      <GradesContent />
-    </BlurGradeProvider>
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          headerTransparent: true,
+          title: '성적',
+          headerTitle: () => <></>,
+        }}
+      />
+      <BlurGradeProvider>
+        <GradesContent />
+      </BlurGradeProvider>
+    </>
   );
 }

@@ -3,8 +3,19 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { useSyncGraduationRequirements } from '@/entities/graduationRequirements/lib/sync';
+import {
+  GraduationRequirementEntity,
+  GraduationRequirementsGeneralEntity,
+} from '@/entities/graduationRequirements/model';
 
-export const useGraduationRequirements = () => {
+export interface UseGraduationRequirementsReturn {
+  data: GraduationRequirementEntity[] | null;
+  error: Error | undefined;
+  isSyncing: boolean;
+  updatedAt: Date | undefined;
+}
+
+export const useGraduationRequirements = (): UseGraduationRequirementsReturn => {
   const { isSyncing, sync } = useSyncGraduationRequirements();
 
   const { data, error, updatedAt } = useLiveQuery(db.query.graduationRequirements.findMany());
@@ -16,7 +27,14 @@ export const useGraduationRequirements = () => {
   return { data, isSyncing, error, updatedAt };
 };
 
-export const useGraduationRequirementsGeneral = () => {
+export interface UseGraduationRequirementsGeneralReturn {
+  data: GraduationRequirementsGeneralEntity | null;
+  error: Error | undefined;
+  isSyncing: boolean;
+  updatedAt: Date | undefined;
+}
+
+export const useGraduationRequirementsGeneral = (): UseGraduationRequirementsGeneralReturn => {
   const { isSyncing, sync } = useSyncGraduationRequirements();
 
   const { data, error, updatedAt } = useLiveQuery(

@@ -34,6 +34,14 @@ const styles = StyleSheet.create((theme) => ({
         success: {
           backgroundColor: pressed ? theme.colors.successPressed : theme.colors.success,
         },
+        ghost: {
+          backgroundColor: pressed ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+        },
+        outline: {
+          borderWidth: 1,
+          borderColor: pressed ? theme.colors.fgSurfaceMuted : theme.colors.fgSurface,
+          backgroundColor: pressed ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+        },
       },
     },
   }),
@@ -53,6 +61,12 @@ const styles = StyleSheet.create((theme) => ({
         },
         success: {
           color: theme.colors.fgSuccess,
+        },
+        ghost: {
+          color: theme.colors.fgSurface,
+        },
+        outline: {
+          color: theme.colors.fgSurface,
         },
       },
     },
