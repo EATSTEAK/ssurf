@@ -52,21 +52,40 @@ export const GraduationRequirementsSection = ({
   });
   return (
     <View style={styles.root}>
-      {categorizedRequirements.map(([category, reqs]) => (
-        <CardView key={category}>
-          <ThemedText typography="headingLg">{category}</ThemedText>
-          <Space gap={1} />
-          <View style={styles.itemsView}>
-            {reqs.sort().map((requirement) => (
-              <GraduationRequirementItem
-                item={requirement}
-                key={requirement.name}
-                showCategory={false}
-              />
-            ))}
-          </View>
-        </CardView>
-      ))}
+      {categorizedRequirements.map(([category, reqs]) => {
+        const fulfilledReqs = reqs.filter((req) => req.result === 1);
+        const isFulfilled = fulfilledReqs.length === reqs.length;
+        return (
+          <CardView key={category}>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <ThemedText typography="headingLg">{category}</ThemedText>
+              <ThemedText
+                color={isFulfilled ? 'successInverted' : 'errorInverted'}
+                typography="bodyMd"
+              >
+                {fulfilledReqs.length} / {reqs.length} 충족
+              </ThemedText>
+            </View>
+            <Space gap={1} />
+            <View style={styles.itemsView}>
+              {reqs.sort().map((requirement) => (
+                <GraduationRequirementItem
+                  item={requirement}
+                  key={requirement.name}
+                  showCategory={false}
+                />
+              ))}
+            </View>
+          </CardView>
+        );
+      })}
       <Space gap={8} />
     </View>
   );
