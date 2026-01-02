@@ -11,6 +11,7 @@ interface GradeSummary {
 }
 
 interface GradeSummarySectionProps {
+  isSemesterSummary: boolean;
   summary: GradeSummary;
 }
 
@@ -20,12 +21,20 @@ const styles = StyleSheet.create(() => ({
   }),
 }));
 
-export function GradeSummarySection({ summary }: GradeSummarySectionProps) {
+export function GradeSummarySection({
+  summary,
+  isSemesterSummary = false,
+}: GradeSummarySectionProps) {
   const { isBlurred } = useBlurGrade();
 
   return (
     <View>
-      <ThemedText typography="headingMd">평점 평균</ThemedText>
+      <ThemedText typography="headingMd">
+        평점 평균{' '}
+        <ThemedText color="fgSurfaceMuted" typography="labelSm">
+          {isSemesterSummary ? '(학기)' : '(전체)'}
+        </ThemedText>
+      </ThemedText>
       <ThemedText color="primaryInverted" style={styles.value(isBlurred)} typography="heading3xl">
         {summary.gradePointsAverage.toFixed(2)}
         <ThemedText color="fgSurfaceMuted" typography="labelLg">
