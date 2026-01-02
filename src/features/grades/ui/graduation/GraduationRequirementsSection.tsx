@@ -75,13 +75,15 @@ export const GraduationRequirementsSection = ({
             </View>
             <Space gap={1} />
             <View style={styles.itemsView}>
-              {reqs.sort().map((requirement) => (
-                <GraduationRequirementItem
-                  item={requirement}
-                  key={requirement.name}
-                  showCategory={false}
-                />
-              ))}
+              {reqs
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((requirement) => (
+                  <GraduationRequirementItem
+                    item={requirement}
+                    key={requirement.name}
+                    showCategory={false}
+                  />
+                ))}
             </View>
           </CardView>
         );
