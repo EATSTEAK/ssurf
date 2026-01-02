@@ -9,9 +9,6 @@ const styles = StyleSheet.create((theme) => ({
   listContainer: {
     backgroundColor: theme.colors.surface,
   },
-  scrollView: {
-    flexGrow: 0,
-  },
   list: {
     display: 'flex',
     flexDirection: 'row',
@@ -84,17 +81,20 @@ function Root({
   );
 }
 
-function List({ children, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>) {
+function List({
+  children,
+  style,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>) {
   const { scrollViewRef } = useTabsContext();
 
   return (
-    <TabsPrimitive.List style={styles.listContainer} {...props} asChild>
+    <TabsPrimitive.List style={[styles.listContainer, style]} {...props} asChild>
       <ScrollView
         contentContainerStyle={styles.list}
         horizontal
         ref={scrollViewRef}
         showsHorizontalScrollIndicator={false}
-        style={styles.scrollView}
       >
         {children}
       </ScrollView>
@@ -133,10 +133,11 @@ function Trigger({
 // Content 컴포넌트
 function Content({
   children,
+  style,
   ...props
 }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>) {
   return (
-    <TabsPrimitive.Content {...props} style={styles.content}>
+    <TabsPrimitive.Content {...props} style={[styles.content, style]}>
       {children}
     </TabsPrimitive.Content>
   );
