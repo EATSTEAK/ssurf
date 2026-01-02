@@ -8,7 +8,7 @@ import { SemesterGradeItem } from '@/features/grades/ui/SemesterGradeItem';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
-interface SemestersWidgetProps {
+interface SemestersSectionProps {
   certiSummary: GradeSummary;
   recordedSummary: GradeSummary;
   semesters: SemesterGradeEntity[];
@@ -35,11 +35,11 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export function SemestersWidget({
+export function SemestersSection({
   certiSummary,
   recordedSummary,
   semesters,
-}: SemestersWidgetProps) {
+}: SemestersSectionProps) {
   return (
     <View style={styles.container}>
       <CardView>

@@ -10,10 +10,10 @@ import loadingImage from '@/assets/loading.png';
 import { useGradeTabView } from '@/features/grades/lib/useGradeTabView';
 import { GradeOverviewTabView, GradeTabView, SemesterGradeTabView } from '@/features/grades/model';
 import { BlurGradeProvider, useBlurGrade } from '@/features/grades/providers/BlurGradeProvider';
-import { GradeSequenceGraphWidget } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
-import { GradeSummaryWidget } from '@/features/grades/ui/sections/GradeSummarySection';
-import { SemesterWidget } from '@/features/grades/ui/sections/SemesterSection';
-import { SemestersWidget } from '@/features/grades/ui/sections/SemestersSection';
+import { GradeSequenceGraphSection } from '@/features/grades/ui/sections/GradeSequenceGraphSection';
+import { GradeSummarySection } from '@/features/grades/ui/sections/GradeSummarySection';
+import { SemesterSection } from '@/features/grades/ui/sections/SemesterSection';
+import { SemestersSection } from '@/features/grades/ui/sections/SemestersSection';
 import { semesterToString } from '@/shared/lib/semester';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
@@ -159,7 +159,7 @@ function GradesContent() {
   const renderItem = (item: GradeTabView) => {
     if (item.type === 'overview') {
       return (
-        <SemestersWidget
+        <SemestersSection
           certiSummary={item.certificated}
           recordedSummary={item.recorded}
           semesters={semesters}
@@ -167,7 +167,7 @@ function GradesContent() {
       );
     }
 
-    return <SemesterWidget data={item.data} semester={item.semester} year={item.year} />;
+    return <SemesterSection data={item.data} semester={item.semester} year={item.year} />;
   };
 
   return (
@@ -204,9 +204,9 @@ function GradesContent() {
               </Pressable>
               <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
               <Space gap={1} />
-              <GradeSummaryWidget summary={displayedSummary} />
+              <GradeSummarySection summary={displayedSummary} />
               <Space gap={1} />
-              <GradeSequenceGraphWidget
+              <GradeSequenceGraphSection
                 selectedSemester={selectedSemesterData?.semester}
                 selectedYear={selectedSemesterData?.year}
                 semesters={semesters}

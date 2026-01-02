@@ -39,7 +39,7 @@ export function useGradeTabView(): UseGradeTabViewResult {
   const { data: certiSummary } = useGradeSummary('certificated');
   const { data: recordedSummary } = useGradeSummary('recorded');
   const { data: semesters } = useSemesterGrades();
-  const { attendedSemesters: recentAttendedSemesters, isChecking } =
+  const { checkedSemesters: checkedRecentSemesters, isChecking } =
     useCheckRecentAttendedSemesters();
 
   const isLoading = isSyncing || isSemesterSyncing || isClassSyncing || isChecking;
@@ -61,9 +61,10 @@ export function useGradeTabView(): UseGradeTabViewResult {
 
     return summary.concat(
       // 수강중이거나 성적 처리가 되지 않은 학기 추가
-      recentAttendedSemesters
+      checkedRecentSemesters
         .filter(
           (recent) =>
+            recent.attended &&
             !semesters.some((s) => s.year === recent.year && s.semester === recent.semester),
         )
         .map(
@@ -84,7 +85,7 @@ export function useGradeTabView(): UseGradeTabViewResult {
           }) satisfies SemesterGradeTabView,
       ),
     );
-  }, [certiSummary, recordedSummary, semesters, recentAttendedSemesters]);
+  }, [certiSummary, recordedSummary, semesters, checkedRecentSemesters]);
 
   const refresh = async (selectedTab?: null | { semester: number; year: number }) => {
     await syncGradeSummary([CourseType.Bachelor], { force: true });
@@ -93,6 +94,16 @@ export function useGradeTabView(): UseGradeTabViewResult {
       await syncClassGrades([CourseType.Bachelor, selectedTab.year, selectedTab.semester], {
         force: true,
       });
+    } else {
+      for (const recentSemester of checkedRecentSemesters) {
+        // Check recently updated semesters that isn't in the list.
+        if (!recentSemester.attended) {
+          await syncClassGrades(
+            [CourseType.Bachelor, recentSemester.year, recentSemester.semester],
+            { force: true },
+          );
+        }
+      }
     }
   };
 
