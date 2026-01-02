@@ -56,6 +56,15 @@ export const GraduationSummary = ({
             / {student?.graduationPoints.toFixed(1) ?? '-'} 학점
           </ThemedText>
         </ThemedText>
+        {general?.isGraduatable ? (
+          <ThemedText color="successInverted" typography="bodyMd">
+            졸업 요건을 모두 충족했어요!
+          </ThemedText>
+        ) : (
+          <ThemedText color="errorInverted" typography="bodyMd">
+            졸업하려면 추가 요건이 필요해요.
+          </ThemedText>
+        )}
       </View>
       {showDetailsButton && (
         <Button
