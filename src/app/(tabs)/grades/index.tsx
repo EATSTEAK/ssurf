@@ -115,7 +115,10 @@ function GradesContent() {
   if (!data || !graduation) {
     return (
       <View style={styles.root}>
-        <RefreshableScrollView onRefresh={handleErrorRefresh} refreshing={isLoading}>
+        <RefreshableScrollView
+          onRefresh={handleErrorRefresh}
+          refreshing={isLoading || isGraduationLoading}
+        >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topInnerView}>
@@ -206,7 +209,7 @@ function GradesContent() {
       <RefreshableScrollView
         onRefresh={handleRefresh}
         onScroll={scrollHandler}
-        refreshing={isLoading}
+        refreshing={isLoading || isGraduationLoading}
         scrollEventThrottle={16}
       >
         <SafeContainer>
