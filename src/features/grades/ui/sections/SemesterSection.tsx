@@ -9,7 +9,7 @@ import { semesterToString } from '@/shared/lib/semester';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
-interface SemesterWidgetProps {
+interface SemesterSectionProps {
   data?: SemesterGradeEntity;
   semester: number;
   year: number;
@@ -31,7 +31,7 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export function SemesterWidget({ data, semester, year }: SemesterWidgetProps) {
+export function SemesterSection({ data, semester, year }: SemesterSectionProps) {
   const { data: classGrades } = useClassGrades(year, semester);
 
   return (

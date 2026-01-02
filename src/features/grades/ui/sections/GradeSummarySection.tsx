@@ -10,7 +10,7 @@ interface GradeSummary {
   gradePointsAverage: number;
 }
 
-interface GradeSummaryWidgetProps {
+interface GradeSummarySectionProps {
   summary: GradeSummary;
 }
 
@@ -20,7 +20,7 @@ const styles = StyleSheet.create(() => ({
   }),
 }));
 
-export function GradeSummaryWidget({ summary }: GradeSummaryWidgetProps) {
+export function GradeSummarySection({ summary }: GradeSummarySectionProps) {
   const { isBlurred } = useBlurGrade();
 
   return (

@@ -8,7 +8,7 @@ import { Area, CartesianChart, Line } from 'victory-native';
 import { SemesterGradeEntity } from '@/entities/grades/model';
 import { useBlurGrade } from '@/features/grades/providers/BlurGradeProvider';
 
-interface GradeSequenceGraphWidgetProps {
+interface GradeSequenceGraphSectionProps {
   selectedSemester?: number;
   selectedYear?: number;
   semesters: SemesterGradeEntity[];
@@ -32,11 +32,11 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export function GradeSequenceGraphWidget({
+export function GradeSequenceGraphSection({
   selectedSemester,
   selectedYear,
   semesters,
-}: GradeSequenceGraphWidgetProps) {
+}: GradeSequenceGraphSectionProps) {
   const { theme } = useUnistyles();
   const { isBlurred } = useBlurGrade();
 
