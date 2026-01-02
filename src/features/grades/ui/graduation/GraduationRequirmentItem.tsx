@@ -2,7 +2,6 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { GraduationRequirementEntity } from '@/entities/graduationRequirements/model';
-import { Chip } from '@/shared/ui/primitives/Chip';
 import { Progress } from '@/shared/ui/primitives/Progress';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
@@ -25,7 +24,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   nameView: {
     alignItems: 'center',
-    columnGap: theme.gap(0.25),
+    columnGap: theme.gap(0.5),
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -38,14 +37,14 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(0.25),
   },
   requirementText: (isFulfilled: boolean) => ({
-    color: isFulfilled ? theme.colors.primaryInverted : theme.colors.errorInverted,
+    color: isFulfilled ? theme.colors.successInverted : theme.colors.errorInverted,
     fontWeight: '600',
   }),
   progress: (isFulfilled: boolean) => ({
-    backgroundColor: isFulfilled ? theme.colors.primaryContainer : theme.colors.errorContainer,
+    backgroundColor: isFulfilled ? theme.colors.successContainer : theme.colors.errorContainer,
   }),
   progressIndicator: (isFulfilled: boolean) => ({
-    backgroundColor: isFulfilled ? theme.colors.primary : theme.colors.error,
+    backgroundColor: isFulfilled ? theme.colors.success : theme.colors.error,
   }),
 }));
 
@@ -55,7 +54,7 @@ export interface GraduationRequirementItemProps {
 }
 
 export function GraduationRequirementItem({
-  item: { calculation, category, lectures, name, requirement, result },
+  item: { calculation, category, difference, lectures, name, requirement, result },
   showCategory = true,
 }: GraduationRequirementItemProps) {
   const isFulfilled = result === 1;
@@ -82,15 +81,6 @@ export function GraduationRequirementItem({
               <ThemedText color="fgSurfaceMuted" typography="bodySm">
                 {lectureList.length}개 과목
               </ThemedText>
-              {isFulfilled ? (
-                <Chip backgroundColor="successContainer" color="fgSuccessContainer">
-                  충족
-                </Chip>
-              ) : (
-                <Chip backgroundColor="errorContainer" color="fgErrorContainer">
-                  부족
-                </Chip>
-              )}
             </View>
           )}
         </View>
@@ -102,6 +92,15 @@ export function GraduationRequirementItem({
                 {' '}
                 / {requirement.toFixed(1)}
               </ThemedText>
+            </ThemedText>
+          )}
+          {isFulfilled ? (
+            <ThemedText color="successInverted" typography="bodySm">
+              충족 {difference ? `(+${difference.toFixed(1)})` : ''}
+            </ThemedText>
+          ) : (
+            <ThemedText color="errorInverted" typography="bodySm">
+              부족 {difference ? `(${difference.toFixed(1)})` : ''}
             </ThemedText>
           )}
         </View>
