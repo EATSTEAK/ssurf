@@ -38,7 +38,15 @@ const styles = StyleSheet.create((theme) => ({
     display: 'flex',
     gap: theme.gap(1),
     flexDirection: 'column',
-    padding: theme.gap(3),
+    paddingVertical: theme.gap(3),
+  },
+
+  topInnerView: {
+    width: '100%',
+    display: 'flex',
+    gap: theme.gap(1),
+    flexDirection: 'column',
+    paddingHorizontal: theme.gap(3),
   },
   errorView: {
     display: 'flex',
@@ -197,20 +205,22 @@ function GradesContent() {
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
-              <Pressable onPress={toggleBlur}>
-                <Header
-                  action={
-                    isBlurred ? (
-                      <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
-                    ) : (
-                      <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
-                    )
-                  }
-                  title="성적"
-                />
-              </Pressable>
-              <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
-              <Space gap={1} />
+              <View style={styles.topInnerView}>
+                <Pressable onPress={toggleBlur}>
+                  <Header
+                    action={
+                      isBlurred ? (
+                        <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
+                      ) : (
+                        <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
+                      )
+                    }
+                    title="성적"
+                  />
+                </Pressable>
+                <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
+                <Space gap={1} />
+              </View>
               <GradeSummarySection
                 isSemesterSummary={!!selectedSemesterData}
                 summary={displayedSummary}
