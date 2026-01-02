@@ -4,18 +4,22 @@ import { useRef, useState } from 'react';
 import { FlatList, useWindowDimensions, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
+import {
+  GraduationRequirementsGeneralEntity,
+  GraduationStudentEntity,
+} from '@/entities/graduationRequirements/model';
 import { GradeSummary } from '@/features/grades/ui/GradeSummary';
 import { GraduationSummary } from '@/features/grades/ui/GraduationSummary';
 
-interface GradeSummary {
-  attemptedCredits: number;
-  earnedCredits: number;
-  gradePointsAverage: number;
-}
-
 interface GradeSummarySectionProps {
+  graduationGeneral: GraduationRequirementsGeneralEntity | null;
+  graduationStudent: GraduationStudentEntity | null;
   isSemesterSummary: boolean;
-  summary: GradeSummary;
+  summary: {
+    attemptedCredits: number;
+    earnedCredits: number;
+    gradePointsAverage: number;
+  };
 }
 
 type PageItem = {
@@ -54,6 +58,8 @@ const styles = StyleSheet.create((theme) => ({
 
 export function GradeSummarySection({
   summary,
+  graduationGeneral,
+  graduationStudent,
   isSemesterSummary = false,
 }: GradeSummarySectionProps) {
   const { width } = useWindowDimensions();
@@ -66,7 +72,7 @@ export function GradeSummarySection({
       id: 'grade-summary',
     },
     {
-      component: <GraduationSummary />,
+      component: <GraduationSummary general={graduationGeneral} student={graduationStudent} />,
       id: 'graduation-summary',
     },
   ];
