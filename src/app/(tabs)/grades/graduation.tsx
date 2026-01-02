@@ -7,6 +7,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useGraduationView } from '@/features/grades/lib/useGraduationView';
+import { GraduationRequirementsSection } from '@/features/grades/ui/graduation/GraduationRequirementsSection';
 import { GraduationSummary } from '@/features/grades/ui/GraduationSummary';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
@@ -126,8 +127,7 @@ function GraduationContent() {
             />
             <Space gap={1} />
           </View>
-
-          <Space gap={8} />
+          <GraduationRequirementsSection requirements={data.requirements} />
         </SafeContainer>
       </RefreshableScrollView>
       <FloatingHeader scrollY={scrollY} title="졸업" />
