@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -58,7 +59,13 @@ export function GraduationRequirementItem({
   showCategory = true,
 }: GraduationRequirementItemProps) {
   const isFulfilled = result === 1;
-  const lectureList = JSON.parse(lectures) as string[];
+  const lectureList = useMemo(() => {
+    try {
+      return JSON.parse(lectures) as string[];
+    } catch {
+      return [];
+    }
+  }, [lectures]);
   const hasLectures = lectureList.length > 0;
 
   // requirement와 calculation이 모두 있는 경우에만 표시

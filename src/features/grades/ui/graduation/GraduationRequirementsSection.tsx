@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { GraduationRequirementEntity } from '@/entities/graduationRequirements/model';
-import { GraduationRequirementItem } from '@/features/grades/ui/graduation/GraduationRequirmentItem';
+import { GraduationRequirementItem } from '@/features/grades/ui/graduation/GraduationRequirementItem';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';

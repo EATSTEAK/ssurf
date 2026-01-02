@@ -1,6 +1,6 @@
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, useWindowDimensions, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -64,7 +64,6 @@ export function GradeSummarySection({
 }: GradeSummarySectionProps) {
   const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
 
   const pages: PageItem[] = [
     {
@@ -91,7 +90,6 @@ export function GradeSummarySection({
         keyExtractor={(item) => item.id}
         onScroll={handleScroll}
         pagingEnabled
-        ref={flatListRef}
         renderItem={({ item }) => (
           <View style={styles.innerContainer(width)}>{item.component}</View>
         )}
