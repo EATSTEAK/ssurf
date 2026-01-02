@@ -47,7 +47,7 @@ export const GraduationSummary = ({
       <View>
         <ThemedText typography="headingMd">졸업까지</ThemedText>
         <ThemedText
-          color={general?.isGraduatable ? 'successInverted' : 'primaryInverted'}
+          color={general?.isGraduatable ? 'successInverted' : 'errorInverted'}
           typography="heading3xl"
         >
           {student?.completedPoints.toFixed(1) ?? '-'}
