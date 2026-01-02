@@ -1,13 +1,16 @@
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { Platform, View } from 'react-native';
+import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useGraduationView } from '@/features/grades/lib/useGraduationView';
+import { GraduationSummary } from '@/features/grades/ui/GraduationSummary';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -27,6 +30,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'column',
     padding: theme.gap(3),
   },
+
   errorView: {
     display: 'flex',
     justifyContent: 'center',
@@ -53,7 +57,14 @@ const styles = StyleSheet.create((theme) => ({
 function GraduationContent() {
   const { data, error, isLoading, refresh } = useGraduationView();
 
-  const handleErrorRefresh = async () => {
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const handleRefresh = async () => {
     // 로딩 중이면 리프레시하지 않음
     if (isLoading) {
       return;
@@ -64,7 +75,7 @@ function GraduationContent() {
   if (!data) {
     return (
       <View style={styles.root}>
-        <RefreshableScrollView onRefresh={handleErrorRefresh} refreshing={isLoading}>
+        <RefreshableScrollView onRefresh={handleRefresh} refreshing={isLoading}>
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
@@ -97,27 +108,29 @@ function GraduationContent() {
 
   return (
     <View style={styles.root}>
-      <RefreshableScrollView onRefresh={handleErrorRefresh} refreshing={isLoading}>
+      <RefreshableScrollView
+        onRefresh={handleRefresh}
+        onScroll={scrollHandler}
+        refreshing={isLoading}
+        scrollEventThrottle={16}
+      >
         <SafeContainer>
           {Platform.OS === 'ios' && <Space gap={2} />}
           <View style={styles.topView}>
             <Header title="졸업" />
+            <Space gap={1} />
+            <GraduationSummary
+              general={data.general}
+              showDetailsButton={false}
+              student={data.student}
+            />
+            <Space gap={1} />
           </View>
-          <Space gap={1} />
-          <View>
-            {data.requirements.map((requirement) => (
-              <ThemedText key={requirement.id} typography="bodyMd">
-                {requirement.name}
-                {requirement.requirement && (
-                  <>
-                    : {requirement.calculation} / {requirement.requirement} 학점
-                  </>
-                )}
-              </ThemedText>
-            ))}
-          </View>
+
+          <Space gap={8} />
         </SafeContainer>
       </RefreshableScrollView>
+      <FloatingHeader scrollY={scrollY} title="졸업" />
     </View>
   );
 }
