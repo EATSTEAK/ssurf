@@ -167,7 +167,14 @@ function GradesContent() {
       );
     }
 
-    return <SemesterSection data={item.data} semester={item.semester} year={item.year} />;
+    return (
+      <SemesterSection
+        certiSummary={overview?.certificated}
+        semester={item.semester}
+        semesterGrade={item.data}
+        year={item.year}
+      />
+    );
   };
 
   return (
@@ -204,7 +211,10 @@ function GradesContent() {
               </Pressable>
               <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
               <Space gap={1} />
-              <GradeSummarySection summary={displayedSummary} />
+              <GradeSummarySection
+                isSemesterSummary={!!selectedSemesterData}
+                summary={displayedSummary}
+              />
               <Space gap={1} />
               <GradeSequenceGraphSection
                 selectedSemester={selectedSemesterData?.semester}
