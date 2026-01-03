@@ -7,6 +7,7 @@ import { clearAllData } from '@/db';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
+  error: Error | null;
   hasCredential: boolean | null;
   isLoading: boolean;
   login: (id: string, password: string) => Promise<boolean>;
@@ -22,6 +23,7 @@ const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   login: async () => false,
   logout: async () => {},
   refreshSession: async () => {},
+  error: null,
 });
 
 const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -40,6 +42,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   });
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const sessionCreatedAtRef = useRef<Date | null>(null);
 
   const connectNewSession = async (id: string, password: string) => {
@@ -85,7 +88,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
       await setUserInfo({ id: null, password: null });
       setSession(null);
       sessionCreatedAtRef.current = null;
-      throw error;
+      setError(error as Error);
     }
   };
 
@@ -99,15 +102,20 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     const sessionExpired =
       sessionCreatedAtRef.current &&
       new Date().getTime() - sessionCreatedAtRef.current.getTime() > SESSION_TTL_MS;
-    if (userInfo.id && userInfo.password && (!sessionConstructed || sessionExpired)) {
-      await refreshSession();
+    try {
+      if (userInfo.id && userInfo.password && (!sessionConstructed || sessionExpired)) {
+        await refreshSession();
+      }
+    } catch (error) {
+      console.error('세션 갱신 중 오류 발생:', error);
+      setError(error as Error);
     }
     setIsLoading(false);
   }, [refreshSession, session, userInfo.id, userInfo.password]);
 
   return (
     <RusaintSessionContext.Provider
-      value={{ session, hasCredential, isLoading, login, logout, refreshSession }}
+      value={{ session, hasCredential, isLoading, login, logout, refreshSession, error }}
     >
       {children}
     </RusaintSessionContext.Provider>
