@@ -1,5 +1,7 @@
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
@@ -13,9 +15,28 @@ import {
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
+SplashScreen.preventAutoHideAsync();
+
 function RootLayoutNav() {
   const { theme } = useUnistyles();
-  const { hasCredential } = useRusaintSession();
+  const { hasCredential, isLoading } = useRusaintSession();
+
+  useEffect(() => {
+    if (!isLoading && hasCredential !== null) {
+      // credential 로딩이 완료되면 약간의 지연 후 스플래시 스크린 숨김
+      const timer = setTimeout(() => {
+        SplashScreen.hideAsync();
+      }, 200);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [isLoading, hasCredential]);
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <Stack
@@ -29,7 +50,7 @@ function RootLayoutNav() {
       <Stack.Protected guard={!hasCredential}>
         <Stack.Screen name="(onboarding)/index" />
       </Stack.Protected>
-      <Stack.Protected guard={hasCredential}>
+      <Stack.Protected guard={!!hasCredential}>
         <Stack.Screen name="(tabs)" />
       </Stack.Protected>
     </Stack>
