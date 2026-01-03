@@ -7,7 +7,8 @@ import { clearAllData } from '@/db';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
-  hasCredential: boolean;
+  hasCredential: boolean | null;
+  isLoading: boolean;
   login: (id: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -16,7 +17,8 @@ type RusaintSessionContextProps = {
 
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   session: null,
-  hasCredential: false,
+  hasCredential: null,
+  isLoading: true,
   login: async () => false,
   logout: async () => {},
   refreshSession: async () => {},
@@ -37,6 +39,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     key: 'user-info',
   });
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const sessionCreatedAtRef = useRef<Date | null>(null);
 
   const connectNewSession = async (id: string, password: string) => {
@@ -88,7 +91,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
 
   const hasCredential = userInfo.id != null && userInfo.password != null;
 
-  /* 
+  /*
     세션 만료와는 상관 없이 앱이 시작될 때 저장된 아이디/비밀번호로 자동 로그인 시도
   */
   useAsyncEffect(async () => {
@@ -97,13 +100,14 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
       sessionCreatedAtRef.current &&
       new Date().getTime() - sessionCreatedAtRef.current.getTime() > SESSION_TTL_MS;
     if (userInfo.id && userInfo.password && (!sessionConstructed || sessionExpired)) {
-      refreshSession();
+      await refreshSession();
     }
+    setIsLoading(false);
   }, [refreshSession, session, userInfo.id, userInfo.password]);
 
   return (
     <RusaintSessionContext.Provider
-      value={{ session, hasCredential, login, logout, refreshSession }}
+      value={{ session, hasCredential, isLoading, login, logout, refreshSession }}
     >
       {children}
     </RusaintSessionContext.Provider>
