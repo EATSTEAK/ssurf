@@ -42,6 +42,9 @@ const styles = StyleSheet.create((theme) => ({
           borderColor: pressed ? theme.colors.fgSurfaceMuted : theme.colors.fgSurface,
           backgroundColor: pressed ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
         },
+        surface: {
+          backgroundColor: pressed ? theme.colors.surfaceDim : theme.colors.surface,
+        },
       },
     },
   }),
@@ -66,6 +69,9 @@ const styles = StyleSheet.create((theme) => ({
           color: theme.colors.fgSurface,
         },
         outline: {
+          color: theme.colors.fgSurface,
+        },
+        surface: {
           color: theme.colors.fgSurface,
         },
       },
