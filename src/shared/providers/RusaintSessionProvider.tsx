@@ -7,7 +7,9 @@ import { clearAllData } from '@/db';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
-  hasCredential: boolean;
+  error: Error | null;
+  hasCredential: boolean | null;
+  isLoading: boolean;
   login: (id: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -16,10 +18,12 @@ type RusaintSessionContextProps = {
 
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   session: null,
-  hasCredential: false,
+  hasCredential: null,
+  isLoading: true,
   login: async () => false,
   logout: async () => {},
   refreshSession: async () => {},
+  error: null,
 });
 
 const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -37,6 +41,8 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     key: 'user-info',
   });
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const sessionCreatedAtRef = useRef<Date | null>(null);
 
   const connectNewSession = async (id: string, password: string) => {
@@ -82,13 +88,13 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
       await setUserInfo({ id: null, password: null });
       setSession(null);
       sessionCreatedAtRef.current = null;
-      throw error;
+      setError(error as Error);
     }
   };
 
   const hasCredential = userInfo.id != null && userInfo.password != null;
 
-  /* 
+  /*
     세션 만료와는 상관 없이 앱이 시작될 때 저장된 아이디/비밀번호로 자동 로그인 시도
   */
   useAsyncEffect(async () => {
@@ -96,14 +102,20 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     const sessionExpired =
       sessionCreatedAtRef.current &&
       new Date().getTime() - sessionCreatedAtRef.current.getTime() > SESSION_TTL_MS;
-    if (userInfo.id && userInfo.password && (!sessionConstructed || sessionExpired)) {
-      refreshSession();
+    try {
+      if (userInfo.id && userInfo.password && (!sessionConstructed || sessionExpired)) {
+        await refreshSession();
+      }
+    } catch (error) {
+      console.error('세션 갱신 중 오류 발생:', error);
+      setError(error as Error);
     }
+    setIsLoading(false);
   }, [refreshSession, session, userInfo.id, userInfo.password]);
 
   return (
     <RusaintSessionContext.Provider
-      value={{ session, hasCredential, login, logout, refreshSession }}
+      value={{ session, hasCredential, isLoading, login, logout, refreshSession, error }}
     >
       {children}
     </RusaintSessionContext.Provider>
