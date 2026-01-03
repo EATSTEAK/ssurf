@@ -27,9 +27,6 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'column',
     gap: theme.gap(1),
   },
-  logo: {
-    color: theme.colors.surface,
-  },
 }));
 
 export const LoginForm = () => {
