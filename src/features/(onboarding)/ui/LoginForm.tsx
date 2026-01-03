@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 import { useLoading } from 'react-simplikit';
 
 import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
+import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { Button } from '@/shared/ui/primitives/Button';
 import { TextField } from '@/shared/ui/primitives/TextField';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -15,11 +16,16 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
+    alignItems: 'flex-start',
+    gap: theme.gap(2),
     width: '100%',
-    paddingHorizontal: 32,
-    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.gap(4),
+    flexGrow: 1,
+  },
+  header: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.gap(1),
   },
 }));
 
@@ -39,9 +45,12 @@ export const LoginForm = () => {
   };
 
   return (
-    <SafeAreaView style={styles.view}>
-      <ThemedText typography="heading2xl">유세인트 로그인</ThemedText>
-
+    <SafeAreaView edges={{ top: 'additive' }} style={styles.view}>
+      <View style={styles.header}>
+        <SsurfLined color="surface" height={48} width={48} />
+        <ThemedText typography="heading2xl">로그인</ThemedText>
+        <ThemedText>숭실대학교 계정으로 로그인 할 수 있어요.</ThemedText>
+      </View>
       <TextField onChangeText={setId} placeholder="학번" value={id} />
       <TextField
         onChangeText={setPassword}
@@ -49,15 +58,11 @@ export const LoginForm = () => {
         secureTextEntry
         value={password}
       />
-
-      <ThemedText color="fgSecondary" typography="labelSm">
-        학번 및 비밀번호는 사용자 기기에만 저장돼요.
-      </ThemedText>
-
       <Button
         disabled={isLoading || !id || !password}
         onPress={onPressLoginButton}
         style={{ width: '100%' }}
+        variant="surface"
       >
         <Text>{isLoading ? '로그인 중...' : '로그인'}</Text>
       </Button>
