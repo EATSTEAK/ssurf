@@ -5,15 +5,20 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
  * 전체 성적 요약 테이블 (학적부/증명)
  * GradeSummary 타입 기반
  */
-export const gradeSummary = sqliteTable('grade_summary', {
-  type: t.text().notNull(), // 'certificated' | 'recorded'
-  attemptedCredits: t.real().notNull(), // 신청학점
-  earnedCredits: t.real().notNull(), // 취득학점
-  gradePointsSum: t.real().notNull(), // 평점계
-  gradePointsAverage: t.real().notNull(), // 평점평균
-  arithmeticMean: t.real().notNull(), // 산술평균
-  pfEarnedCredits: t.real().notNull(), // P/F 학점계
-});
+export const gradeSummary = sqliteTable(
+  'grade_summary',
+  {
+    studentId: t.integer().notNull(),
+    type: t.text().notNull(), // 'certificated' | 'recorded'
+    attemptedCredits: t.real().notNull(), // 신청학점
+    earnedCredits: t.real().notNull(), // 취득학점
+    gradePointsSum: t.real().notNull(), // 평점계
+    gradePointsAverage: t.real().notNull(), // 평점평균
+    arithmeticMean: t.real().notNull(), // 산술평균
+    pfEarnedCredits: t.real().notNull(), // P/F 학점계
+  },
+  (table) => [t.primaryKey({ columns: [table.studentId, table.type] })],
+);
 
 export type GradeSummaryEntity = typeof gradeSummary.$inferSelect;
 
@@ -24,6 +29,7 @@ export type GradeSummaryEntity = typeof gradeSummary.$inferSelect;
 export const semesterGrades = sqliteTable(
   'semester_grades',
   {
+    studentId: t.integer().notNull(),
     year: t.integer().notNull(), // 학년도
     semester: t.integer().notNull(), // 학기
     attemptedCredits: t.real().notNull(), // 신청학점
@@ -40,7 +46,7 @@ export const semesterGrades = sqliteTable(
     consult: t.integer().notNull(), // 상담여부 (boolean as integer)
     flunked: t.integer().notNull(), // 유급 (boolean as integer)
   },
-  (table) => [t.primaryKey({ columns: [table.year, table.semester] })],
+  (table) => [t.primaryKey({ columns: [table.studentId, table.year, table.semester] })],
 );
 
 export type SemesterGradeEntity = typeof semesterGrades.$inferSelect;
@@ -52,6 +58,7 @@ export type SemesterGradeEntity = typeof semesterGrades.$inferSelect;
 export const classGrades = sqliteTable(
   'class_grades',
   {
+    studentId: t.integer().notNull(),
     year: t.integer().notNull(), // 이수학년도
     semester: t.integer().notNull(), // 이수학기
     code: t.text().notNull(), // 과목코드
@@ -63,7 +70,7 @@ export const classGrades = sqliteTable(
     professor: t.text().notNull(), // 교수명
     detailJson: t.text(), // 상세성적 (JSON string of Map<string, number>)
   },
-  (table) => [t.primaryKey({ columns: [table.year, table.semester, table.code] })],
+  (table) => [t.primaryKey({ columns: [table.studentId, table.year, table.semester, table.code] })],
 );
 
 export type ClassGradeEntity = typeof classGrades.$inferSelect;

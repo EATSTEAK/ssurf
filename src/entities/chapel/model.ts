@@ -4,6 +4,7 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
 export const chapelGeneral = sqliteTable(
   'chapel_general',
   {
+    studentId: t.integer().notNull(),
     year: t.integer().notNull(),
     semester: t.integer().notNull(),
     division: t.integer(),
@@ -15,7 +16,7 @@ export const chapelGeneral = sqliteTable(
     result: t.text(),
     note: t.text(),
   },
-  (table) => [t.primaryKey({ columns: [table.year, table.semester] })],
+  (table) => [t.primaryKey({ columns: [table.studentId, table.year, table.semester] })],
 );
 
 export type ChapelGeneralEntity = typeof chapelGeneral.$inferSelect;
@@ -23,6 +24,7 @@ export type ChapelGeneralEntity = typeof chapelGeneral.$inferSelect;
 export const chapelAttendances = sqliteTable(
   'chapel_attendances',
   {
+    studentId: t.integer().notNull(),
     year: t.integer().notNull(),
     semester: t.integer().notNull(),
     date: t.text().notNull(),
@@ -35,7 +37,7 @@ export const chapelAttendances = sqliteTable(
     result: t.text(),
     note: t.text(),
   },
-  (table) => [t.primaryKey({ columns: [table.year, table.semester, table.date] })],
+  (table) => [t.primaryKey({ columns: [table.studentId, table.year, table.semester, table.date] })],
 );
 
 export type ChapelAttendanceEntity = typeof chapelAttendances.$inferSelect;

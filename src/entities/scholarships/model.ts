@@ -4,6 +4,7 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
 export const scholarships = sqliteTable(
   'scholarships',
   {
+    studentId: t.integer().notNull(),
     year: t.integer().notNull(),
     semester: t.integer().notNull(),
     name: t.text().notNull(),
@@ -19,7 +20,7 @@ export const scholarships = sqliteTable(
     note: t.text(),
     workedAt: t.text(),
   },
-  (table) => [t.primaryKey({ columns: [table.year, table.semester, table.name] })],
+  (table) => [t.primaryKey({ columns: [table.studentId, table.year, table.semester, table.name] })],
 );
 
 export type ScholarshipEntity = typeof scholarships.$inferSelect;
