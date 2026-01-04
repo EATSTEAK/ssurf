@@ -25,6 +25,7 @@ export interface RusaintApplicationContext {
   gradesClient: CourseGradesApplicationInterface | null;
   graduationRequirementsClient: GraduationRequirementsApplicationInterface | null;
   scholarshipsClient: null | ScholarshipsApplicationInterface;
+  studentId: null | string;
   studentInformationClient: null | StudentInformationApplicationInterface;
 }
 
@@ -36,11 +37,12 @@ const RusaintApplicationContext = createContext<RusaintApplicationContext>({
   gradesClient: null,
   graduationRequirementsClient: null,
   scholarshipsClient: null,
+  studentId: null,
   studentInformationClient: null,
 });
 
 export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren<unknown>) => {
-  const { session } = useRusaintSession();
+  const { session, studentId } = useRusaintSession();
 
   const [chapelClient, setChapelClient] = useState<ChapelApplicationInterface | null>(null);
   const [courseScheduleClient, setCourseScheduleClient] =
@@ -60,6 +62,8 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
       return;
     }
     // NOTE: 각 애플리케이션을 생성하는 것은 서버(u-saint) 입장에서 탭을 하나 띄우는 것과 동일하므로, 동시에 요청하지 않고 순차적으로 요청해요
+    const studentInformation = await new StudentInformationApplicationBuilder().build(session);
+
     const chapel = await new ChapelApplicationBuilder().build(session);
     setDefaultChapelSemester(await chapel.getSelectedSemester());
     const courseSchedule = await new CourseScheduleApplicationBuilder().build(session);
@@ -69,7 +73,6 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
       session,
     );
     const scholarships = await new ScholarshipsApplicationBuilder().build(session);
-    const studentInformation = await new StudentInformationApplicationBuilder().build(session);
     setChapelClient(chapel);
     setCourseScheduleClient(courseSchedule);
     setGradesClient(grades);
@@ -88,6 +91,7 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
         gradesClient,
         graduationRequirementsClient,
         scholarshipsClient,
+        studentId,
         studentInformationClient,
       }}
     >

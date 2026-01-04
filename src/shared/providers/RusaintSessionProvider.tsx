@@ -13,12 +13,14 @@ type RusaintSessionContextProps = {
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   session: null | USaintSessionInterface;
+  studentId: null | string;
 };
 
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   session: null,
   hasCredential: null,
   isLoading: true,
+  studentId: null,
   login: async () => false,
   logout: async () => {},
   refreshSession: async () => {},
@@ -113,7 +115,16 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
 
   return (
     <RusaintSessionContext.Provider
-      value={{ session, hasCredential, isLoading, login, logout, refreshSession, error }}
+      value={{
+        session,
+        hasCredential,
+        isLoading,
+        login,
+        logout,
+        refreshSession,
+        error,
+        studentId: userInfo.id,
+      }}
     >
       {children}
     </RusaintSessionContext.Provider>
