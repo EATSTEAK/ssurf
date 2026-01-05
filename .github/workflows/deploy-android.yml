@@ -158,6 +158,17 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+      - name: 빌드 결과물 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-outputs-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/apk/
+            android/app/build/outputs/bundle/
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: 빌드 캐시 정리
         if: always()
         run: |
