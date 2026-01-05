@@ -7,6 +7,7 @@ import { cache } from '@/shared/model/schema/cache';
 
 export const syncChapelInformation = async (
   client: ChapelApplicationInterface,
+  studentId: string,
   year: number,
   semester: SemesterType,
 ) => {
@@ -17,11 +18,18 @@ export const syncChapelInformation = async (
     // Save general information
     await tx
       .delete(chapelGeneral)
-      .where(and(eq(chapelGeneral.year, year), eq(chapelGeneral.semester, semester)))
+      .where(
+        and(
+          eq(chapelGeneral.studentId, studentId),
+          eq(chapelGeneral.year, year),
+          eq(chapelGeneral.semester, semester),
+        ),
+      )
       .execute();
     await tx
       .insert(chapelGeneral)
       .values({
+        studentId,
         year: info.year,
         semester: info.semester,
         division: info.generalInformation.division,
@@ -38,13 +46,20 @@ export const syncChapelInformation = async (
     // Save attendance information
     await tx
       .delete(chapelAttendances)
-      .where(and(eq(chapelAttendances.year, year), eq(chapelAttendances.semester, semester)))
+      .where(
+        and(
+          eq(chapelAttendances.studentId, studentId),
+          eq(chapelAttendances.year, year),
+          eq(chapelAttendances.semester, semester),
+        ),
+      )
       .execute();
     if (info.attendances.length > 0) {
       await tx
         .insert(chapelAttendances)
         .values(
           info.attendances.map((attendance) => ({
+            studentId,
             year: info.year,
             semester: info.semester,
             date: attendance.classDate,
@@ -66,11 +81,12 @@ export const syncChapelInformation = async (
     await tx
       .insert(cache)
       .values({
+        studentId,
         key: cacheKey,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: cache.key,
+        target: [cache.studentId, cache.key],
         set: {
           updatedAt: Date.now(),
         },

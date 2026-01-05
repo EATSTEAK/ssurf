@@ -4,7 +4,7 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
 export const cache = sqliteTable(
   'cache',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     key: t.text().notNull(),
     updatedAt: t.integer(),
   },

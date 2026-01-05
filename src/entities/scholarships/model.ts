@@ -4,7 +4,7 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
 export const scholarships = sqliteTable(
   'scholarships',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     year: t.integer().notNull(),
     semester: t.integer().notNull(),
     name: t.text().notNull(),

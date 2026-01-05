@@ -4,7 +4,7 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
 export const graduationRequirementsGeneral = sqliteTable(
   'graduation_requirements_general',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     isGraduatable: t.integer().notNull(), // SQLite doesn't have boolean, use integer (0/1)
     updatedAt: t.integer().notNull(),
   },
@@ -16,7 +16,7 @@ export type GraduationRequirementsGeneralEntity = typeof graduationRequirementsG
 export const graduationRequirements = sqliteTable(
   'graduation_requirements',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     name: t.text().notNull(),
     requirement: t.integer(), // nullable
     calculation: t.real(), // nullable
@@ -33,7 +33,7 @@ export type GraduationRequirementEntity = typeof graduationRequirements.$inferSe
 export const graduationStudent = sqliteTable(
   'graduation_student',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     number: t.integer().notNull(),
     name: t.text().notNull(),
     grade: t.integer().notNull(),

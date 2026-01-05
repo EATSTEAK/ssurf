@@ -1,16 +1,20 @@
 import { ScholarshipsApplicationInterface } from '@rusaint/react-native';
+import { eq } from 'drizzle-orm';
 
 import { db } from '@/db';
 import { scholarships } from '@/entities/scholarships/model';
 import { cache } from '@/shared/model/schema/cache';
 
-export const syncScholarships = async (client: ScholarshipsApplicationInterface) => {
+export const syncScholarships = async (
+  client: ScholarshipsApplicationInterface,
+  studentId: string,
+) => {
   const data = await client.scholarships();
 
   // 트랜잭션으로 아토믹하게 처리
   await db.transaction(async (tx) => {
     // Delete existing data
-    await tx.delete(scholarships).execute();
+    await tx.delete(scholarships).where(eq(scholarships.studentId, studentId)).execute();
 
     // Save scholarship information
     if (data.length > 0) {
@@ -18,6 +22,7 @@ export const syncScholarships = async (client: ScholarshipsApplicationInterface)
         .insert(scholarships)
         .values(
           data.map((scholarship) => ({
+            studentId,
             year: scholarship.year,
             semester: scholarship.semester,
             name: scholarship.name,
@@ -42,11 +47,12 @@ export const syncScholarships = async (client: ScholarshipsApplicationInterface)
     await tx
       .insert(cache)
       .values({
+        studentId,
         key: cacheKey,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: cache.key,
+        target: [cache.studentId, cache.key],
         set: {
           updatedAt: Date.now(),
         },

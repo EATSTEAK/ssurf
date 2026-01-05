@@ -1,4 +1,5 @@
 import { StudentInformation, StudentInformationApplicationInterface } from '@rusaint/react-native';
+import { eq } from 'drizzle-orm';
 
 import { db } from '@/db';
 import { studentInformation } from '@/entities/studentInformation/model';
@@ -6,11 +7,15 @@ import { cache } from '@/shared/model/schema/cache';
 
 export const syncStudentInformation = async (client: StudentInformationApplicationInterface) => {
   const info: StudentInformation = await client.general();
+  const studentId = info.studentNumber.toString();
 
   // 트랜잭션으로 아토믹하게 처리
   await db.transaction(async (tx) => {
     // Save student information
-    await tx.delete(studentInformation).execute();
+    await tx
+      .delete(studentInformation)
+      .where(eq(studentInformation.studentNumber, info.studentNumber))
+      .execute();
     await tx
       .insert(studentInformation)
       .values({
@@ -48,11 +53,12 @@ export const syncStudentInformation = async (client: StudentInformationApplicati
     await tx
       .insert(cache)
       .values({
+        studentId,
         key: cacheKey,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: cache.key,
+        target: [cache.studentId, cache.key],
         set: {
           updatedAt: Date.now(),
         },

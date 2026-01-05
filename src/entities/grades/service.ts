@@ -17,6 +17,7 @@ import { cache } from '@/shared/model/schema/cache';
  */
 export const syncGradeSummary = async (
   client: CourseGradesApplicationInterface,
+  studentId: string,
   courseType: CourseType,
 ) => {
   // 증명 평점 정보 가져오기
@@ -28,13 +29,20 @@ export const syncGradeSummary = async (
   // 트랜잭션으로 아토믹하게 처리
   await db.transaction(async (tx) => {
     // 기존 데이터 삭제
-    await tx.delete(gradeSummary).where(eq(gradeSummary.type, 'certificated')).execute();
-    await tx.delete(gradeSummary).where(eq(gradeSummary.type, 'recorded')).execute();
+    await tx
+      .delete(gradeSummary)
+      .where(and(eq(gradeSummary.studentId, studentId), eq(gradeSummary.type, 'certificated')))
+      .execute();
+    await tx
+      .delete(gradeSummary)
+      .where(and(eq(gradeSummary.studentId, studentId), eq(gradeSummary.type, 'recorded')))
+      .execute();
 
     // 증명 평점 저장
     await tx
       .insert(gradeSummary)
       .values({
+        studentId,
         type: 'certificated',
         ...certificated,
       })
@@ -44,6 +52,7 @@ export const syncGradeSummary = async (
     await tx
       .insert(gradeSummary)
       .values({
+        studentId,
         type: 'recorded',
         ...recorded,
       })
@@ -53,11 +62,12 @@ export const syncGradeSummary = async (
     await tx
       .insert(cache)
       .values({
+        studentId,
         key: `grades.summary.${courseType}`,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: cache.key,
+        target: [cache.studentId, cache.key],
         set: {
           updatedAt: Date.now(),
         },
@@ -72,6 +82,7 @@ export const syncGradeSummary = async (
  */
 export const syncSemesterGrades = async (
   client: CourseGradesApplicationInterface,
+  studentId: string,
   courseType: CourseType,
 ) => {
   // 학기별 성적 목록 가져오기
@@ -80,13 +91,14 @@ export const syncSemesterGrades = async (
   // 트랜잭션으로 아토믹하게 처리
   await db.transaction(async (tx) => {
     // 기존 학기별 성적 데이터 삭제
-    await tx.delete(semesterGrades).execute();
+    await tx.delete(semesterGrades).where(eq(semesterGrades.studentId, studentId)).execute();
 
     // 학기별 성적 저장
     await tx
       .insert(semesterGrades)
       .values(
         semesters.map((sem) => ({
+          studentId,
           year: sem.year,
           semester: sem.semester,
           attemptedCredits: sem.attemptedCredits,
@@ -111,11 +123,12 @@ export const syncSemesterGrades = async (
     await tx
       .insert(cache)
       .values({
+        studentId,
         key: cacheKey,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: cache.key,
+        target: [cache.studentId, cache.key],
         set: {
           updatedAt: Date.now(),
         },
@@ -126,6 +139,7 @@ export const syncSemesterGrades = async (
 
 export const syncClassGrades = async (
   client: CourseGradesApplicationInterface,
+  studentId: string,
   courseType: CourseType,
   year: number,
   semester: number,
@@ -138,7 +152,13 @@ export const syncClassGrades = async (
     // 기존 과목별 성적 데이터 삭제
     await tx
       .delete(classGrades)
-      .where(and(eq(classGrades.year, year), eq(classGrades.semester, semester)))
+      .where(
+        and(
+          eq(classGrades.studentId, studentId),
+          eq(classGrades.year, year),
+          eq(classGrades.semester, semester),
+        ),
+      )
       .execute();
 
     // 과목별 성적 저장
@@ -147,6 +167,7 @@ export const syncClassGrades = async (
         .insert(classGrades)
         .values(
           classes.map((classGrade) => ({
+            studentId,
             year: classGrade.year,
             semester: classGrade.semester,
             code: classGrade.code,
@@ -169,11 +190,12 @@ export const syncClassGrades = async (
     await tx
       .insert(cache)
       .values({
+        studentId,
         key: cacheKey,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: cache.key,
+        target: [cache.studentId, cache.key],
         set: {
           updatedAt: Date.now(),
         },

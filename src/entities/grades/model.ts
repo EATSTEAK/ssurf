@@ -8,7 +8,7 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
 export const gradeSummary = sqliteTable(
   'grade_summary',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     type: t.text().notNull(), // 'certificated' | 'recorded'
     attemptedCredits: t.real().notNull(), // 신청학점
     earnedCredits: t.real().notNull(), // 취득학점
@@ -29,7 +29,7 @@ export type GradeSummaryEntity = typeof gradeSummary.$inferSelect;
 export const semesterGrades = sqliteTable(
   'semester_grades',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     year: t.integer().notNull(), // 학년도
     semester: t.integer().notNull(), // 학기
     attemptedCredits: t.real().notNull(), // 신청학점
@@ -58,7 +58,7 @@ export type SemesterGradeEntity = typeof semesterGrades.$inferSelect;
 export const classGrades = sqliteTable(
   'class_grades',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     year: t.integer().notNull(), // 이수학년도
     semester: t.integer().notNull(), // 이수학기
     code: t.text().notNull(), // 과목코드

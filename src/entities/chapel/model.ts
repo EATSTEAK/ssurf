@@ -4,7 +4,7 @@ import { sqliteTable } from 'drizzle-orm/sqlite-core';
 export const chapelGeneral = sqliteTable(
   'chapel_general',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     year: t.integer().notNull(),
     semester: t.integer().notNull(),
     division: t.integer(),
@@ -24,7 +24,7 @@ export type ChapelGeneralEntity = typeof chapelGeneral.$inferSelect;
 export const chapelAttendances = sqliteTable(
   'chapel_attendances',
   {
-    studentId: t.integer().notNull(),
+    studentId: t.text().notNull(),
     year: t.integer().notNull(),
     semester: t.integer().notNull(),
     date: t.text().notNull(),

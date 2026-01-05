@@ -5,10 +5,11 @@ import { SyncOptions, useSyncData } from '@/shared/lib/sync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 export const useSyncChapel = (options?: SyncOptions) => {
-  const { chapelClient } = useRusaintApplication();
+  const { chapelClient, studentId } = useRusaintApplication();
 
   return useSyncData({
     client: chapelClient,
+    studentId,
     cacheKey: ([year, semester]: [number, SemesterType]) =>
       `chapel.information.${year}-${semester}`,
     syncFn: syncChapelInformation,
