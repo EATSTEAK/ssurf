@@ -7,10 +7,11 @@ import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProv
  * 특정 학기의 과목별 성적을 가져옴
  */
 export const useSyncClassGrades = (options?: SyncOptions) => {
-  const { gradesClient } = useRusaintApplication();
+  const { gradesClient, studentId } = useRusaintApplication();
 
   return useSyncData({
     client: gradesClient,
+    studentId,
     cacheKey: ([courseType, year, semester]) => `grades.classes.${courseType}.${year}.${semester}`,
     syncFn: syncClassGrades,
     options,
@@ -22,10 +23,11 @@ export const useSyncClassGrades = (options?: SyncOptions) => {
  * certificated와 recorded 두 가지 타입의 성적 요약을 가져옴
  */
 export const useSyncGradeSummary = (options?: SyncOptions) => {
-  const { gradesClient } = useRusaintApplication();
+  const { gradesClient, studentId } = useRusaintApplication();
 
   return useSyncData({
     client: gradesClient,
+    studentId,
     cacheKey: ([courseType]) => `grades.summary.${courseType}`,
     syncFn: syncGradeSummary,
     options,
@@ -37,10 +39,11 @@ export const useSyncGradeSummary = (options?: SyncOptions) => {
  * 학기별 성적을 가져옴
  */
 export const useSyncSemesterGrades = (options?: SyncOptions) => {
-  const { gradesClient } = useRusaintApplication();
+  const { gradesClient, studentId } = useRusaintApplication();
 
   return useSyncData({
     client: gradesClient,
+    studentId,
     cacheKey: ([courseType]) => `grades.semester.${courseType}`,
     syncFn: syncSemesterGrades,
     options,

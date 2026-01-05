@@ -26,12 +26,14 @@ export interface UseGradeSummaryReturn {
  */
 export const useGradeSummary = (type: 'certificated' | 'recorded'): UseGradeSummaryReturn => {
   const { isSyncing, sync } = useSyncGradeSummary();
+  const { studentId } = useRusaintApplication();
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.gradeSummary.findFirst({
-      where: (gradeSummary, { eq }) => eq(gradeSummary.type, type),
+      where: (gradeSummary, { eq, and }) =>
+        and(eq(gradeSummary.studentId, studentId ?? ''), eq(gradeSummary.type, type)),
     }),
-    [type],
+    [studentId, type],
   );
 
   useAsyncEffect(async () => {
@@ -55,8 +57,14 @@ export interface UseSemesterGradesReturn {
  */
 export const useSemesterGrades = (courseType: CourseType = CourseType.Bachelor) => {
   const { isSyncing, sync } = useSyncSemesterGrades();
+  const { studentId } = useRusaintApplication();
 
-  const { data, error, updatedAt } = useLiveQuery(db.query.semesterGrades.findMany(), [courseType]);
+  const { data, error, updatedAt } = useLiveQuery(
+    db.query.semesterGrades.findMany({
+      where: (semesterGrades, { eq }) => eq(semesterGrades.studentId, studentId ?? ''),
+    }),
+    [studentId, courseType],
+  );
 
   useAsyncEffect(async () => {
     await sync([courseType], { force: false });
@@ -84,13 +92,18 @@ export const useSemesterGrade = (
   courseType: CourseType = CourseType.Bachelor,
 ): UseSemesterGradeReturn => {
   const { isSyncing, sync } = useSyncSemesterGrades();
+  const { studentId } = useRusaintApplication();
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.semesterGrades.findFirst({
       where: (semesterGrades, { eq, and }) =>
-        and(eq(semesterGrades.year, year), eq(semesterGrades.semester, semester)),
+        and(
+          eq(semesterGrades.studentId, studentId ?? ''),
+          eq(semesterGrades.year, year),
+          eq(semesterGrades.semester, semester),
+        ),
     }),
-    [year, semester, courseType],
+    [studentId, year, semester, courseType],
   );
 
   useAsyncEffect(async () => {
@@ -119,13 +132,18 @@ export const useClassGrades = (
   courseType: CourseType = CourseType.Bachelor,
 ): UseClassGradesReturn => {
   const { isSyncing, sync } = useSyncClassGrades();
+  const { studentId } = useRusaintApplication();
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.classGrades.findMany({
       where: (classGrades, { eq, and }) =>
-        and(eq(classGrades.year, year), eq(classGrades.semester, semester)),
+        and(
+          eq(classGrades.studentId, studentId ?? ''),
+          eq(classGrades.year, year),
+          eq(classGrades.semester, semester),
+        ),
     }),
-    [year, semester, courseType],
+    [studentId, year, semester, courseType],
   );
 
   useAsyncEffect(async () => {
@@ -149,7 +167,7 @@ export interface UseCheckRecentAttendedSemestersReturn {
 export const useCheckRecentAttendedSemesters = (): UseCheckRecentAttendedSemestersReturn => {
   const { sync } = useSyncClassGrades();
   const [isChecking, setIsChecking] = useState(false);
-  const { defaultGradesSemester } = useRusaintApplication();
+  const { defaultGradesSemester, studentId } = useRusaintApplication();
   const defaultSemester = defaultGradesSemester ?? getEstimatedCurrentSemester();
   const recentTwoSemesters = useMemo(
     () => getRecentSemesters(defaultSemester, 2),
@@ -162,13 +180,16 @@ export const useCheckRecentAttendedSemesters = (): UseCheckRecentAttendedSemeste
   } = useLiveQuery(
     db.query.classGrades.findMany({
       where: (classGrades, { eq, and, or }) =>
-        or(
-          ...recentTwoSemesters.map((sem) =>
-            and(eq(classGrades.year, sem.year), eq(classGrades.semester, sem.semester)),
+        and(
+          eq(classGrades.studentId, studentId ?? ''),
+          or(
+            ...recentTwoSemesters.map((sem) =>
+              and(eq(classGrades.year, sem.year), eq(classGrades.semester, sem.semester)),
+            ),
           ),
         ),
     }),
-    [recentTwoSemesters],
+    [studentId, recentTwoSemesters],
   );
 
   const checkedSemesters: { attended: boolean; semester: number; year: number }[] = useMemo(

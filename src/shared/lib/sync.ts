@@ -28,9 +28,14 @@ export interface UseSyncDataParams<TClient, TArgs extends unknown[]> {
   options?: SyncOptions;
 
   /**
+   * 학번 (studentId)
+   */
+  studentId: null | string;
+
+  /**
    * 동기화 함수
    */
-  syncFn: (client: TClient, ...args: TArgs) => Promise<void>;
+  syncFn: (client: TClient, studentId: string, ...args: TArgs) => Promise<void>;
 }
 
 export interface UseSyncDataReturn<TArgs extends unknown[]> {
@@ -77,6 +82,7 @@ export const useSyncData = <TClient, TArgs extends unknown[]>({
   client,
   cacheKey,
   syncFn,
+  studentId,
   options,
 }: UseSyncDataParams<TClient, TArgs>): UseSyncDataReturn<TArgs> => {
   const ttlMs = options?.ttlMs ?? 1000 * 60 * 60;
@@ -113,16 +119,17 @@ export const useSyncData = <TClient, TArgs extends unknown[]>({
     }
 
     const cache = await db.query.cache.findFirst({
-      where: (cache, { eq }) => eq(cache.key, resolvedCacheKey),
+      where: (cache, { and, eq }) =>
+        and(eq(cache.studentId, studentId ?? ''), eq(cache.key, resolvedCacheKey)),
     });
     const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
 
     if (shouldRequest) {
       const currentSyncing = getIsSyncing(resolvedCacheKey);
-      if (client && !currentSyncing) {
+      if (client && studentId && !currentSyncing) {
         setStoreSyncing(resolvedCacheKey, true);
         try {
-          await syncFn(client, ...args);
+          await syncFn(client, studentId, ...args);
           // 성공 시 에러 상태 초기화
           setError(resolvedCacheKey, undefined);
         } catch (error) {

@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { createContext, useCallback, useContext, useRef, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
-import { clearAllData } from '@/db';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
@@ -14,12 +13,14 @@ type RusaintSessionContextProps = {
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   session: null | USaintSessionInterface;
+  studentId: null | string;
 };
 
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
   session: null,
   hasCredential: null,
   isLoading: true,
+  studentId: null,
   login: async () => false,
   logout: async () => {},
   refreshSession: async () => {},
@@ -77,7 +78,6 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
 
   const logout = async () => {
     try {
-      await clearAllData();
       await setUserInfo({ id: null, password: null });
       setSession(null);
       sessionCreatedAtRef.current = null;
@@ -115,7 +115,16 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
 
   return (
     <RusaintSessionContext.Provider
-      value={{ session, hasCredential, isLoading, login, logout, refreshSession, error }}
+      value={{
+        session,
+        hasCredential,
+        isLoading,
+        login,
+        logout,
+        refreshSession,
+        error,
+        studentId: userInfo.id,
+      }}
     >
       {children}
     </RusaintSessionContext.Provider>

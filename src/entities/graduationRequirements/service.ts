@@ -3,6 +3,7 @@ import {
   GraduationRequirementsApplicationInterface,
   GraduationStudent,
 } from '@rusaint/react-native';
+import { eq } from 'drizzle-orm';
 
 import { db } from '@/db';
 import {
@@ -14,6 +15,7 @@ import { cache } from '@/shared/model/schema/cache';
 
 export const syncGraduationRequirementsInformation = async (
   client: GraduationRequirementsApplicationInterface,
+  studentId: string,
 ) => {
   const studentData: GraduationStudent = await client.studentInfo();
   const requirementsData: GraduationRequirements = await client.requirements();
@@ -21,23 +23,31 @@ export const syncGraduationRequirementsInformation = async (
   // 트랜잭션으로 아토믹하게 처리
   await db.transaction(async (tx) => {
     // Save general information
-    await tx.delete(graduationRequirementsGeneral).execute();
+    await tx
+      .delete(graduationRequirementsGeneral)
+      .where(eq(graduationRequirementsGeneral.studentId, studentId))
+      .execute();
     await tx
       .insert(graduationRequirementsGeneral)
       .values({
+        studentId,
         isGraduatable: requirementsData.isGraduatable ? 1 : 0,
         updatedAt: Date.now(),
       })
       .execute();
 
     // Save requirements information
-    await tx.delete(graduationRequirements).execute();
+    await tx
+      .delete(graduationRequirements)
+      .where(eq(graduationRequirements.studentId, studentId))
+      .execute();
     const requirementsEntries = Array.from(requirementsData.requirements.entries());
     if (requirementsEntries.length > 0) {
       await tx
         .insert(graduationRequirements)
         .values(
           requirementsEntries.map(([name, req]) => ({
+            studentId,
             name,
             requirement: req.requirement ?? null,
             calculation: req.calculation ?? null,
@@ -51,10 +61,11 @@ export const syncGraduationRequirementsInformation = async (
     }
 
     // Save student information
-    await tx.delete(graduationStudent).execute();
+    await tx.delete(graduationStudent).where(eq(graduationStudent.studentId, studentId)).execute();
     await tx
       .insert(graduationStudent)
       .values({
+        studentId,
         number: studentData.number,
         name: studentData.name,
         grade: studentData.grade,
@@ -75,11 +86,12 @@ export const syncGraduationRequirementsInformation = async (
     await tx
       .insert(cache)
       .values({
+        studentId,
         key: cacheKey,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
-        target: cache.key,
+        target: [cache.studentId, cache.key],
         set: {
           updatedAt: Date.now(),
         },

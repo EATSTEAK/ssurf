@@ -7,6 +7,7 @@ import {
   GraduationRequirementEntity,
   GraduationRequirementsGeneralEntity,
 } from '@/entities/graduationRequirements/model';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 export interface UseGraduationRequirementsReturn {
   data: GraduationRequirementEntity[] | null;
@@ -17,8 +18,15 @@ export interface UseGraduationRequirementsReturn {
 
 export const useGraduationRequirements = (): UseGraduationRequirementsReturn => {
   const { isSyncing, sync } = useSyncGraduationRequirements();
+  const { studentId } = useRusaintApplication();
 
-  const { data, error, updatedAt } = useLiveQuery(db.query.graduationRequirements.findMany());
+  const { data, error, updatedAt } = useLiveQuery(
+    db.query.graduationRequirements.findMany({
+      where: (graduationRequirements, { eq }) =>
+        eq(graduationRequirements.studentId, studentId ?? ''),
+    }),
+    [studentId],
+  );
 
   useAsyncEffect(async () => {
     await sync([], { force: false });
@@ -36,9 +44,14 @@ export interface UseGraduationRequirementsGeneralReturn {
 
 export const useGraduationRequirementsGeneral = (): UseGraduationRequirementsGeneralReturn => {
   const { isSyncing, sync } = useSyncGraduationRequirements();
+  const { studentId } = useRusaintApplication();
 
   const { data, error, updatedAt } = useLiveQuery(
-    db.query.graduationRequirementsGeneral.findFirst(),
+    db.query.graduationRequirementsGeneral.findFirst({
+      where: (graduationRequirementsGeneral, { eq }) =>
+        eq(graduationRequirementsGeneral.studentId, studentId ?? ''),
+    }),
+    [studentId],
   );
 
   useAsyncEffect(async () => {
@@ -50,8 +63,14 @@ export const useGraduationRequirementsGeneral = (): UseGraduationRequirementsGen
 
 export const useGraduationStudent = () => {
   const { isSyncing, sync } = useSyncGraduationRequirements();
+  const { studentId } = useRusaintApplication();
 
-  const { data, error, updatedAt } = useLiveQuery(db.query.graduationStudent.findFirst());
+  const { data, error, updatedAt } = useLiveQuery(
+    db.query.graduationStudent.findFirst({
+      where: (graduationStudent, { eq }) => eq(graduationStudent.studentId, studentId ?? ''),
+    }),
+    [studentId],
+  );
 
   useAsyncEffect(async () => {
     await sync([], { force: false });

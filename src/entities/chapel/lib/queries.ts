@@ -4,16 +4,22 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
 import { useSyncChapel } from '@/entities/chapel/lib/sync';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 export const useChapelAttendances = (year: number, semester: SemesterType) => {
   const { isSyncing, sync } = useSyncChapel();
+  const { studentId } = useRusaintApplication();
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.chapelAttendances.findMany({
       where: (chapelAttendances, { eq, and }) =>
-        and(eq(chapelAttendances.year, year), eq(chapelAttendances.semester, semester)),
+        and(
+          eq(chapelAttendances.studentId, studentId ?? ''),
+          eq(chapelAttendances.year, year),
+          eq(chapelAttendances.semester, semester),
+        ),
     }),
-    [year, semester],
+    [studentId, year, semester],
   );
 
   useAsyncEffect(async () => {
@@ -25,13 +31,18 @@ export const useChapelAttendances = (year: number, semester: SemesterType) => {
 
 export const useGeneralChapelInformation = (year: number, semester: SemesterType) => {
   const { isSyncing, sync } = useSyncChapel();
+  const { studentId } = useRusaintApplication();
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.chapelGeneral.findFirst({
       where: (chapelGeneral, { eq, and }) =>
-        and(eq(chapelGeneral.year, year), eq(chapelGeneral.semester, semester)),
+        and(
+          eq(chapelGeneral.studentId, studentId ?? ''),
+          eq(chapelGeneral.year, year),
+          eq(chapelGeneral.semester, semester),
+        ),
     }),
-    [year, semester],
+    [studentId, year, semester],
   );
 
   useAsyncEffect(async () => {
