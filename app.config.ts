@@ -6,7 +6,7 @@ const name = IS_DEV ? 'SSURF (dev)' : 'SSURF';
 
 const bundleIdentifier = IS_DEV ? 'dev.eatsteak.ssurf.dev' : 'dev.eatsteak.ssurf';
 
-const versionCode = 2026010501;
+const versionCode = 2026010601;
 
 const config: ExpoConfig = {
   name,
