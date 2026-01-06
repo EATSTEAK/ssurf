@@ -1,15 +1,14 @@
+import Constants from 'expo-constants';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import packageJson from '@/../package.json';
 import { useStudentInformation } from '@/entities/studentInformation/lib/queries';
 import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import { UserProfile } from '@/features/settings/ui/UserProfile';
-import { REV } from '@/index';
 import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -87,7 +86,10 @@ export default function Index() {
             <View style={styles.infoView}>
               <SsurfLined height={64} width={64} />
               <ThemedText typography="headingLg">
-                SSURF v{packageJson.version} (rev. {REV})
+                SSURF v{Constants.expoConfig?.version} (rev.{' '}
+                {Constants.expoConfig?.android?.versionCode ??
+                  Constants.expoConfig?.ios?.buildNumber}
+                )
               </ThemedText>
             </View>
             <ThemedText typography="bodyLg">
