@@ -2,12 +2,14 @@ import { ExpoConfig } from 'expo/config';
 
 const IS_DEV = process.env.EAS_BUILD_PROFILE === 'development';
 
+const name = IS_DEV ? 'SSURF (dev)' : 'SSURF';
+
 const bundleIdentifier = IS_DEV ? 'dev.eatsteak.ssurf.dev' : 'dev.eatsteak.ssurf';
 
 const versionCode = 2026010501;
 
 const config: ExpoConfig = {
-  name: 'ssurf',
+  name,
   slug: 'ssurf',
   version: '0.0.1',
   orientation: 'portrait',
