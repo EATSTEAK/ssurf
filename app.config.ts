@@ -1,11 +1,12 @@
+import { ExpoConfig } from 'expo/config';
+
 const IS_DEV = process.env.EAS_BUILD_PROFILE === 'development';
 
 const bundleIdentifier = IS_DEV ? 'dev.eatsteak.ssurf.dev' : 'dev.eatsteak.ssurf';
 
 const versionCode = 2026010501;
 
-/** @type {import('expo/config').ExpoConfig} */
-const config = {
+const config: ExpoConfig = {
   name: 'ssurf',
   slug: 'ssurf',
   version: '0.0.1',
