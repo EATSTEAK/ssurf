@@ -1,6 +1,6 @@
 import { ExpoConfig } from 'expo/config';
 
-const IS_DEV = process.env.EAS_BUILD_PROFILE === 'development';
+const IS_DEV = process.env.APP_VARIANT === 'development';
 
 const name = IS_DEV ? 'SSURF (dev)' : 'SSURF';
 
