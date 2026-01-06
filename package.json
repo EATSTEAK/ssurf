@@ -28,7 +28,7 @@
     "@react-navigation/native": "^7.1.8",
     "@rn-primitives/progress": "^1.2.0",
     "@rn-primitives/tabs": "^1.2.0",
-    "@rusaint/react-native": "^0.13.6",
+    "@rusaint/react-native": "^0.14.0",
     "@shopify/react-native-skia": "2.2.12",
     "babel-plugin-inline-import": "^3.0.0",
     "drizzle-orm": "^0.44.7",
