@@ -16,7 +16,12 @@ import { cache } from '@/shared/model/schema/cache';
 export const syncGraduationRequirementsInformation = async (
   client: GraduationRequirementsApplicationInterface,
   studentId: string,
+  withReload: boolean = false,
 ) => {
+  if (withReload) {
+    // NOTE: Reload entire page to retrieve the latest data
+    await client.reload();
+  }
   const studentData: GraduationStudent = await client.studentInfo();
   const requirementsData: GraduationRequirements = await client.requirements();
 
