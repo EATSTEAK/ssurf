@@ -60,7 +60,7 @@ export function useGradeTabView(): UseGradeTabViewResult {
     ];
 
     return summary.concat(
-      // 수강중이거나 성적 처리가 되지 않은 학기 추가
+      // 수강중이거나 성적 처리가 되지 않은 학기 추가 (최근 학기가 앞쪽)
       checkedRecentSemesters
         .filter(
           (recent) =>
@@ -74,16 +74,20 @@ export function useGradeTabView(): UseGradeTabViewResult {
               type: 'semester',
               year: attended.year,
             }) satisfies SemesterGradeTabView,
-        ),
-      semesters.map(
-        (s) =>
-          ({
-            data: s,
-            semester: s.semester,
-            type: 'semester',
-            year: s.year,
-          }) satisfies SemesterGradeTabView,
-      ),
+        )
+        .sort((a, b) => (a.year !== b.year ? b.year - a.year : b.semester - a.semester)),
+      // 기존 학기 (최근 학기가 앞쪽)
+      semesters
+        .map(
+          (s) =>
+            ({
+              data: s,
+              semester: s.semester,
+              type: 'semester',
+              year: s.year,
+            }) satisfies SemesterGradeTabView,
+        )
+        .sort((a, b) => (a.year !== b.year ? b.year - a.year : b.semester - a.semester)),
     );
   }, [certiSummary, recordedSummary, semesters, checkedRecentSemesters]);
 
