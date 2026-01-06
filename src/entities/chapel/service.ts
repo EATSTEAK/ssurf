@@ -11,6 +11,7 @@ export const syncChapelInformation = async (
   year: number,
   semester: SemesterType,
 ) => {
+  await client.lookup();
   const info: ChapelInformation = await client.information(year, semester);
 
   // 트랜잭션으로 아토믹하게 처리

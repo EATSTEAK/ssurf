@@ -88,7 +88,8 @@ export function useGradeTabView(): UseGradeTabViewResult {
   }, [certiSummary, recordedSummary, semesters, checkedRecentSemesters]);
 
   const refresh = async (selectedTab?: null | { semester: number; year: number }) => {
-    await syncGradeSummary([CourseType.Bachelor], { force: true });
+    // Reload once
+    await syncGradeSummary([CourseType.Bachelor, true], { force: true });
     await syncSemesterGrades([CourseType.Bachelor], { force: true });
     if (selectedTab) {
       await syncClassGrades([CourseType.Bachelor, selectedTab.year, selectedTab.semester], {

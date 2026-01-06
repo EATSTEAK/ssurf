@@ -43,7 +43,7 @@ export const useGraduationView = (): UseGraduationViewResult => {
   }, [general, requirements, student]);
 
   const refresh = async () => {
-    await syncRequirements([], { force: true });
+    await syncRequirements([true], { force: true });
   };
 
   return {

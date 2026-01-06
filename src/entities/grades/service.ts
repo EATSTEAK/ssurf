@@ -19,7 +19,12 @@ export const syncGradeSummary = async (
   client: CourseGradesApplicationInterface,
   studentId: string,
   courseType: CourseType,
+  withReload: boolean = false,
 ) => {
+  if (withReload) {
+    // NOTE: Reload entire page to retrieve the latest data
+    await client.reload();
+  }
   // 증명 평점 정보 가져오기
   const certificated: GradeSummary = await client.certificatedSummary(courseType);
 
@@ -84,7 +89,12 @@ export const syncSemesterGrades = async (
   client: CourseGradesApplicationInterface,
   studentId: string,
   courseType: CourseType,
+  withReload: boolean = false,
 ) => {
+  if (withReload) {
+    // NOTE: Reload entire page to retrieve the latest data
+    await client.reload();
+  }
   // 학기별 성적 목록 가져오기
   const semesters: SemesterGrade[] = await client.semesters(courseType);
 
@@ -144,6 +154,8 @@ export const syncClassGrades = async (
   year: number,
   semester: number,
 ) => {
+  // NOTE: lookup newest data with button click
+  await client.lookup();
   // 과목별 성적 가져오기
   const classes: ClassGrade[] = await client.classes(courseType, year, semester, true);
 
