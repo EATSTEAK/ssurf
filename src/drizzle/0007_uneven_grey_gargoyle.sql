@@ -18,7 +18,6 @@ CREATE TABLE `__new_chapel_attendances` (
 -- INSERT INTO `__new_chapel_attendances`("studentId", "year", "semester", "date", "division", "category", "instructor", "instructorDepartment", "title", "attendance", "result", "note") SELECT "studentId", "year", "semester", "date", "division", "category", "instructor", "instructorDepartment", "title", "attendance", "result", "note" FROM `chapel_attendances`;--> statement-breakpoint
 DROP TABLE `chapel_attendances`;--> statement-breakpoint
 ALTER TABLE `__new_chapel_attendances` RENAME TO `chapel_attendances`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
 CREATE TABLE `__new_chapel_general` (
 	`studentId` integer NOT NULL,
 	`year` integer NOT NULL,
@@ -167,4 +166,5 @@ CREATE TABLE `__new_graduation_student` (
 --> statement-breakpoint
 -- INSERT INTO `__new_graduation_student`("studentId", "number", "name", "grade", "semester", "status", "applyYear", "applyType", "department", "majors", "auditDate", "graduationPoints", "completedPoints") SELECT "studentId", "number", "name", "grade", "semester", "status", "applyYear", "applyType", "department", "majors", "auditDate", "graduationPoints", "completedPoints" FROM `graduation_student`;--> statement-breakpoint
 DROP TABLE `graduation_student`;--> statement-breakpoint
-ALTER TABLE `__new_graduation_student` RENAME TO `graduation_student`;
+ALTER TABLE `__new_graduation_student` RENAME TO `graduation_student`;--> statement-breakpoint
+PRAGMA foreign_keys=ON;
