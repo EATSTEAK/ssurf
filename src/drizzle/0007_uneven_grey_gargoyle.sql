@@ -52,7 +52,7 @@ CREATE TABLE `__new_class_grades` (
 	PRIMARY KEY(`studentId`, `year`, `semester`, `code`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_class_grades`("studentId", "year", "semester", "code", "className", "gradePoints", "scoreType", "scoreValue", "rank", "professor", "detailJson") SELECT "studentId", "year", "semester", "code", "className", "gradePoints", "scoreType", "scoreValue", "rank", "professor", "detailJson" FROM `class_grades`;--> statement-breakpoint
+-- INSERT INTO `__new_class_grades`("studentId", "year", "semester", "code", "className", "gradePoints", "scoreType", "scoreValue", "rank", "professor", "detailJson") SELECT "studentId", "year", "semester", "code", "className", "gradePoints", "scoreType", "scoreValue", "rank", "professor", "detailJson" FROM `class_grades`;--> statement-breakpoint
 DROP TABLE `class_grades`;--> statement-breakpoint
 ALTER TABLE `__new_class_grades` RENAME TO `class_grades`;--> statement-breakpoint
 CREATE TABLE `__new_semester_grades` (
