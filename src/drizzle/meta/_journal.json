@@ -57,13 +57,6 @@
       "when": 1767534500633,
       "tag": "0007_uneven_grey_gargoyle",
       "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "6",
-      "when": 1767536236198,
-      "tag": "0008_friendly_brood",
-      "breakpoints": true
     }
   ]
 }

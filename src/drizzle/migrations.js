@@ -9,7 +9,6 @@ import m0004 from './0004_huge_pretty_boy.sql';
 import m0005 from './0005_foamy_goliath.sql';
 import m0006 from './0006_calm_wasp.sql';
 import m0007 from './0007_uneven_grey_gargoyle.sql';
-import m0008 from './0008_friendly_brood.sql';
 
   export default {
     journal,
@@ -21,8 +20,7 @@ m0003,
 m0004,
 m0005,
 m0006,
-m0007,
-m0008
+m0007
     }
   }
   
