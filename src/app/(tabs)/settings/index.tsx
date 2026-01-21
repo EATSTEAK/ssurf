@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
@@ -15,12 +15,13 @@ import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
-import { LogoutIcon } from '@/shared/ui/icons';
+import { ChevronRightIcon, Icon, LogoutIcon } from '@/shared/ui/icons';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { paletteHex } from '@/unistyles';
+
 const styles = StyleSheet.create((theme, rt) => ({
   root: {
     width: '100%',
@@ -39,14 +40,21 @@ const styles = StyleSheet.create((theme, rt) => ({
     color: rt.colorScheme === 'dark' ? paletteHex.sand200 : paletteHex.sand800,
   },
   infoView: { display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' },
+  actionItemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
 }));
 
-export default function Index() {
+export default function SettingsIndex() {
   const { logout } = useRusaintSession();
   const { sync, isSyncing } = useSyncStudentInformation();
   const { data: info } = useStudentInformation();
   const scrollY = useSharedValue(0);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
+  const router = useRouter();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -57,6 +65,7 @@ export default function Index() {
   const onRefresh = async () => {
     await sync([], { force: true });
   };
+
   return (
     <View style={styles.root}>
       <RefreshableScrollView
@@ -71,6 +80,27 @@ export default function Index() {
             <Header title="설정" />
             {info && <UserProfile info={info} />}
           </View>
+          <CardView>
+            <ThemedText typography="headingLg">알림</ThemedText>
+            <ActionList>
+              <ActionListItem
+                icon={
+                  <Icon
+                    color={styles.actionListSymbol.color}
+                    materialName="bell"
+                    size={24}
+                    symbolName="bell"
+                  />
+                }
+                onPress={() => router.push('./notification')}
+              >
+                <View style={styles.actionItemContent}>
+                  <ThemedText typography="bodyLg">알림 설정</ThemedText>
+                  <ChevronRightIcon color={styles.actionListSymbol.color} size={20} />
+                </View>
+              </ActionListItem>
+            </ActionList>
+          </CardView>
           <CardView>
             <ThemedText typography="headingLg">계정 설정</ThemedText>
             <ActionList>
