@@ -30,7 +30,7 @@ export const getGridBounds = (
     weekdaySet.add(item.weekday);
   }
 
-  const startHour = Math.floor(minStart / 60);
+  const startHour = 9;
   const endHour = Math.ceil(maxEnd / 60);
   const weekdays = Array.from(weekdaySet).sort((a, b) => a - b);
 
@@ -69,15 +69,12 @@ const hashString = (str: string): number => {
   return Math.abs(hash);
 };
 
-export const getCourseColor = (
-  name: string,
-  isDark: boolean,
-): { bg: string; fg: string } => {
+export const getCourseColor = (name: string, isDark: boolean): { bg: string; fg: string } => {
   const colors = isDark ? COURSE_COLORS_DARK : COURSE_COLORS;
   const index = hashString(name) % colors.length;
   return colors[index];
 };
 
-export const HOUR_HEIGHT = 60;
+export const HOUR_HEIGHT = 40;
 
 export const WEEKDAY_LABELS = ['월', '화', '수', '목', '금', '토', '일'];

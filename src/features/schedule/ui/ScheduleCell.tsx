@@ -53,7 +53,7 @@ export const ScheduleCell = ({ item, startHour, onPress, isDark }: ScheduleCellP
         {item.name}
       </Text>
       {!isShort && (
-        <Text numberOfLines={1} style={[styles.classroom, { color: color.fg }]}>
+        <Text style={[styles.classroom, { color: color.fg }]}>
           {item.classroom}
         </Text>
       )}
