@@ -26,5 +26,5 @@ export const useCourseSchedule = (year: number, semester: SemesterType) => {
     await sync([year, semester], { force: false });
   }, [year, semester]);
 
-  return { data: data ?? [], error, isSyncing, updatedAt };
+  return { data: data ?? [], error, isSyncing, sync, updatedAt };
 };

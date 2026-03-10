@@ -1,7 +1,7 @@
 import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -10,7 +10,6 @@ import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
-import { useSyncCourseSchedule } from '@/entities/courseSchedule/lib/sync';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
 import {
   constructSemesters,
@@ -51,6 +50,11 @@ const styles = StyleSheet.create((theme) => ({
   gridContainer: {
     paddingHorizontal: theme.gap(1),
   },
+  stateImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 16,
+  },
 }));
 
 const RUSAINT_NO_SCHEDULE =
@@ -61,8 +65,20 @@ export default function Index() {
   const defaultSemester = defaultScheduleSemester ?? getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
 
-  const { sync: syncSchedule, isSyncing, error } = useSyncCourseSchedule();
-  const { data } = useCourseSchedule(selectedSemester.year, selectedSemester.semester);
+  if (
+    defaultScheduleSemester &&
+    selectedSemester.year === getEstimatedCurrentSemester(true).year &&
+    selectedSemester.semester === getEstimatedCurrentSemester(true).semester &&
+    (defaultScheduleSemester.year !== selectedSemester.year ||
+      defaultScheduleSemester.semester !== selectedSemester.semester)
+  ) {
+    setSelectedSemester(defaultScheduleSemester);
+  }
+
+  const { data, isSyncing, error, sync } = useCourseSchedule(
+    selectedSemester.year,
+    selectedSemester.semester,
+  );
 
   const scrollY = useSharedValue(0);
 
@@ -70,14 +86,8 @@ export default function Index() {
     if (isSyncing) {
       return;
     }
-    syncSchedule([selectedSemester.year, selectedSemester.semester], { force: true });
+    sync([selectedSemester.year, selectedSemester.semester], { force: true });
   };
-
-  useEffect(() => {
-    if (selectedSemester) {
-      syncSchedule([selectedSemester.year, selectedSemester.semester]);
-    }
-  }, [selectedSemester, syncSchedule]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -85,10 +95,14 @@ export default function Index() {
     },
   });
 
-  const semesters = constructSemesters(defaultSemester.year - 4, defaultSemester.year, [
-    SemesterType.Two,
-    SemesterType.One,
-  ]);
+  const semesters = useMemo(
+    () =>
+      constructSemesters(defaultSemester.year - 4, defaultSemester.year, [
+        SemesterType.Two,
+        SemesterType.One,
+      ]),
+    [defaultSemester.year],
+  );
 
   const hasData = data.length > 0;
 
@@ -102,7 +116,7 @@ export default function Index() {
               <Image
                 contentFit="contain"
                 source={emptyImage}
-                style={{ width: 150, height: 150, marginBottom: 16 }}
+                style={styles.stateImage}
               />
               <ThemedText typography="headingLg">선택한 학기의 시간표가 없어요.</ThemedText>
               <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
@@ -112,7 +126,7 @@ export default function Index() {
               <Image
                 contentFit="contain"
                 source={errorImage}
-                style={{ width: 150, height: 150, marginBottom: 16 }}
+                style={styles.stateImage}
               />
               <ThemedText color="error" typography="headingLg">
                 정보를 가져오는 중 오류가 발생했어요.
@@ -126,7 +140,7 @@ export default function Index() {
             <Image
               contentFit="contain"
               source={loadingImage}
-              style={{ width: 150, height: 150, marginBottom: 16 }}
+              style={styles.stateImage}
             />
             <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
             <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>

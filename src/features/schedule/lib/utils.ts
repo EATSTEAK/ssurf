@@ -2,7 +2,7 @@ import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
 
 export const parseTimeRange = (
   time: string,
-): { endMinutes: number; startMinutes: number } | null => {
+): null | { endMinutes: number; startMinutes: number } => {
   const match = time.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
   if (!match) {
     return null;
