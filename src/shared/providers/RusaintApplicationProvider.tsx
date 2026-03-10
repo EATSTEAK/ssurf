@@ -7,6 +7,8 @@ import {
   CourseScheduleApplicationInterface,
   GraduationRequirementsApplicationBuilder,
   GraduationRequirementsApplicationInterface,
+  PersonalCourseScheduleApplicationBuilder,
+  PersonalCourseScheduleApplicationInterface,
   ScholarshipsApplicationBuilder,
   ScholarshipsApplicationInterface,
   StudentInformationApplicationBuilder,
@@ -22,8 +24,10 @@ export interface RusaintApplicationContext {
   courseScheduleClient: CourseScheduleApplicationInterface | null;
   defaultChapelSemester: null | YearSemester;
   defaultGradesSemester: null | YearSemester;
+  defaultScheduleSemester: null | YearSemester;
   gradesClient: CourseGradesApplicationInterface | null;
   graduationRequirementsClient: GraduationRequirementsApplicationInterface | null;
+  personalCourseScheduleClient: null | PersonalCourseScheduleApplicationInterface;
   scholarshipsClient: null | ScholarshipsApplicationInterface;
   studentId: null | string;
   studentInformationClient: null | StudentInformationApplicationInterface;
@@ -34,8 +38,10 @@ const RusaintApplicationContext = createContext<RusaintApplicationContext>({
   courseScheduleClient: null,
   defaultChapelSemester: null,
   defaultGradesSemester: null,
+  defaultScheduleSemester: null,
   gradesClient: null,
   graduationRequirementsClient: null,
+  personalCourseScheduleClient: null,
   scholarshipsClient: null,
   studentId: null,
   studentInformationClient: null,
@@ -54,8 +60,11 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
     useState<null | ScholarshipsApplicationInterface>(null);
   const [studentInformationClient, setStudentInformationClient] =
     useState<null | StudentInformationApplicationInterface>(null);
+  const [personalCourseScheduleClient, setPersonalCourseScheduleClient] =
+    useState<null | PersonalCourseScheduleApplicationInterface>(null);
   const [defaultChapelSemester, setDefaultChapelSemester] = useState<null | YearSemester>(null);
   const [defaultGradesSemester, setDefaultGradesSemester] = useState<null | YearSemester>(null);
+  const [defaultScheduleSemester, setDefaultScheduleSemester] = useState<null | YearSemester>(null);
 
   useAsyncEffect(async () => {
     if (!session) {
@@ -67,6 +76,10 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
     const chapel = await new ChapelApplicationBuilder().build(session);
     setDefaultChapelSemester(await chapel.getSelectedSemester());
     const courseSchedule = await new CourseScheduleApplicationBuilder().build(session);
+    const personalCourseSchedule = await new PersonalCourseScheduleApplicationBuilder().build(
+      session,
+    );
+    setDefaultScheduleSemester(await personalCourseSchedule.getSelectedSemester());
     const grades = await new CourseGradesApplicationBuilder().build(session);
     setDefaultGradesSemester(await grades.getSelectedSemester());
     const graduationRequirements = await new GraduationRequirementsApplicationBuilder().build(
@@ -75,6 +88,7 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
     const scholarships = await new ScholarshipsApplicationBuilder().build(session);
     setChapelClient(chapel);
     setCourseScheduleClient(courseSchedule);
+    setPersonalCourseScheduleClient(personalCourseSchedule);
     setGradesClient(grades);
     setGraduationRequirementsClient(graduationRequirements);
     setScholarshipsClient(scholarships);
@@ -88,7 +102,9 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
         courseScheduleClient,
         defaultChapelSemester,
         defaultGradesSemester,
+        defaultScheduleSemester,
         gradesClient,
+        personalCourseScheduleClient,
         graduationRequirementsClient,
         scholarshipsClient,
         studentId,
