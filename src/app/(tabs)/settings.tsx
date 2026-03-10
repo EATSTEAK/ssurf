@@ -9,6 +9,7 @@ import { useStudentInformation } from '@/entities/studentInformation/lib/queries
 import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import { UserProfile } from '@/features/settings/ui/UserProfile';
+import { paletteHex } from '@/shared/lib/theme';
 import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -20,7 +21,6 @@ import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-import { paletteHex } from '@/shared/lib/theme';
 const styles = StyleSheet.create((theme, rt) => ({
   root: {
     width: '100%',
