@@ -7,6 +7,15 @@ export default function TabsLayout() {
   const { theme } = useUnistyles();
   return (
     <NativeTabs backgroundColor={theme.colors.surfaceDim} tintColor={theme.colors.primary}>
+      <NativeTabs.Trigger name="schedule">
+        <Label>시간표</Label>
+        {Platform.select({
+          ios: <Icon sf="calendar" />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialCommunityIcons} name="calendar-clock" />} />
+          ),
+        })}
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="chapel">
         <Label>채플</Label>
         {Platform.select({
