@@ -7,10 +7,10 @@ import { useSyncCourseSchedule } from '@/entities/courseSchedule/lib/sync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 export const useCourseSchedule = (year: number, semester: SemesterType) => {
-  const { isSyncing, sync } = useSyncCourseSchedule();
+  const { error: syncError, isSyncing, sync } = useSyncCourseSchedule();
   const { studentId } = useRusaintApplication();
 
-  const { data, error, updatedAt } = useLiveQuery(
+  const { data, error: queryError, updatedAt } = useLiveQuery(
     db.query.courseSchedule.findMany({
       where: (courseSchedule, { and, eq }) =>
         and(
@@ -26,5 +26,5 @@ export const useCourseSchedule = (year: number, semester: SemesterType) => {
     await sync([year, semester], { force: false });
   }, [year, semester]);
 
-  return { data: data ?? [], error, isSyncing, sync, updatedAt };
+  return { data: data ?? [], error: syncError ?? queryError, isSyncing, sync, updatedAt };
 };
