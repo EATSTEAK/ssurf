@@ -7,9 +7,9 @@ import { cache } from '@/shared/model/schema/cache';
 
 const parseTimeToMinutes = (
   time: string,
-): { startMinutes: number; endMinutes: number } | null => {
+): null | { endMinutes: number; startMinutes: number; } => {
   const match = time.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-  if (!match) return null;
+  if (!match) {return null;}
   return {
     startMinutes: parseInt(match[1], 10) * 60 + parseInt(match[2], 10),
     endMinutes: parseInt(match[3], 10) * 60 + parseInt(match[4], 10),
@@ -75,7 +75,7 @@ export const syncCourseSchedule = async (
     for (const [weekday, courses] of result.schedule) {
       for (const course of courses) {
         const parsed = parseTimeToMinutes(course.time);
-        if (!parsed) continue;
+        if (!parsed) {continue;}
         rawRows.push({
           studentId,
           year,

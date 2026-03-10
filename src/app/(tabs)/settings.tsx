@@ -20,7 +20,7 @@ import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-import { paletteHex } from '@/unistyles';
+import { paletteHex } from '@/shared/lib/theme';
 const styles = StyleSheet.create((theme, rt) => ({
   root: {
     width: '100%',

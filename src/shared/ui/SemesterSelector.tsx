@@ -13,7 +13,7 @@ import { Platform } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { semesterToString } from '@/shared/lib/semester';
-import { paletteHex } from '@/unistyles';
+import { paletteHex } from '@/shared/lib/theme';
 
 export interface SemesterSelectorProps {
   onChange: (index: number, semester: YearSemester) => void;

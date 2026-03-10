@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
 import { getGridBounds, HOUR_HEIGHT, WEEKDAY_LABELS } from '@/features/schedule/lib/utils';
@@ -64,8 +64,6 @@ interface ScheduleGridProps {
 }
 
 export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
-  const { rt } = useUnistyles();
-  const isDarkTheme = rt.colorScheme === 'dark';
   const { startHour, endHour, weekdays } = getGridBounds(data);
   const totalHours = endHour - startHour;
   const [selectedItem, setSelectedItem] = useState<CourseScheduleEntity | null>(null);
@@ -108,7 +106,6 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
               ))}
               {(coursesByDay.get(day) ?? []).map((item) => (
                 <ScheduleCell
-                  isDark={isDarkTheme}
                   item={item}
                   key={`${item.name}-${item.startTime}`}
                   onPress={setSelectedItem}

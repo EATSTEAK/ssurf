@@ -30,34 +30,12 @@ export const getGridBounds = (
     weekdaySet.add(item.weekday);
   }
 
-  const startHour = 9;
-  const endHour = Math.ceil(maxEnd / 60);
+  const startHour = Math.min(Math.floor(minStart / 60), 9);
+  const endHour = Math.ceil(maxEnd / 60) + 1;
   const weekdays = Array.from(weekdaySet).sort((a, b) => a - b);
 
   return { startHour, endHour, weekdays };
 };
-
-const COURSE_COLORS = [
-  { bg: 'hsl(183, 77%, 92%)', fg: 'hsl(184, 87%, 9%)' },
-  { bg: 'hsl(38, 100%, 94%)', fg: 'hsl(40, 60%, 11%)' },
-  { bg: 'hsl(102, 40%, 87%)', fg: 'hsl(100, 35%, 11%)' },
-  { bg: 'hsl(8, 97%, 92%)', fg: 'hsl(7, 36%, 15%)' },
-  { bg: 'hsl(183, 86%, 80%)', fg: 'hsl(184, 74%, 18%)' },
-  { bg: 'hsl(39, 99%, 67%)', fg: 'hsl(40, 50%, 23%)' },
-  { bg: 'hsl(101, 37%, 76%)', fg: 'hsl(100, 29%, 23%)' },
-  { bg: 'hsl(8, 91%, 85%)', fg: 'hsl(7, 31%, 29%)' },
-];
-
-const COURSE_COLORS_DARK = [
-  { bg: 'hsl(184, 74%, 18%)', fg: 'hsl(183, 77%, 92%)' },
-  { bg: 'hsl(40, 50%, 22%)', fg: 'hsl(38, 100%, 94%)' },
-  { bg: 'hsl(100, 29%, 23%)', fg: 'hsl(102, 40%, 87%)' },
-  { bg: 'hsl(7, 31%, 29%)', fg: 'hsl(8, 97%, 92%)' },
-  { bg: 'hsl(184, 87%, 9%)', fg: 'hsl(183, 86%, 80%)' },
-  { bg: 'hsl(40, 60%, 11%)', fg: 'hsl(39, 99%, 67%)' },
-  { bg: 'hsl(100, 35%, 11%)', fg: 'hsl(101, 37%, 76%)' },
-  { bg: 'hsl(7, 36%, 15%)', fg: 'hsl(8, 91%, 85%)' },
-];
 
 const hashString = (str: string): number => {
   let hash = 0;
@@ -69,10 +47,13 @@ const hashString = (str: string): number => {
   return Math.abs(hash);
 };
 
-export const getCourseColor = (name: string, isDark: boolean): { bg: string; fg: string } => {
-  const colors = isDark ? COURSE_COLORS_DARK : COURSE_COLORS;
-  const index = hashString(name) % colors.length;
-  return colors[index];
+export const getCourseColor = (
+  item: { classroom: string; startTime: number; weekday: number; },
+  courseColors: ReadonlyArray<{ bg: string; fg: string }>,
+): { bg: string; fg: string } => {
+  const key = `${item.weekday}-${item.startTime}-${item.classroom}`;
+  const index = hashString(key) % courseColors.length;
+  return courseColors[index];
 };
 
 export const HOUR_HEIGHT = 40;
