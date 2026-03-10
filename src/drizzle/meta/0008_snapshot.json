@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "05c2dc03-fcde-448f-816f-e81936783872",
+  "id": "8f8e4050-5bed-4716-a78b-fccf078477d8",
   "prevId": "ecb6a6dc-daea-4e0e-a028-822be146647e",
   "tables": {
     "chapel_attendances": {
@@ -249,9 +249,16 @@
           "notNull": true,
           "autoincrement": false
         },
-        "time": {
-          "name": "time",
-          "type": "text",
+        "startTime": {
+          "name": "startTime",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "endTime": {
+          "name": "endTime",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -267,16 +274,16 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "personal_course_schedule_studentId_year_semester_weekday_name_time_pk": {
+        "personal_course_schedule_studentId_year_semester_weekday_name_startTime_pk": {
           "columns": [
             "studentId",
             "year",
             "semester",
             "weekday",
             "name",
-            "time"
+            "startTime"
           ],
-          "name": "personal_course_schedule_studentId_year_semester_weekday_name_time_pk"
+          "name": "personal_course_schedule_studentId_year_semester_weekday_name_startTime_pk"
         }
       },
       "uniqueConstraints": {},

@@ -2,7 +2,7 @@ import { PixelRatio, Pressable, Text } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
-import { getCourseColor, HOUR_HEIGHT, parseTimeRange } from '@/features/schedule/lib/utils';
+import { getCourseColor, HOUR_HEIGHT } from '@/features/schedule/lib/utils';
 
 const styles = StyleSheet.create({
   cell: {
@@ -35,15 +35,12 @@ interface ScheduleCellProps {
 }
 
 export const ScheduleCell = ({ item, startHour, onPress, isDark }: ScheduleCellProps) => {
-  const parsed = parseTimeRange(item.time);
-  if (!parsed) {
-    return null;
-  }
-  const { startMinutes, endMinutes } = parsed;
   const top = PixelRatio.roundToNearestPixel(
-    ((startMinutes - startHour * 60) / 60) * HOUR_HEIGHT,
+    ((item.startTime - startHour * 60) / 60) * HOUR_HEIGHT,
   );
-  const height = PixelRatio.roundToNearestPixel(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT);
+  const height = PixelRatio.roundToNearestPixel(
+    ((item.endTime - item.startTime) / 60) * HOUR_HEIGHT,
+  );
   const color = getCourseColor(item.name, isDark);
   const isShort = height < 40;
 

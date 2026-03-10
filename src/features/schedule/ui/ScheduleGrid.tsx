@@ -110,7 +110,7 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
                 <ScheduleCell
                   isDark={isDarkTheme}
                   item={item}
-                  key={`${item.name}-${item.time}`}
+                  key={`${item.name}-${item.startTime}`}
                   onPress={setSelectedItem}
                   startHour={startHour}
                 />

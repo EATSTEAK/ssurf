@@ -10,12 +10,20 @@ export const courseSchedule = sqliteTable(
     weekday: t.integer().notNull(),
     name: t.text().notNull(),
     professor: t.text().notNull(),
-    time: t.text().notNull(),
+    startTime: t.integer().notNull(),
+    endTime: t.integer().notNull(),
     classroom: t.text().notNull(),
   },
   (table) => [
     t.primaryKey({
-      columns: [table.studentId, table.year, table.semester, table.weekday, table.name, table.time],
+      columns: [
+        table.studentId,
+        table.year,
+        table.semester,
+        table.weekday,
+        table.name,
+        table.startTime,
+      ],
     }),
   ],
 );

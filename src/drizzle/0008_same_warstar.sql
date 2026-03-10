@@ -5,9 +5,10 @@ CREATE TABLE `personal_course_schedule` (
 	`weekday` integer NOT NULL,
 	`name` text NOT NULL,
 	`professor` text NOT NULL,
-	`time` text NOT NULL,
+	`startTime` integer NOT NULL,
+	`endTime` integer NOT NULL,
 	`classroom` text NOT NULL,
-	PRIMARY KEY(`studentId`, `year`, `semester`, `weekday`, `name`, `time`)
+	PRIMARY KEY(`studentId`, `year`, `semester`, `weekday`, `name`, `startTime`)
 );
 --> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint

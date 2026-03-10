@@ -2,7 +2,7 @@ import { Modal, Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
-import { WEEKDAY_LABELS } from '@/features/schedule/lib/utils';
+import { formatTimeRange, WEEKDAY_LABELS } from '@/features/schedule/lib/utils';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
@@ -57,7 +57,7 @@ export const ScheduleDetailModal = ({ visible, item, onClose }: ScheduleDetailMo
               시간
             </ThemedText>
             <ThemedText typography="bodyLg">
-              {WEEKDAY_LABELS[item.weekday]} {item.time}
+              {WEEKDAY_LABELS[item.weekday]} {formatTimeRange(item.startTime, item.endTime)}
             </ThemedText>
           </View>
           <View style={styles.row}>

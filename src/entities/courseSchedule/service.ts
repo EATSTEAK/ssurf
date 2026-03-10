@@ -5,6 +5,52 @@ import { db } from '@/db';
 import { courseSchedule } from '@/entities/courseSchedule/model';
 import { cache } from '@/shared/model/schema/cache';
 
+const parseTimeToMinutes = (
+  time: string,
+): { startMinutes: number; endMinutes: number } | null => {
+  const match = time.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  return {
+    startMinutes: parseInt(match[1], 10) * 60 + parseInt(match[2], 10),
+    endMinutes: parseInt(match[3], 10) * 60 + parseInt(match[4], 10),
+  };
+};
+
+const MERGE_GAP_MINUTES = 15;
+
+const mergeScheduleRows = (
+  rows: (typeof courseSchedule.$inferInsert)[],
+): (typeof courseSchedule.$inferInsert)[] => {
+  const groupMap = new Map<string, (typeof courseSchedule.$inferInsert)[]>();
+
+  for (const row of rows) {
+    const key = `${row.studentId}|${row.year}|${row.semester}|${row.weekday}|${row.name}|${row.professor}|${row.classroom}`;
+    const group = groupMap.get(key) ?? [];
+    group.push(row);
+    groupMap.set(key, group);
+  }
+
+  const merged: (typeof courseSchedule.$inferInsert)[] = [];
+
+  for (const group of groupMap.values()) {
+    group.sort((a, b) => a.startTime - b.startTime);
+
+    let current = { ...group[0] };
+    for (let i = 1; i < group.length; i++) {
+      const next = group[i];
+      if (next.startTime - current.endTime <= MERGE_GAP_MINUTES) {
+        current.endTime = Math.max(current.endTime, next.endTime);
+      } else {
+        merged.push(current);
+        current = { ...next };
+      }
+    }
+    merged.push(current);
+  }
+
+  return merged;
+};
+
 export const syncCourseSchedule = async (
   client: PersonalCourseScheduleApplicationInterface,
   studentId: string,
@@ -25,21 +71,26 @@ export const syncCourseSchedule = async (
       )
       .execute();
 
-    const rows: (typeof courseSchedule.$inferInsert)[] = [];
+    const rawRows: (typeof courseSchedule.$inferInsert)[] = [];
     for (const [weekday, courses] of result.schedule) {
       for (const course of courses) {
-        rows.push({
+        const parsed = parseTimeToMinutes(course.time);
+        if (!parsed) continue;
+        rawRows.push({
           studentId,
           year,
           semester,
           weekday,
           name: course.name,
           professor: course.professor,
-          time: course.time,
+          startTime: parsed.startMinutes,
+          endTime: parsed.endMinutes,
           classroom: course.classroom,
         });
       }
     }
+
+    const rows = mergeScheduleRows(rawRows);
 
     if (rows.length > 0) {
       await tx.insert(courseSchedule).values(rows).onConflictDoNothing().execute();
