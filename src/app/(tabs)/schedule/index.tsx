@@ -113,21 +113,13 @@ export default function Index() {
         {error ? (
           error.message === RUSAINT_NO_SCHEDULE ? (
             <>
-              <Image
-                contentFit="contain"
-                source={emptyImage}
-                style={styles.stateImage}
-              />
+              <Image contentFit="contain" source={emptyImage} style={styles.stateImage} />
               <ThemedText typography="headingLg">선택한 학기의 시간표가 없어요.</ThemedText>
               <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
             </>
           ) : (
             <>
-              <Image
-                contentFit="contain"
-                source={errorImage}
-                style={styles.stateImage}
-              />
+              <Image contentFit="contain" source={errorImage} style={styles.stateImage} />
               <ThemedText color="error" typography="headingLg">
                 정보를 가져오는 중 오류가 발생했어요.
               </ThemedText>
@@ -137,11 +129,7 @@ export default function Index() {
           )
         ) : (
           <>
-            <Image
-              contentFit="contain"
-              source={loadingImage}
-              style={styles.stateImage}
-            />
+            <Image contentFit="contain" source={loadingImage} style={styles.stateImage} />
             <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
             <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
           </>

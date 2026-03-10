@@ -10,7 +10,11 @@ export const useCourseSchedule = (year: number, semester: SemesterType) => {
   const { error: syncError, isSyncing, sync } = useSyncCourseSchedule();
   const { studentId } = useRusaintApplication();
 
-  const { data, error: queryError, updatedAt } = useLiveQuery(
+  const {
+    data,
+    error: queryError,
+    updatedAt,
+  } = useLiveQuery(
     db.query.courseSchedule.findMany({
       where: (courseSchedule, { and, eq }) =>
         and(

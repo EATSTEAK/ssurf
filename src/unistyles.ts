@@ -2,10 +2,7 @@
 import { StyleSheet } from 'react-native-unistyles';
 
 import { palette, paletteHex } from '@/shared/lib/theme';
-import {
-  scheduleCourseColorsDark,
-  scheduleCourseColorsLight,
-} from '@/shared/lib/theme/schedule';
+import { scheduleCourseColorsDark, scheduleCourseColorsLight } from '@/shared/lib/theme/schedule';
 
 const cornerRadius = {
   none: 0,

@@ -48,17 +48,12 @@ export const ScheduleCell = ({ colorIndex, item, startHour, onPress }: ScheduleC
   const isShort = height < 40;
 
   return (
-    <Pressable
-      onPress={() => onPress(item)}
-      style={[styles.cell(colorIndex), { top, height }]}
-    >
+    <Pressable onPress={() => onPress(item)} style={[styles.cell(colorIndex), { top, height }]}>
       <Text numberOfLines={isShort ? 1 : 2} style={[styles.name, styles.text(colorIndex)]}>
         {item.name}
       </Text>
       {!isShort && (
-        <Text style={[styles.classroom, styles.text(colorIndex)]}>
-          {item.classroom}
-        </Text>
+        <Text style={[styles.classroom, styles.text(colorIndex)]}>{item.classroom}</Text>
       )}
     </Pressable>
   );

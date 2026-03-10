@@ -12,9 +12,7 @@ export default function TabsLayout() {
         {Platform.select({
           ios: <Icon sf="calendar" />,
           android: (
-            <Icon
-              src={<VectorIcon family={MaterialCommunityIcons} name="calendar-clock" />}
-            />
+            <Icon src={<VectorIcon family={MaterialCommunityIcons} name="calendar-clock" />} />
           ),
         })}
       </NativeTabs.Trigger>
