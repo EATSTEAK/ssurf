@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { openDatabaseSync } from 'expo-sqlite';
 
 import * as chapelSchemas from '@/entities/chapel/model';
+import * as courseScheduleSchemas from '@/entities/courseSchedule/model';
 import * as gradesSchemas from '@/entities/grades/model';
 import * as graduationRequirementsSchemas from '@/entities/graduationRequirements/model';
 import * as scholarshipsSchemas from '@/entities/scholarships/model';
@@ -10,6 +11,7 @@ import * as cacheSchemas from '@/shared/model/schema/cache';
 
 const schema = {
   ...chapelSchemas,
+  ...courseScheduleSchemas,
   ...cacheSchemas,
   ...gradesSchemas,
   ...graduationRequirementsSchemas,
