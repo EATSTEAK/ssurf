@@ -42,10 +42,10 @@ export const syncCourseSchedule = async (
     }
 
     if (rows.length > 0) {
-      await tx.insert(courseSchedule).values(rows).execute();
+      await tx.insert(courseSchedule).values(rows).onConflictDoNothing().execute();
     }
 
-    const cacheKey = `courseSchedule.${year}-${semester}`;
+    const cacheKey = `personalCourseSchedule.${year}-${semester}`;
     await tx
       .insert(cache)
       .values({

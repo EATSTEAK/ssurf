@@ -11,7 +11,7 @@ export const useSyncCourseSchedule = (options?: SyncOptions) => {
     client: personalCourseScheduleClient,
     studentId,
     cacheKey: ([year, semester]: [number, SemesterType]) =>
-      `courseSchedule.${year}-${semester}`,
+      `personalCourseSchedule.${year}-${semester}`,
     syncFn: syncCourseSchedule,
     options,
   });
