@@ -1,9 +1,11 @@
 import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
 
-export const parseTimeRange = (time: string): { endMinutes: number; startMinutes: number } => {
+export const parseTimeRange = (
+  time: string,
+): { endMinutes: number; startMinutes: number } | null => {
   const match = time.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
   if (!match) {
-    return { startMinutes: 0, endMinutes: 0 };
+    return null;
   }
   const startMinutes = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
   const endMinutes = parseInt(match[3], 10) * 60 + parseInt(match[4], 10);
@@ -22,12 +24,15 @@ export const getGridBounds = (
   const weekdaySet = new Set<number>();
 
   for (const item of data) {
-    const { startMinutes, endMinutes } = parseTimeRange(item.time);
-    if (startMinutes < minStart) {
-      minStart = startMinutes;
+    const parsed = parseTimeRange(item.time);
+    if (!parsed) {
+      continue;
     }
-    if (endMinutes > maxEnd) {
-      maxEnd = endMinutes;
+    if (parsed.startMinutes < minStart) {
+      minStart = parsed.startMinutes;
+    }
+    if (parsed.endMinutes > maxEnd) {
+      maxEnd = parsed.endMinutes;
     }
     weekdaySet.add(item.weekday);
   }

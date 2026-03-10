@@ -35,7 +35,11 @@ interface ScheduleCellProps {
 }
 
 export const ScheduleCell = ({ item, startHour, onPress, isDark }: ScheduleCellProps) => {
-  const { startMinutes, endMinutes } = parseTimeRange(item.time);
+  const parsed = parseTimeRange(item.time);
+  if (!parsed) {
+    return null;
+  }
+  const { startMinutes, endMinutes } = parsed;
   const top = PixelRatio.roundToNearestPixel(
     ((startMinutes - startHour * 60) / 60) * HOUR_HEIGHT,
   );
