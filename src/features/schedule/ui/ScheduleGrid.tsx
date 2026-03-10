@@ -64,8 +64,8 @@ interface ScheduleGridProps {
 }
 
 export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
-  const { theme } = useUnistyles();
-  const isDarkTheme = theme.colors.surface.includes('7.55');
+  const { rt } = useUnistyles();
+  const isDarkTheme = rt.colorScheme === 'dark';
   const { startHour, endHour, weekdays } = getGridBounds(data);
   const totalHours = endHour - startHour;
   const [selectedItem, setSelectedItem] = useState<CourseScheduleEntity | null>(null);
