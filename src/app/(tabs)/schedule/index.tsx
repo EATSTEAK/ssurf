@@ -92,83 +92,49 @@ export default function Index() {
 
   const hasData = data.length > 0;
 
-  if (!hasData) {
-    return (
-      <>
-        <Stack.Screen
-          options={{
-            headerShown: true,
-            headerTransparent: true,
-            title: '시간표',
-            headerTitle: () => <></>,
-            headerRight: () => (
-              <SemesterSelector
-                onChange={(index) => setSelectedSemester(semesters[index])}
-                selectedIndex={semesters.findIndex(
-                  (semester) =>
-                    semester.year === selectedSemester.year &&
-                    semester.semester === selectedSemester.semester,
-                )}
-                semesters={semesters}
+  const renderEmptyContent = () => (
+    <>
+      <Space gap={1} />
+      <View style={styles.errorView}>
+        {error ? (
+          error.message === RUSAINT_NO_SCHEDULE ? (
+            <>
+              <Image
+                contentFit="contain"
+                source={emptyImage}
+                style={{ width: 150, height: 150, marginBottom: 16 }}
               />
-            ),
-          }}
-        />
-        <View style={styles.root}>
-          <RefreshableScrollView onRefresh={handleRefresh} refreshing={isSyncing}>
-            <SafeContainer>
-              {Platform.OS === 'ios' && <Space gap={2} />}
-              <View style={styles.topView}>
-                <Header title="시간표" />
-                <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
-              </View>
-              <Space gap={1} />
-              <View style={styles.errorView}>
-                {error ? (
-                  error.message === RUSAINT_NO_SCHEDULE ? (
-                    <>
-                      <Image
-                        contentFit="contain"
-                        source={emptyImage}
-                        style={{ width: 150, height: 150, marginBottom: 16 }}
-                      />
-                      <ThemedText typography="headingLg">
-                        선택한 학기의 시간표가 없어요.
-                      </ThemedText>
-                      <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
-                    </>
-                  ) : (
-                    <>
-                      <Image
-                        contentFit="contain"
-                        source={errorImage}
-                        style={{ width: 150, height: 150, marginBottom: 16 }}
-                      />
-                      <ThemedText color="error" typography="headingLg">
-                        정보를 가져오는 중 오류가 발생했어요.
-                      </ThemedText>
-                      <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
-                      <ThemedText typography="bodySm">{error.message}</ThemedText>
-                    </>
-                  )
-                ) : (
-                  <>
-                    <Image
-                      contentFit="contain"
-                      source={loadingImage}
-                      style={{ width: 150, height: 150, marginBottom: 16 }}
-                    />
-                    <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
-                    <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
-                  </>
-                )}
-              </View>
-            </SafeContainer>
-          </RefreshableScrollView>
-        </View>
-      </>
-    );
-  }
+              <ThemedText typography="headingLg">선택한 학기의 시간표가 없어요.</ThemedText>
+              <ThemedText typography="bodyLg">다른 학기를 선택해주세요.</ThemedText>
+            </>
+          ) : (
+            <>
+              <Image
+                contentFit="contain"
+                source={errorImage}
+                style={{ width: 150, height: 150, marginBottom: 16 }}
+              />
+              <ThemedText color="error" typography="headingLg">
+                정보를 가져오는 중 오류가 발생했어요.
+              </ThemedText>
+              <ThemedText typography="bodyLg">아래로 당겨 다시 시도해보세요.</ThemedText>
+              <ThemedText typography="bodySm">{error.message}</ThemedText>
+            </>
+          )
+        ) : (
+          <>
+            <Image
+              contentFit="contain"
+              source={loadingImage}
+              style={{ width: 150, height: 150, marginBottom: 16 }}
+            />
+            <ThemedText typography="headingLg">정보를 가져오는 중이에요.</ThemedText>
+            <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
+          </>
+        )}
+      </View>
+    </>
+  );
 
   return (
     <>
@@ -194,9 +160,9 @@ export default function Index() {
       <View style={styles.root}>
         <RefreshableScrollView
           onRefresh={handleRefresh}
-          onScroll={scrollHandler}
+          onScroll={hasData ? scrollHandler : undefined}
           refreshing={isSyncing}
-          scrollEventThrottle={16}
+          scrollEventThrottle={hasData ? 16 : undefined}
         >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
@@ -204,13 +170,25 @@ export default function Index() {
               <Header title="시간표" />
               <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
             </View>
-            <View style={styles.gridContainer}>
-              <ScheduleGrid data={data} />
-            </View>
-            <Space gap={8} />
+            {hasData ? (
+              <>
+                <View style={styles.gridContainer}>
+                  <ScheduleGrid data={data} />
+                </View>
+                <Space gap={8} />
+              </>
+            ) : (
+              renderEmptyContent()
+            )}
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader label={semesterToString(selectedSemester)} scrollY={scrollY} title="시간표" />
+        {hasData && (
+          <FloatingHeader
+            label={semesterToString(selectedSemester)}
+            scrollY={scrollY}
+            title="시간표"
+          />
+        )}
       </View>
     </>
   );
