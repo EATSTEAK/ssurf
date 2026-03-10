@@ -18,7 +18,7 @@ export const getGridBounds = (
 
   let minStart = 24 * 60;
   let maxEnd = 0;
-  const weekdaySet = new Set<number>();
+  const weekdaySet = new Set<number>([0, 1, 2, 3, 4]);
 
   for (const item of data) {
     if (item.startTime < minStart) {
