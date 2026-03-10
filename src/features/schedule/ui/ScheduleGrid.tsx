@@ -3,11 +3,17 @@ import { Text, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
-import { getGridBounds, HOUR_HEIGHT, WEEKDAY_LABELS } from '@/features/schedule/lib/utils';
+import {
+  assignCourseColorIndices,
+  getGridBounds,
+  HOUR_HEIGHT,
+  WEEKDAY_LABELS,
+} from '@/features/schedule/lib/utils';
 import { ScheduleCell } from '@/features/schedule/ui/ScheduleCell';
 import { ScheduleDetailModal } from '@/features/schedule/ui/ScheduleDetailModal';
 
 const TIME_LABEL_WIDTH = 40;
+const COLOR_SIZE = 8;
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -72,6 +78,10 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
 
   const hours = Array.from({ length: totalHours }, (_, i) => startHour + i);
 
+  const colorIndices = assignCourseColorIndices(data, COLOR_SIZE);
+  const colorIndexMap = new Map<CourseScheduleEntity, number>();
+  data.forEach((item, i) => colorIndexMap.set(item, colorIndices[i]));
+
   const coursesByDay = new Map<number, CourseScheduleEntity[]>();
   for (const item of data) {
     const existing = coursesByDay.get(item.weekday) ?? [];
@@ -106,6 +116,7 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
               ))}
               {(coursesByDay.get(day) ?? []).map((item) => (
                 <ScheduleCell
+                  colorIndex={colorIndexMap.get(item)!}
                   item={item}
                   key={`${item.name}-${item.startTime}`}
                   onPress={setSelectedItem}

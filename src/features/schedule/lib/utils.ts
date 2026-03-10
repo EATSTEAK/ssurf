@@ -47,13 +47,38 @@ const hashString = (str: string): number => {
   return Math.abs(hash);
 };
 
-export const getCourseColor = (
-  item: { classroom: string; startTime: number; weekday: number; },
-  courseColors: ReadonlyArray<{ bg: string; fg: string }>,
-): { bg: string; fg: string } => {
-  const key = `${item.weekday}-${item.startTime}-${item.classroom}`;
-  const index = hashString(key) % courseColors.length;
-  return courseColors[index];
+export const assignCourseColorIndices = (
+  items: ReadonlyArray<{ name: string; startTime: number; weekday: number }>,
+  colorSize: number,
+): number[] => {
+  // 1. 각 item에 대해 name 해시 기반 primary index 계산
+  const primaryIndices = items.map((item) => hashString(item.name) % colorSize);
+
+  // 2. 요일별로 그룹화 후 startTime 오름차순 정렬
+  const indexed = items.map((item, i) => ({ item, originalIndex: i }));
+  const byDay = new Map<number, typeof indexed>();
+  for (const entry of indexed) {
+    const existing = byDay.get(entry.item.weekday) ?? [];
+    existing.push(entry);
+    byDay.set(entry.item.weekday, existing);
+  }
+
+  // 3. 정렬된 순서로 순회하면서 직전 과목과 색이 겹치면 대체
+  const result = new Array<number>(items.length);
+  for (const entries of byDay.values()) {
+    entries.sort((a, b) => a.item.startTime - b.item.startTime);
+    let prevColor = -1;
+    for (const { originalIndex } of entries) {
+      let color = primaryIndices[originalIndex];
+      if (color === prevColor) {
+        color = (color + 3) % colorSize;
+      }
+      result[originalIndex] = color;
+      prevColor = color;
+    }
+  }
+
+  return result;
 };
 
 export const HOUR_HEIGHT = 40;

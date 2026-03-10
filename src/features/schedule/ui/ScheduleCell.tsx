@@ -2,12 +2,10 @@ import { PixelRatio, Pressable, Text } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
-import { getCourseColor, HOUR_HEIGHT } from '@/features/schedule/lib/utils';
-
-type CourseColorKey = { classroom: string; startTime: number; weekday: number; };
+import { HOUR_HEIGHT } from '@/features/schedule/lib/utils';
 
 const styles = StyleSheet.create((theme) => ({
-  cell: (item: CourseColorKey) => ({
+  cell: (colorIndex: number) => ({
     position: 'absolute' as const,
     left: 2,
     right: 2,
@@ -15,10 +13,10 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 4,
     paddingVertical: 3,
     overflow: 'hidden' as const,
-    backgroundColor: getCourseColor(item, theme.schedule.courseColors).bg,
+    backgroundColor: theme.schedule.courseColors[colorIndex].bg,
   }),
-  text: (item: CourseColorKey) => ({
-    color: getCourseColor(item, theme.schedule.courseColors).fg,
+  text: (colorIndex: number) => ({
+    color: theme.schedule.courseColors[colorIndex].fg,
   }),
   name: {
     fontSize: 11,
@@ -34,12 +32,13 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 interface ScheduleCellProps {
+  colorIndex: number;
   item: CourseScheduleEntity;
   onPress: (item: CourseScheduleEntity) => void;
   startHour: number;
 }
 
-export const ScheduleCell = ({ item, startHour, onPress }: ScheduleCellProps) => {
+export const ScheduleCell = ({ colorIndex, item, startHour, onPress }: ScheduleCellProps) => {
   const top = PixelRatio.roundToNearestPixel(
     ((item.startTime - startHour * 60) / 60) * HOUR_HEIGHT,
   );
@@ -51,13 +50,13 @@ export const ScheduleCell = ({ item, startHour, onPress }: ScheduleCellProps) =>
   return (
     <Pressable
       onPress={() => onPress(item)}
-      style={[styles.cell(item), { top, height }]}
+      style={[styles.cell(colorIndex), { top, height }]}
     >
-      <Text numberOfLines={isShort ? 1 : 2} style={[styles.name, styles.text(item)]}>
+      <Text numberOfLines={isShort ? 1 : 2} style={[styles.name, styles.text(colorIndex)]}>
         {item.name}
       </Text>
       {!isShort && (
-        <Text style={[styles.classroom, styles.text(item)]}>
+        <Text style={[styles.classroom, styles.text(colorIndex)]}>
           {item.classroom}
         </Text>
       )}
