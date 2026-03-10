@@ -67,7 +67,7 @@ export const ScheduleDetailModal = ({ visible, item, onClose }: ScheduleDetailMo
             <ThemedText typography="bodyLg">{item.classroom}</ThemedText>
           </View>
           <Pressable onPress={onClose} style={styles.closeButton}>
-            <ThemedText color="primaryInverted" typography="headingMd">
+            <ThemedText color="primary" typography="headingMd">
               닫기
             </ThemedText>
           </Pressable>
