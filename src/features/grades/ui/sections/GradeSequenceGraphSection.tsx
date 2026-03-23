@@ -14,6 +14,12 @@ interface GradeSequenceGraphSectionProps {
   semesters: SemesterGradeEntity[];
 }
 
+interface SelectedSemesterHighlightProps {
+  pointX?: number;
+  pointY?: number;
+  visible: boolean;
+}
+
 const styles = StyleSheet.create((theme) => ({
   container: (isBlurred: boolean) => ({
     bottom: 0,
@@ -32,67 +38,17 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export function GradeSequenceGraphSection({
-  selectedSemester,
-  selectedYear,
-  semesters,
-}: GradeSequenceGraphSectionProps) {
-  const { theme } = useUnistyles();
-  const { isBlurred } = useBlurGrade();
-
-  // 애니메이션을 위한 Reanimated shared values
+function SelectedSemesterHighlight({ pointX, pointY, visible }: SelectedSemesterHighlightProps) {
   const outerRadius = useSharedValue(0);
   const innerRadius = useSharedValue(0);
   const outerOpacity = useSharedValue(0);
   const innerOpacity = useSharedValue(0);
   const animatedCx = useSharedValue(0);
   const animatedCy = useSharedValue(0);
-
-  // 이전 좌표를 추적하기 위한 ref
   const prevCoordsRef = useRef<null | { x: number; y: number }>(null);
 
-  const validSemesters = semesters
-    .filter((s) => s.gradePointsAverage > 0)
-    .sort((a, b) => {
-      if (a.year !== b.year) {
-        return a.year - b.year;
-      }
-      return a.semester - b.semester;
-    });
-
-  const data = validSemesters.map((s, index) => ({
-    x: index,
-    y: s.gradePointsAverage,
-  }));
-
-  // 선택된 semester의 인덱스 찾기
-  const selectedIndex =
-    selectedYear !== undefined && selectedSemester !== undefined
-      ? validSemesters.findIndex((s) => s.year === selectedYear && s.semester === selectedSemester)
-      : -1;
-
-  // selectedIndex가 변경될 때마다 크기/불투명도 애니메이션 실행
   useEffect(() => {
-    if (selectedIndex >= 0) {
-      // Spring 애니메이션으로 나타나기
-      outerRadius.value = withSpring(12, {
-        damping: 15,
-        stiffness: 200,
-      });
-      innerRadius.value = withSpring(6, {
-        damping: 15,
-        stiffness: 200,
-      });
-      outerOpacity.value = withSpring(0.3, {
-        damping: 15,
-        stiffness: 200,
-      });
-      innerOpacity.value = withSpring(1, {
-        damping: 15,
-        stiffness: 200,
-      });
-    } else {
-      // 선택 해제 시 사라지기
+    if (!visible || pointX === undefined || pointY === undefined) {
       outerRadius.value = withSpring(0, {
         damping: 15,
         stiffness: 200,
@@ -109,11 +65,102 @@ export function GradeSequenceGraphSection({
         damping: 15,
         stiffness: 200,
       });
-
-      // 좌표 초기화
       prevCoordsRef.current = null;
+      return;
     }
-  }, [selectedIndex, outerRadius, innerRadius, outerOpacity, innerOpacity]);
+
+    const prevCoords = prevCoordsRef.current;
+
+    if (!prevCoords) {
+      animatedCx.value = pointX;
+      animatedCy.value = pointY;
+    } else if (prevCoords.x !== pointX || prevCoords.y !== pointY) {
+      animatedCx.value = withTiming(pointX, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+      animatedCy.value = withTiming(pointY, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+
+    prevCoordsRef.current = { x: pointX, y: pointY };
+
+    outerRadius.value = withSpring(12, {
+      damping: 15,
+      stiffness: 200,
+    });
+    innerRadius.value = withSpring(6, {
+      damping: 15,
+      stiffness: 200,
+    });
+    outerOpacity.value = withSpring(0.3, {
+      damping: 15,
+      stiffness: 200,
+    });
+    innerOpacity.value = withSpring(1, {
+      damping: 15,
+      stiffness: 200,
+    });
+  }, [
+    animatedCx,
+    animatedCy,
+    innerOpacity,
+    innerRadius,
+    outerOpacity,
+    outerRadius,
+    pointX,
+    pointY,
+    visible,
+  ]);
+
+  return (
+    <>
+      <Circle
+        color="#FFFFFF"
+        cx={animatedCx}
+        cy={animatedCy}
+        opacity={outerOpacity}
+        r={outerRadius}
+      />
+      <Circle
+        color="#FFFFFF"
+        cx={animatedCx}
+        cy={animatedCy}
+        opacity={innerOpacity}
+        r={innerRadius}
+      />
+    </>
+  );
+}
+
+export function GradeSequenceGraphSection({
+  selectedSemester,
+  selectedYear,
+  semesters,
+}: GradeSequenceGraphSectionProps) {
+  const { theme } = useUnistyles();
+  const { isBlurred } = useBlurGrade();
+
+  const validSemesters = semesters
+    .filter((s) => s.gradePointsAverage > 0)
+    .sort((a, b) => {
+      if (a.year !== b.year) {
+        return a.year - b.year;
+      }
+      return a.semester - b.semester;
+    });
+
+  const data = validSemesters.map((s, index) => ({
+    x: index,
+    y: s.gradePointsAverage,
+  }));
+
+  const selectedIndex =
+    selectedYear !== undefined && selectedSemester !== undefined
+      ? validSemesters.findIndex((s) => s.year === selectedYear && s.semester === selectedSemester)
+      : -1;
 
   if (data.length === 0) {
     return null;
@@ -149,31 +196,13 @@ export function GradeSequenceGraphSection({
           yKeys={['y']}
         >
           {({ points, chartBounds }) => {
-            // 선택된 포인트의 좌표를 가져와서 애니메이션 업데이트
-            if (selectedIndex >= 0 && points.y[selectedIndex]) {
-              const currentX = points.y[selectedIndex].x;
-              const currentY = points.y[selectedIndex].y;
-
-              if (typeof currentX === 'number' && typeof currentY === 'number') {
-                // 이전 좌표와 비교하여 변경되었으면 애니메이션
-                const prevCoords = prevCoordsRef.current;
-
-                if (!prevCoords || prevCoords.x !== currentX || prevCoords.y !== currentY) {
-                  // 좌표가 변경되었으면 Timing 애니메이션으로 부드럽게 이동 (오버슈트 없음)
-                  animatedCx.value = withTiming(currentX, {
-                    duration: 300,
-                    easing: Easing.out(Easing.cubic),
-                  });
-                  animatedCy.value = withTiming(currentY, {
-                    duration: 300,
-                    easing: Easing.out(Easing.cubic),
-                  });
-
-                  // 현재 좌표 저장
-                  prevCoordsRef.current = { x: currentX, y: currentY };
-                }
-              }
-            }
+            const selectedPoint = selectedIndex >= 0 ? points.y[selectedIndex] : undefined;
+            const highlightPointX =
+              typeof selectedPoint?.x === 'number' ? selectedPoint.x : undefined;
+            const highlightPointY =
+              typeof selectedPoint?.y === 'number' ? selectedPoint.y : undefined;
+            const isHighlightVisible =
+              selectedIndex >= 0 && highlightPointX !== undefined && highlightPointY !== undefined;
 
             return (
               <>
@@ -190,28 +219,11 @@ export function GradeSequenceGraphSection({
                   points={points.y}
                   strokeWidth={4}
                 />
-                {/* 선택된 semester 하이라이트 - 위치와 크기 모두 애니메이션 */}
-                {selectedIndex >= 0 && (
-                  <>
-                    {/* 외곽 원 (불투명도 낮음) */}
-                    <Circle
-                      color="#FFFFFF"
-                      cx={animatedCx}
-                      cy={animatedCy}
-                      opacity={outerOpacity}
-                      r={outerRadius}
-                    />
-                    {/* 내부 원 (선명함) */}
-                    <Circle
-                      color="#FFFFFF"
-                      cx={animatedCx}
-                      cy={animatedCy}
-                      opacity={innerOpacity}
-                      r={innerRadius}
-                    />
-                  </>
-                )}
-                {/* 그리드 페이드 효과 - 상단 */}
+                <SelectedSemesterHighlight
+                  pointX={highlightPointX}
+                  pointY={highlightPointY}
+                  visible={isHighlightVisible}
+                />
                 <Rect
                   height={40}
                   width={chartBounds.right - chartBounds.left}
@@ -224,7 +236,6 @@ export function GradeSequenceGraphSection({
                     start={vec(0, chartBounds.top)}
                   />
                 </Rect>
-                {/* 그리드 페이드 효과 - 하단 */}
                 <Rect
                   height={40}
                   width={chartBounds.right - chartBounds.left}
