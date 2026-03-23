@@ -28,14 +28,25 @@ const styles = StyleSheet.create((theme) => ({
     flexShrink: 1,
     gap: theme.gap(0.5),
   },
+  fulfilledCategoryCard: {
+    gap: 0,
+    padding: 0,
+  },
   headerPressable: (pressed: boolean) => ({
+    alignSelf: 'stretch',
     backgroundColor: pressed ? theme.colors.surfaceDimmer : 'transparent',
-    borderRadius: theme.cornerRadius.md,
-    marginHorizontal: -theme.gap(0.5),
-    marginVertical: -theme.gap(0.5),
-    paddingHorizontal: theme.gap(0.5),
-    paddingVertical: theme.gap(0.5),
+    paddingBottom: theme.gap(3),
+    paddingHorizontal: theme.gap(3),
+    paddingTop: theme.gap(3),
   }),
+  fulfilledCategoryContent: {
+    gap: theme.gap(1),
+    paddingBottom: theme.gap(3),
+    paddingHorizontal: theme.gap(3),
+  },
+  fulfilledRequirementsToggleSpacing: {
+    gap: theme.gap(1),
+  },
   itemsView: {
     display: 'flex',
     flexDirection: 'column',
@@ -43,12 +54,14 @@ const styles = StyleSheet.create((theme) => ({
   },
   toggleButton: (pressed: boolean) => ({
     alignItems: 'center',
+    alignSelf: 'stretch',
     backgroundColor: pressed ? theme.colors.surfaceDimmer : 'transparent',
-    borderRadius: theme.cornerRadius.md,
     display: 'flex',
     flexDirection: 'row',
     gap: theme.gap(0.5),
-    paddingVertical: theme.gap(0.25),
+    marginHorizontal: -theme.gap(3),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(2),
   }),
   toggleIconContainer: (expanded: boolean) => ({
     transform: [{ rotate: expanded ? '90deg' : '0deg' }],
@@ -124,7 +137,10 @@ export const GraduationRequirementsSection = ({
         const showCategoryContent = !shouldCollapseAtHeader || isExpanded;
 
         return (
-          <CardView key={category}>
+          <CardView
+            key={category}
+            style={shouldCollapseAtHeader ? styles.fulfilledCategoryCard : undefined}
+          >
             {shouldCollapseAtHeader ? (
               <Pressable
                 accessibilityLabel={`${category} 카테고리 ${isExpanded ? '숨기기' : '보기'}`}
@@ -157,8 +173,8 @@ export const GraduationRequirementsSection = ({
               </View>
             )}
             {showCategoryContent ? (
-              <>
-                <Space gap={1} />
+              <View style={shouldCollapseAtHeader ? styles.fulfilledCategoryContent : undefined}>
+                {!shouldCollapseAtHeader ? <Space gap={1} /> : null}
                 {unfulfilledReqs.length > 0 ? (
                   <View style={styles.itemsView}>
                     {unfulfilledReqs.map((requirement) => (
@@ -171,8 +187,7 @@ export const GraduationRequirementsSection = ({
                   </View>
                 ) : null}
                 {fulfilledReqs.length > 0 && !shouldCollapseAtHeader ? (
-                  <>
-                    {unfulfilledReqs.length > 0 && <Space gap={0.5} />}
+                  <View style={styles.fulfilledRequirementsToggleSpacing}>
                     <Pressable
                       accessibilityLabel={`충족된 요건 ${fulfilledReqs.length}개 ${isExpanded ? '숨기기' : '보기'}`}
                       accessibilityRole="button"
@@ -191,20 +206,17 @@ export const GraduationRequirementsSection = ({
                       </ThemedText>
                     </Pressable>
                     {isExpanded ? (
-                      <>
-                        <Space gap={0.5} />
-                        <View style={styles.itemsView}>
-                          {fulfilledReqs.map((requirement) => (
-                            <GraduationRequirementItem
-                              item={requirement}
-                              key={requirement.name}
-                              showCategory={false}
-                            />
-                          ))}
-                        </View>
-                      </>
+                      <View style={styles.itemsView}>
+                        {fulfilledReqs.map((requirement) => (
+                          <GraduationRequirementItem
+                            item={requirement}
+                            key={requirement.name}
+                            showCategory={false}
+                          />
+                        ))}
+                      </View>
                     ) : null}
-                  </>
+                  </View>
                 ) : null}
                 {fulfilledReqs.length > 0 && shouldCollapseAtHeader ? (
                   <View style={styles.itemsView}>
@@ -217,7 +229,7 @@ export const GraduationRequirementsSection = ({
                     ))}
                   </View>
                 ) : null}
-              </>
+              </View>
             ) : null}
           </CardView>
         );
