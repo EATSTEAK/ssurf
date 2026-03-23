@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   Extrapolation,
@@ -55,6 +56,7 @@ interface RefreshHeaderProps {
 
 export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const isShowing = useSharedValue(isSyncing);
   const animatingOut = useSharedValue(false);
   const prevIsSyncingRef = useRef(isSyncing);
@@ -65,7 +67,7 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
     if (isSyncing) {
       // isSyncing 중에는 파도 애니메이션 시작
       waveOffset.value = withRepeat(
-        withTiming(100, {
+        withTiming(1, {
           duration: 1500,
           easing: Easing.linear,
         }),
@@ -110,7 +112,7 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
         clearTimeout(animationTimer);
       };
     }
-  }, [animatingOut, isSyncing, isShowing]);
+  }, [animatingOut, isShowing, isSyncing]);
 
   const refreshHeaderAnimatedStyle = useAnimatedStyle(() => {
     const pullOpacity = interpolate(pullDistance.value, [0, 80], [0, 1], Extrapolation.CLAMP);
@@ -167,13 +169,13 @@ export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
   const waveAnimatedStyle = useAnimatedStyle(() => {
     if (isSyncing) {
       return {
-        transform: [{ translateX: `${-waveOffset.value}%` }],
+        transform: [{ translateX: -windowWidth * waveOffset.value }],
       };
     }
     return {
       transform: [{ translateX: 0 }],
     };
-  });
+  }, [isSyncing, windowWidth]);
 
   return (
     <Animated.View style={[styles.refreshHeader, refreshHeaderAnimatedStyle]}>
