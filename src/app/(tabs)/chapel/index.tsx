@@ -9,6 +9,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
+import { calculateRequiredAttendances } from '@/entities/chapel/lib/attendanceCriteria';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/entities/chapel/lib/queries';
 import { useSyncChapel } from '@/entities/chapel/lib/sync';
 import { Attendance } from '@/features/chapel/ui/Attendance';
@@ -104,11 +105,17 @@ export default function Index() {
   const scrollY = useSharedValue(0);
 
   const totalAttendances = attendances?.length ?? 0;
-  const requiredAttendances = Math.ceil(totalAttendances * (2 / 3));
+  const requiredAttendances = calculateRequiredAttendances(
+    totalAttendances,
+    selectedSemester.year,
+    selectedSemester.semester,
+  );
   const attendedCount = attendances?.filter((a) => a.attendance === '출석').length ?? 0;
   const absentCount = attendances?.filter((a) => a.attendance === '결석').length ?? 0;
   const attendanceLeft = requiredAttendances - attendedCount;
-  const passable = totalAttendances - absentCount >= requiredAttendances;
+  const hasMetAttendanceRequirement = attendanceLeft <= 0;
+  const canStillMeetAttendanceRequirement = totalAttendances - absentCount >= requiredAttendances;
+  const finalResult = general?.result?.trim() ?? '';
 
   const handleRefresh = () => {
     // 로딩 중이면 리프레시하지 않음
@@ -248,11 +255,15 @@ export default function Index() {
               <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
               <Space gap={1} />
               <View>
-                {attendanceLeft <= 0 ? (
+                {finalResult ? (
+                  <ThemedText color="fgPrimary" typography="headingXl">
+                    {finalResult}
+                  </ThemedText>
+                ) : hasMetAttendanceRequirement ? (
                   <ThemedText color="fgPrimary" typography="headingXl">
                     축하해요! 이번 학기 PASS했어요!
                   </ThemedText>
-                ) : passable ? (
+                ) : canStillMeetAttendanceRequirement ? (
                   <ThemedText typography="headingXl">
                     <ThemedText color="successInverted" typography="headingXl">
                       {attendanceLeft}회
