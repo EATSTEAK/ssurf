@@ -136,7 +136,10 @@ export const GraduationRequirementsSection = ({
                 <View style={styles.headerRow}>
                   <View style={styles.headerTitleRow}>
                     <View style={styles.toggleIconContainer(isExpanded)}>
-                      <ChevronRightIcon color={styles.toggleIcon.color} size={styles.toggleIcon.size} />
+                      <ChevronRightIcon
+                        color={styles.toggleIcon.color}
+                        size={styles.toggleIcon.size}
+                      />
                     </View>
                     <ThemedText typography="headingLg">{category}</ThemedText>
                   </View>
@@ -178,7 +181,10 @@ export const GraduationRequirementsSection = ({
                       style={({ pressed }) => styles.toggleButton(pressed)}
                     >
                       <View style={styles.toggleIconContainer(isExpanded)}>
-                        <ChevronRightIcon color={styles.toggleIcon.color} size={styles.toggleIcon.size} />
+                        <ChevronRightIcon
+                          color={styles.toggleIcon.color}
+                          size={styles.toggleIcon.size}
+                        />
                       </View>
                       <ThemedText color="fgSurfaceMuted" typography="bodySm">
                         충족된 요건 {fulfilledReqs.length}개 {isExpanded ? '숨기기' : '보기'}

@@ -165,7 +165,12 @@ export function GraduationRequirementItem({
       {isLecturesExpanded ? (
         <View style={styles.lectureList}>
           {lectureList.map((lecture, index) => (
-            <Chip backgroundColor="surfaceDimmer" color="fgSurfaceMuted" key={`${lecture}-${index}`} style={styles.lectureChip}>
+            <Chip
+              backgroundColor="surfaceDimmer"
+              color="fgSurfaceMuted"
+              key={`${lecture}-${index}`}
+              style={styles.lectureChip}
+            >
               {lecture}
             </Chip>
           ))}
