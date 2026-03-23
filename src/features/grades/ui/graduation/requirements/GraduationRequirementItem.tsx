@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { GraduationRequirementEntity } from '@/entities/graduationRequirements/model';
-import { ChevronRightIcon } from '@/shared/ui/icons';
+import { ChevronRightToggleIcon } from '@/shared/ui/ChevronRightToggleIcon';
 import { Chip } from '@/shared/ui/primitives/Chip';
 import { Progress } from '@/shared/ui/primitives/Progress';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -51,9 +51,6 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     gap: theme.gap(0.25),
   },
-  toggleIconContainer: (expanded: boolean) => ({
-    transform: [{ rotate: expanded ? '90deg' : '0deg' }],
-  }),
   toggleIcon: {
     color: theme.colorsHex.fgSurfaceMuted,
     size: 12,
@@ -133,9 +130,11 @@ export function GraduationRequirementItem({
           </View>
           {hasLectures ? (
             <View style={styles.lectureSummary}>
-              <View style={styles.toggleIconContainer(isLecturesExpanded)}>
-                <ChevronRightIcon color={styles.toggleIcon.color} size={styles.toggleIcon.size} />
-              </View>
+              <ChevronRightToggleIcon
+                color={styles.toggleIcon.color}
+                expanded={isLecturesExpanded}
+                size={styles.toggleIcon.size}
+              />
               <ThemedText color="fgSurfaceMuted" typography="bodySm">
                 {lectureList.length}개 과목 {isLecturesExpanded ? '숨기기' : '보기'}
               </ThemedText>

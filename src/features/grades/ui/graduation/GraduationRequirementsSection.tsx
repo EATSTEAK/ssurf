@@ -1,76 +1,13 @@
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { View } from 'react-native';
 
 import { GraduationRequirementEntity } from '@/entities/graduationRequirements/model';
-import { GraduationRequirementItem } from '@/features/grades/ui/graduation/GraduationRequirementItem';
+import { styles } from '@/features/grades/ui/graduation/GraduationRequirementsSection.styles';
+import { GraduationFulfilledRequirementsToggle } from '@/features/grades/ui/graduation/requirements/GraduationFulfilledRequirementsToggle';
+import { GraduationRequirementsCategoryHeader } from '@/features/grades/ui/graduation/requirements/GraduationRequirementsCategoryHeader';
+import { GraduationRequirementsList } from '@/features/grades/ui/graduation/requirements/GraduationRequirementsList';
 import { CardView } from '@/shared/ui/containers/CardView';
-import { ChevronRightIcon } from '@/shared/ui/icons';
 import { Space } from '@/shared/ui/primitives/Space';
-import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-
-const styles = StyleSheet.create((theme) => ({
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.gap(2),
-  },
-  headerRow: {
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  headerTitleRow: {
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'row',
-    flexShrink: 1,
-    gap: theme.gap(0.5),
-  },
-  fulfilledCategoryCard: {
-    gap: 0,
-    padding: 0,
-  },
-  headerPressable: (pressed: boolean) => ({
-    alignSelf: 'stretch',
-    backgroundColor: pressed ? theme.colors.surfaceDimmer : 'transparent',
-    paddingBottom: theme.gap(3),
-    paddingHorizontal: theme.gap(3),
-    paddingTop: theme.gap(3),
-  }),
-  fulfilledCategoryContent: {
-    gap: theme.gap(1),
-    paddingBottom: theme.gap(3),
-    paddingHorizontal: theme.gap(3),
-  },
-  fulfilledRequirementsToggleSpacing: {
-    gap: theme.gap(1),
-  },
-  itemsView: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.gap(2),
-  },
-  toggleButton: (pressed: boolean) => ({
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    backgroundColor: pressed ? theme.colors.surfaceDimmer : 'transparent',
-    display: 'flex',
-    flexDirection: 'row',
-    gap: theme.gap(0.5),
-    marginHorizontal: -theme.gap(3),
-    paddingHorizontal: theme.gap(3),
-    paddingVertical: theme.gap(2),
-  }),
-  toggleIconContainer: (expanded: boolean) => ({
-    transform: [{ rotate: expanded ? '90deg' : '0deg' }],
-  }),
-  toggleIcon: {
-    color: theme.colorsHex.fgSurfaceMuted,
-    size: 12,
-  },
-}));
 
 export interface GraduationRequirementsSectionProps {
   requirements: GraduationRequirementEntity[];
@@ -133,104 +70,42 @@ export const GraduationRequirementsSection = ({
           .sort(sortRequirementsByName);
         const isFulfilled = unfulfilledReqs.length === 0;
         const isExpanded = expandedCategories[category] ?? false;
-        const shouldCollapseAtHeader = isFulfilled;
-        const showCategoryContent = !shouldCollapseAtHeader || isExpanded;
 
-        return (
-          <CardView
-            key={category}
-            style={shouldCollapseAtHeader ? styles.fulfilledCategoryCard : undefined}
-          >
-            {shouldCollapseAtHeader ? (
-              <Pressable
-                accessibilityLabel={`${category} 카테고리 ${isExpanded ? '숨기기' : '보기'}`}
-                accessibilityRole="button"
-                accessibilityState={{ expanded: isExpanded }}
-                onPress={() => toggleCategory(category)}
-                style={({ pressed }) => styles.headerPressable(pressed)}
-              >
-                <View style={styles.headerRow}>
-                  <View style={styles.headerTitleRow}>
-                    <View style={styles.toggleIconContainer(isExpanded)}>
-                      <ChevronRightIcon
-                        color={styles.toggleIcon.color}
-                        size={styles.toggleIcon.size}
-                      />
-                    </View>
-                    <ThemedText typography="headingLg">{category}</ThemedText>
-                  </View>
-                  <ThemedText color="successInverted" typography="bodyMd">
-                    {fulfilledReqs.length} / {reqs.length} 충족
-                  </ThemedText>
-                </View>
-              </Pressable>
-            ) : (
-              <View style={styles.headerRow}>
-                <ThemedText typography="headingLg">{category}</ThemedText>
-                <ThemedText color="errorInverted" typography="bodyMd">
-                  {fulfilledReqs.length} / {reqs.length} 충족
-                </ThemedText>
-              </View>
-            )}
-            {showCategoryContent ? (
-              <View style={shouldCollapseAtHeader ? styles.fulfilledCategoryContent : undefined}>
-                {!shouldCollapseAtHeader ? <Space gap={1} /> : null}
-                {unfulfilledReqs.length > 0 ? (
-                  <View style={styles.itemsView}>
-                    {unfulfilledReqs.map((requirement) => (
-                      <GraduationRequirementItem
-                        item={requirement}
-                        key={requirement.name}
-                        showCategory={false}
-                      />
-                    ))}
-                  </View>
-                ) : null}
-                {fulfilledReqs.length > 0 && !shouldCollapseAtHeader ? (
-                  <View style={styles.fulfilledRequirementsToggleSpacing}>
-                    <Pressable
-                      accessibilityLabel={`충족된 요건 ${fulfilledReqs.length}개 ${isExpanded ? '숨기기' : '보기'}`}
-                      accessibilityRole="button"
-                      accessibilityState={{ expanded: isExpanded }}
-                      onPress={() => toggleCategory(category)}
-                      style={({ pressed }) => styles.toggleButton(pressed)}
-                    >
-                      <View style={styles.toggleIconContainer(isExpanded)}>
-                        <ChevronRightIcon
-                          color={styles.toggleIcon.color}
-                          size={styles.toggleIcon.size}
-                        />
-                      </View>
-                      <ThemedText color="fgSurfaceMuted" typography="bodySm">
-                        충족된 요건 {fulfilledReqs.length}개 {isExpanded ? '숨기기' : '보기'}
-                      </ThemedText>
-                    </Pressable>
-                    {isExpanded ? (
-                      <View style={styles.itemsView}>
-                        {fulfilledReqs.map((requirement) => (
-                          <GraduationRequirementItem
-                            item={requirement}
-                            key={requirement.name}
-                            showCategory={false}
-                          />
-                        ))}
-                      </View>
-                    ) : null}
-                  </View>
-                ) : null}
-                {fulfilledReqs.length > 0 && shouldCollapseAtHeader ? (
-                  <View style={styles.itemsView}>
-                    {fulfilledReqs.map((requirement) => (
-                      <GraduationRequirementItem
-                        item={requirement}
-                        key={requirement.name}
-                        showCategory={false}
-                      />
-                    ))}
-                  </View>
-                ) : null}
+        const content = isFulfilled ? (
+          isExpanded ? (
+            <View style={styles.fulfilledCategoryContent}>
+              <GraduationRequirementsList requirements={fulfilledReqs} />
+            </View>
+          ) : null
+        ) : (
+          <View>
+            <Space gap={1} />
+            <GraduationRequirementsList requirements={unfulfilledReqs} />
+            {fulfilledReqs.length > 0 ? (
+              <View style={styles.fulfilledRequirementsToggleSpacing}>
+                <GraduationFulfilledRequirementsToggle
+                  count={fulfilledReqs.length}
+                  isExpanded={isExpanded}
+                  onToggle={() => toggleCategory(category)}
+                />
+                {isExpanded ? <GraduationRequirementsList requirements={fulfilledReqs} /> : null}
               </View>
             ) : null}
+          </View>
+        );
+
+        return (
+          <CardView key={category} style={isFulfilled ? styles.fulfilledCategoryCard : undefined}>
+            <GraduationRequirementsCategoryHeader
+              category={category}
+              fulfilledCount={fulfilledReqs.length}
+              isCollapsible={isFulfilled}
+              isExpanded={isExpanded}
+              isFulfilled={isFulfilled}
+              onToggle={() => toggleCategory(category)}
+              totalCount={reqs.length}
+            />
+            {content}
           </CardView>
         );
       })}
