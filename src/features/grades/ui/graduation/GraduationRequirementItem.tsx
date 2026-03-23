@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
-import { View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { GraduationRequirementEntity } from '@/entities/graduationRequirements/model';
+import { ChevronRightIcon } from '@/shared/ui/icons';
+import { Chip } from '@/shared/ui/primitives/Chip';
 import { Progress } from '@/shared/ui/primitives/Progress';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
@@ -29,6 +31,35 @@ const styles = StyleSheet.create((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  lectureToggle: (pressed: boolean) => ({
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: pressed ? theme.colors.surfaceDimmer : 'transparent',
+    borderRadius: theme.cornerRadius.md,
+    display: 'flex',
+    flexDirection: 'row',
+    gap: theme.gap(0.25),
+    marginLeft: -theme.gap(0.25),
+    paddingHorizontal: theme.gap(0.25),
+    paddingVertical: theme.gap(0.25),
+  }),
+  toggleIconContainer: (expanded: boolean) => ({
+    transform: [{ rotate: expanded ? '90deg' : '0deg' }],
+  }),
+  toggleIcon: {
+    color: theme.colorsHex.fgSurfaceMuted,
+    size: 12,
+  },
+  lectureList: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.gap(0.5),
+    paddingLeft: theme.gap(1.5),
+  },
+  lectureChip: {
+    maxWidth: '100%',
   },
   asideView: {
     alignItems: 'flex-end',
@@ -58,10 +89,20 @@ export function GraduationRequirementItem({
   item: { calculation, category, difference, lectures, name, requirement, result },
   showCategory = true,
 }: GraduationRequirementItemProps) {
+  const [isLecturesExpanded, setIsLecturesExpanded] = useState(false);
   const isFulfilled = result === 1;
   const lectureList = useMemo(() => {
     try {
-      return JSON.parse(lectures) as string[];
+      const parsed = JSON.parse(lectures);
+
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .filter((lecture): lecture is string => typeof lecture === 'string')
+        .map((lecture) => lecture.trim())
+        .filter(Boolean);
     } catch {
       return [];
     }
@@ -77,22 +118,31 @@ export function GraduationRequirementItem({
         <View style={styles.contentView}>
           <View style={styles.nameView}>
             <ThemedText typography="headingMd">{name}</ThemedText>
-            {category && showCategory && (
+            {category && showCategory ? (
               <ThemedText color="fgSurfaceMuted" typography="labelMd">
                 / {category}
               </ThemedText>
-            )}
+            ) : null}
           </View>
-          {hasLectures && (
-            <View style={styles.nameView}>
+          {hasLectures ? (
+            <Pressable
+              accessibilityLabel={`세부 과목 ${lectureList.length}개 ${isLecturesExpanded ? '숨기기' : '보기'}`}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: isLecturesExpanded }}
+              onPress={() => setIsLecturesExpanded((prev) => !prev)}
+              style={({ pressed }) => styles.lectureToggle(pressed)}
+            >
+              <View style={styles.toggleIconContainer(isLecturesExpanded)}>
+                <ChevronRightIcon color={styles.toggleIcon.color} size={styles.toggleIcon.size} />
+              </View>
               <ThemedText color="fgSurfaceMuted" typography="bodySm">
-                {lectureList.length}개 과목
+                {lectureList.length}개 과목 {isLecturesExpanded ? '숨기기' : '보기'}
               </ThemedText>
-            </View>
-          )}
+            </Pressable>
+          ) : null}
         </View>
         <View style={styles.asideView}>
-          {showProgress && (
+          {showProgress ? (
             <ThemedText style={styles.requirementText(isFulfilled)} typography="headingLg">
               {calculation?.toFixed(1)}
               <ThemedText color="fgSurfaceMuted" typography="labelLg">
@@ -100,7 +150,7 @@ export function GraduationRequirementItem({
                 / {requirement.toFixed(1)}
               </ThemedText>
             </ThemedText>
-          )}
+          ) : null}
           {isFulfilled ? (
             <ThemedText color="successInverted" typography="bodySm">
               충족 {difference ? `(+${difference.toFixed(1)})` : ''}
@@ -112,6 +162,15 @@ export function GraduationRequirementItem({
           )}
         </View>
       </View>
+      {isLecturesExpanded ? (
+        <View style={styles.lectureList}>
+          {lectureList.map((lecture, index) => (
+            <Chip backgroundColor="surfaceDimmer" color="fgSurfaceMuted" key={`${lecture}-${index}`} style={styles.lectureChip}>
+              {lecture}
+            </Chip>
+          ))}
+        </View>
+      ) : null}
       <View>
         <Progress
           indicatorStyle={styles.progressIndicator(isFulfilled)}
