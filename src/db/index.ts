@@ -3,6 +3,7 @@ import { openDatabaseSync } from 'expo-sqlite';
 
 import * as chapelSchemas from '@/entities/chapel/model';
 import * as courseScheduleSchemas from '@/entities/courseSchedule/model';
+import * as feedSchemas from '@/entities/feed/model';
 import * as gradesSchemas from '@/entities/grades/model';
 import * as graduationRequirementsSchemas from '@/entities/graduationRequirements/model';
 import * as scholarshipsSchemas from '@/entities/scholarships/model';
@@ -13,6 +14,7 @@ const schema = {
   ...chapelSchemas,
   ...courseScheduleSchemas,
   ...cacheSchemas,
+  ...feedSchemas,
   ...gradesSchemas,
   ...graduationRequirementsSchemas,
   ...scholarshipsSchemas,
