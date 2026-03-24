@@ -51,26 +51,27 @@ export const useSyncFeed = (studentId: string, options?: UseSyncFeedOptions): Us
 
     const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
 
-    if (shouldRequest) {
-      const currentSyncing = getIsSyncing(cacheKey);
-      if (!currentSyncing) {
-        setStoreSyncing(cacheKey, true);
-        try {
-          await syncFeedSites(studentId);
-          setError(cacheKey, undefined);
-        } catch (e) {
-          setError(cacheKey, e instanceof Error ? e : new Error(String(e)));
-        } finally {
-          setStoreSyncing(cacheKey, false);
-        }
+    if (!shouldRequest) {
+      return;
+    }
+
+    const currentSyncing = getIsSyncing(cacheKey);
+    if (!currentSyncing) {
+      setStoreSyncing(cacheKey, true);
+      try {
+        await syncFeedSites(studentId);
+        setError(cacheKey, undefined);
+      } catch (e) {
+        setError(cacheKey, e instanceof Error ? e : new Error(String(e)));
+      } finally {
+        setStoreSyncing(cacheKey, false);
       }
-    } else {
     }
   };
 
   const sync = async (selectedSlugs: string[], syncOptions?: { force?: boolean }) => {
     const force = syncOptions?.force ?? false;
-    const normalizedKey = selectedSlugs.sort().join(',');
+    const normalizedKey = [...selectedSlugs].sort().join(',');
     const cacheKey = `feed.entries.${normalizedKey}`;
 
     setLastEntriesKey(cacheKey);
@@ -90,21 +91,22 @@ export const useSyncFeed = (studentId: string, options?: UseSyncFeedOptions): Us
 
     const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
 
-    if (shouldRequest) {
-      const currentSyncing = getIsSyncing(cacheKey);
-      if (!currentSyncing) {
-        setStoreSyncing(cacheKey, true);
-        try {
-          await syncSites({ force });
-          await syncFeedEntries(studentId, selectedSlugs);
-          setError(cacheKey, undefined);
-        } catch (e) {
-          setError(cacheKey, e instanceof Error ? e : new Error(String(e)));
-        } finally {
-          setStoreSyncing(cacheKey, false);
-        }
+    if (!shouldRequest) {
+      return;
+    }
+
+    const currentSyncing = getIsSyncing(cacheKey);
+    if (!currentSyncing) {
+      setStoreSyncing(cacheKey, true);
+      try {
+        await syncSites({ force });
+        await syncFeedEntries(studentId, selectedSlugs);
+        setError(cacheKey, undefined);
+      } catch (e) {
+        setError(cacheKey, e instanceof Error ? e : new Error(String(e)));
+      } finally {
+        setStoreSyncing(cacheKey, false);
       }
-    } else {
     }
   };
 

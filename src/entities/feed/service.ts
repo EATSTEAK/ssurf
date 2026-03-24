@@ -116,41 +116,47 @@ export const syncFeedEntries = async (studentId: string, selectedSlugs: string[]
     return;
   }
 
-  // 먼저 사이트 정보를 가져와서 각 slug의 kind를 확인
   const sites = await db.select().from(feedSites).where(inArray(feedSites.slug, selectedSlugs));
+  const slugToKind = new Map(sites.map((site) => [site.slug, site.kind]));
 
-  const slugToKind = new Map(sites.map((s) => [s.slug, s.kind]));
+  const results = await Promise.all(
+    selectedSlugs.map(async (slug) => {
+      try {
+        const response = await fetch(`${SSUFID_BASE_URL}/${slug}/data.json`);
+        if (!response.ok) {
+          console.error(`Failed to fetch ${slug}: ${response.status}`);
+          return { error: new Error(`Failed to fetch ${slug}: ${response.status}`), slug };
+        }
 
-  // 각 slug의 data.json을 병렬로 fetch
-  const fetchPromises = selectedSlugs.map(async (slug) => {
-    try {
-      const response = await fetch(`${SSUFID_BASE_URL}/${slug}/data.json`);
-      if (!response.ok) {
-        console.error(`Failed to fetch ${slug}: ${response.status}`);
-        return null;
+        const data: SsufidDataResponse = await response.json();
+        return { data, slug };
+      } catch (error) {
+        console.error(`Error fetching ${slug}:`, error);
+        return { error: error instanceof Error ? error : new Error(String(error)), slug };
       }
-      const data: SsufidDataResponse = await response.json();
-      return { data, slug };
-    } catch (error) {
-      console.error(`Error fetching ${slug}:`, error);
-      return null;
-    }
-  });
+    }),
+  );
 
-  const results = await Promise.all(fetchPromises);
+  const succeededResults = results.filter(
+    (result): result is { data: SsufidDataResponse; slug: string } => 'data' in result,
+  );
+  const failedResults = results.filter(
+    (result): result is { error: Error; slug: string } => 'error' in result,
+  );
 
-  const normalizedKey = selectedSlugs.sort().join(',');
+  if (succeededResults.length === 0) {
+    throw new Error(`Failed to sync feed entries: ${failedResults.map((result) => result.slug).join(', ')}`);
+  }
+
+  const normalizedKey = [...selectedSlugs].sort().join(',');
+  const updatedAt = Date.now();
 
   await db.transaction(async (tx) => {
-    // 선택된 slug의 기존 데이터 삭제
-    await tx.delete(feedNotices).where(inArray(feedNotices.slug, selectedSlugs));
-    await tx.delete(feedCalendars).where(inArray(feedCalendars.slug, selectedSlugs));
-
-    for (const result of results) {
-      if (!result) {continue;}
-
-      const { data, slug } = result;
+    for (const { data, slug } of succeededResults) {
       const kind = data.kind ?? slugToKind.get(slug) ?? 'notice';
+
+      await tx.delete(feedNotices).where(inArray(feedNotices.slug, [slug]));
+      await tx.delete(feedCalendars).where(inArray(feedCalendars.slug, [slug]));
 
       if (kind === 'notice') {
         const noticeItems = data.items as SsufidNoticeItem[];
@@ -175,7 +181,7 @@ export const syncFeedEntries = async (studentId: string, selectedSlugs: string[]
             await tx.insert(feedNotices).values(values.slice(i, i + 50));
           }
         }
-      } else if (kind === 'calendar') {
+      } else {
         const calendarItems = data.items as SsufidCalendarItem[];
         if (calendarItems.length > 0) {
           const values = calendarItems.map((item) => ({
@@ -201,11 +207,15 @@ export const syncFeedEntries = async (studentId: string, selectedSlugs: string[]
       .values({
         studentId,
         key: `feed.entries.${normalizedKey}`,
-        updatedAt: Date.now(),
+        updatedAt,
       })
       .onConflictDoUpdate({
         target: [cache.studentId, cache.key],
-        set: { updatedAt: Date.now() },
+        set: { updatedAt },
       });
   });
+
+  if (failedResults.length > 0) {
+    console.error(`Partially failed to sync feed entries: ${failedResults.map((result) => result.slug).join(', ')}`);
+  }
 };

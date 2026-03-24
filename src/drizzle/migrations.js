@@ -12,19 +12,18 @@ import m0007 from './0007_uneven_grey_gargoyle.sql';
 import m0008 from './0008_same_warstar.sql';
 import m0009 from './0009_mixed_praxagora.sql';
 
-  export default {
-    journal,
-    migrations: {
-      m0000,
-m0001,
-m0002,
-m0003,
-m0004,
-m0005,
-m0006,
-m0007,
-m0008,
-m0009
-    }
-  }
-  
+export default {
+  journal,
+  migrations: {
+    m0000,
+    m0001,
+    m0002,
+    m0003,
+    m0004,
+    m0005,
+    m0006,
+    m0007,
+    m0008,
+    m0009,
+  },
+};
