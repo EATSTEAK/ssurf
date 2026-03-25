@@ -1,7 +1,9 @@
 import * as TabsPrimitive from '@rn-primitives/tabs';
 import { createContext, ReactNode, useContext, useEffect, useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, StyleProp, View, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+
+import { propagateState } from '@/shared/lib/propagateState';
 
 import { ThemedText } from './ThemedText';
 
@@ -15,11 +17,17 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(1),
     paddingHorizontal: theme.gap(3),
   },
-  trigger: (isActive: boolean) => ({
+  trigger: (isActive: boolean, pressed: boolean) => ({
     paddingVertical: theme.gap(1),
     paddingHorizontal: theme.gap(2),
     borderRadius: theme.cornerRadius.md,
-    backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceDim,
+    backgroundColor: isActive
+      ? pressed
+        ? theme.colors.primaryContainer
+        : theme.colors.primary
+      : pressed
+        ? theme.colors.surfaceDimmer
+        : theme.colors.surfaceDim,
   }),
   content: {
     paddingTop: theme.gap(2),
@@ -103,11 +111,24 @@ function List({
 }
 
 // Trigger 컴포넌트
+type ExtendedTriggerState = {
+  isActive: boolean;
+  pressed: boolean;
+};
+
+type ExtendedTriggerStyle =
+  | ((state: ExtendedTriggerState) => StyleProp<ViewStyle>)
+  | StyleProp<ViewStyle>;
+
 function Trigger({
   children,
+  style,
   value,
   ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & { children?: ReactNode }) {
+}: Omit<React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>, 'style'> & {
+  children?: ReactNode;
+  style?: ExtendedTriggerStyle;
+}) {
   const rootContext = TabsPrimitive.useRootContext();
   const { setTriggerRef } = useTabsContext();
   const isActive = rootContext.value === value;
@@ -119,7 +140,20 @@ function Trigger({
         setTriggerRef(value, { width, x });
       }}
     >
-      <TabsPrimitive.Trigger {...props} style={[styles.trigger(isActive)]} value={value}>
+      <TabsPrimitive.Trigger
+        {...props}
+        style={(state) => {
+          const propagatedStyle = propagateState<ExtendedTriggerState, StyleProp<ViewStyle>>(
+            { isActive, pressed: state.pressed },
+            style,
+          ) as StyleProp<ViewStyle>;
+          return [
+            styles.trigger(isActive, state.pressed),
+            propagatedStyle,
+          ].flat() as StyleProp<ViewStyle>;
+        }}
+        value={value}
+      >
         {children || (
           <ThemedText color={isActive ? 'fgPrimary' : 'fgSurface'} typography="labelMd">
             {value}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -7,9 +7,10 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   View,
-  ViewToken,
 } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+
+const DEFAULT_CONTAINER_HEIGHT = 1000;
 
 const styles = StyleSheet.create(() => ({
   container: (height: number) => ({
@@ -37,111 +38,154 @@ export function AutoHeightFlatList<T>({
   selectedKey,
   ...flatListProps
 }: AutoHeightFlatListProps<T>) {
-  const [currentHeight, setCurrentHeight] = useState(1000);
+  const firstKey = data.length > 0 ? keyExtractor(data[0]) : null;
+  const activeKey = selectedKey ?? firstKey;
+  const [currentHeight, setCurrentHeight] = useState<number>(
+    firstKey ? DEFAULT_CONTAINER_HEIGHT : 0,
+  );
   const flatListRef = useRef<FlatList>(null);
   const pageHeights = useRef<Map<string, number>>(new Map());
   const screenWidth = Dimensions.get('window').width;
   const isScrollingProgrammatically = useRef(false);
-  const currentKeyRef = useRef<null | string>(null);
+  const programmaticScrollFallbackRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+  const currentKeyRef = useRef<null | string>(activeKey);
+  const pendingScrollTargetKeyRef = useRef<null | string>(null);
 
-  // 페이지 높이 측정
-  const handlePageLayout = (key: string) => (event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-    pageHeights.current.set(key, height);
-
-    const firstKey = data.length > 0 ? keyExtractor(data[0]) : null;
-    if (key === firstKey) {
-      setCurrentHeight(height);
+  const updateCurrentHeight = useCallback((key: null | string) => {
+    if (!key) {
+      setCurrentHeight(0);
+      return;
     }
-  };
 
-  // selectedKey 변경 시 스크롤
-  useEffect(() => {
-    if (selectedKey && flatListRef.current) {
-      const index = data.findIndex((item) => keyExtractor(item) === selectedKey);
-      if (index !== -1) {
-        isScrollingProgrammatically.current = true;
-        flatListRef.current.scrollToIndex({ animated: true, index });
-
-        // 높이 업데이트
-        const height = pageHeights.current.get(selectedKey);
-        if (height) {
-          setCurrentHeight(height);
-        }
-
-        // 애니메이션 완료 후 플래그 초기화
-        setTimeout(() => {
-          isScrollingProgrammatically.current = false;
-        }, 500);
-      }
+    const height = pageHeights.current.get(key);
+    if (height === undefined) {
+      return;
     }
-  }, [selectedKey, data, keyExtractor]);
 
-  // 페이지 변경 처리 함수
+    setCurrentHeight((prevHeight: number) => (prevHeight === height ? prevHeight : height));
+  }, []);
+
+  const clearProgrammaticScrollFallback = useCallback(() => {
+    if (!programmaticScrollFallbackRef.current) {
+      return;
+    }
+
+    clearTimeout(programmaticScrollFallbackRef.current);
+    programmaticScrollFallbackRef.current = null;
+  }, []);
+
   const handlePageChangeInternal = useCallback(
     (key: string) => {
       if (currentKeyRef.current === key) {
+        updateCurrentHeight(key);
         return;
       }
 
       currentKeyRef.current = key;
-
-      // 높이 업데이트
-      const height = pageHeights.current.get(key);
-      if (height) {
-        setCurrentHeight(height);
-      }
-
-      // 페이지 변경 콜백
-      if (onPageChange) {
-        onPageChange(key);
-      }
+      updateCurrentHeight(key);
+      onPageChange?.(key);
     },
-    [onPageChange],
+    [onPageChange, updateCurrentHeight],
   );
 
-  const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      // 프로그래밍 방식 스크롤 중이면 콜백 호출 안 함
-      if (isScrollingProgrammatically.current) {
+  const finishProgrammaticScroll = useCallback(
+    (key?: string) => {
+      clearProgrammaticScrollFallback();
+      isScrollingProgrammatically.current = false;
+
+      const resolvedKey = key ?? pendingScrollTargetKeyRef.current;
+      pendingScrollTargetKeyRef.current = null;
+
+      if (!resolvedKey) {
         return;
       }
 
-      if (viewableItems.length > 0 && viewableItems[0].item) {
-        const item = viewableItems[0].item as T;
-        const key = keyExtractor(item);
-        handlePageChangeInternal(key);
+      handlePageChangeInternal(resolvedKey);
+    },
+    [clearProgrammaticScrollFallback, handlePageChangeInternal],
+  );
+
+  const handlePageLayout = useCallback(
+    (key: string) => (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      pageHeights.current.set(key, height);
+
+      const currentActiveKey = currentKeyRef.current ?? activeKey;
+      if (key === currentActiveKey) {
+        setCurrentHeight((prevHeight: number) => (prevHeight === height ? prevHeight : height));
       }
     },
-    [keyExtractor, handlePageChangeInternal],
+    [activeKey],
+  );
+
+  useEffect(() => {
+    if (selectedKey) {
+      return;
+    }
+
+    currentKeyRef.current = activeKey;
+  }, [activeKey, selectedKey]);
+
+  useEffect(() => {
+    if (!selectedKey || !flatListRef.current) {
+      return;
+    }
+
+    const index = data.findIndex((item) => keyExtractor(item) === selectedKey);
+    if (index === -1 || currentKeyRef.current === selectedKey) {
+      pendingScrollTargetKeyRef.current = null;
+      return;
+    }
+
+    pendingScrollTargetKeyRef.current = selectedKey;
+    isScrollingProgrammatically.current = true;
+    flatListRef.current.scrollToIndex({ animated: true, index });
+
+    clearProgrammaticScrollFallback();
+    programmaticScrollFallbackRef.current = setTimeout(() => {
+      finishProgrammaticScroll(selectedKey);
+    }, 700);
+  }, [
+    activeKey,
+    clearProgrammaticScrollFallback,
+    data,
+    finishProgrammaticScroll,
+    keyExtractor,
+    selectedKey,
+  ]);
+
+  useEffect(
+    () => () => {
+      clearProgrammaticScrollFallback();
+    },
+    [clearProgrammaticScrollFallback],
   );
 
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isScrollingProgrammatically.current) {
-        return;
-      }
-
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / screenWidth);
 
-      if (index >= 0 && index < data.length) {
-        const item = data[index];
-        const key = keyExtractor(item);
-        handlePageChangeInternal(key);
+      if (index < 0 || index >= data.length) {
+        if (isScrollingProgrammatically.current) {
+          finishProgrammaticScroll();
+        }
+        return;
       }
+
+      const item = data[index];
+      const key = keyExtractor(item);
+
+      if (isScrollingProgrammatically.current) {
+        finishProgrammaticScroll(key);
+        return;
+      }
+
+      handlePageChangeInternal(key);
     },
-    [data, keyExtractor, screenWidth, handlePageChangeInternal],
+    [data, finishProgrammaticScroll, handlePageChangeInternal, keyExtractor, screenWidth],
   );
 
-  const viewabilityConfig = useMemo(
-    () => ({
-      itemVisiblePercentThreshold: 50,
-    }),
-    [],
-  );
-
-  // FlatList 렌더 아이템
   const renderFlatListItem = ({ item }: { item: T }) => {
     const key = keyExtractor(item);
     return (
@@ -156,16 +200,25 @@ export function AutoHeightFlatList<T>({
       <FlatList
         {...flatListProps}
         data={data}
+        getItemLayout={(_, index) => ({
+          index,
+          length: screenWidth,
+          offset: screenWidth * index,
+        })}
         horizontal
         keyExtractor={(item) => keyExtractor(item)}
         onMomentumScrollEnd={handleMomentumScrollEnd}
-        onViewableItemsChanged={onViewableItemsChanged}
+        onScrollToIndexFailed={(info) => {
+          flatListRef.current?.scrollToOffset({
+            animated: true,
+            offset: screenWidth * info.index,
+          });
+        }}
         pagingEnabled
         ref={flatListRef}
         renderItem={renderFlatListItem}
         scrollEnabled
         showsHorizontalScrollIndicator={false}
-        viewabilityConfig={viewabilityConfig}
       />
     </View>
   );
