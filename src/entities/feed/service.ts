@@ -7,10 +7,7 @@ import { cache } from '@/shared/model/schema/cache';
 
 const SSUFID_BASE_URL = 'https://ssufid.yourssu.com';
 
-const inferSiteKind = (
-  slug: string,
-  kind?: 'calendar' | 'notice',
-): 'calendar' | 'notice' => {
+const inferSiteKind = (slug: string, kind?: 'calendar' | 'notice'): 'calendar' | 'notice' => {
   if (kind) {
     return kind;
   }
@@ -145,7 +142,9 @@ export const syncFeedEntries = async (studentId: string, selectedSlugs: string[]
   );
 
   if (succeededResults.length === 0) {
-    throw new Error(`Failed to sync feed entries: ${failedResults.map((result) => result.slug).join(', ')}`);
+    throw new Error(
+      `Failed to sync feed entries: ${failedResults.map((result) => result.slug).join(', ')}`,
+    );
   }
 
   const normalizedKey = [...selectedSlugs].sort().join(',');
@@ -216,6 +215,8 @@ export const syncFeedEntries = async (studentId: string, selectedSlugs: string[]
   });
 
   if (failedResults.length > 0) {
-    console.error(`Partially failed to sync feed entries: ${failedResults.map((result) => result.slug).join(', ')}`);
+    console.error(
+      `Partially failed to sync feed entries: ${failedResults.map((result) => result.slug).join(', ')}`,
+    );
   }
 };

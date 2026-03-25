@@ -65,7 +65,8 @@ export default function FeedScheduleScreen() {
   const { data, error, isSyncing } = useFeedCalendars(studentId ?? '', selectedCalendarSlugs);
 
   const scrollY = useSharedValue(0);
-  const listBottomPadding = NATIVE_TAB_BAR_HEIGHT + insets.bottom + styles.listContent.paddingBottom;
+  const listBottomPadding =
+    NATIVE_TAB_BAR_HEIGHT + insets.bottom + styles.listContent.paddingBottom;
 
   const handleRefresh = useCallback(() => {
     if (isSyncing) {
@@ -147,7 +148,6 @@ export default function FeedScheduleScreen() {
         />
         <FloatingHeader label="전체 일정" scrollY={scrollY} title="일정" />
       </View>
-
     </>
   );
 }

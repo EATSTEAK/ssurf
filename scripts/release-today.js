@@ -42,10 +42,12 @@ try {
     : [];
 
   if (worktreeLines.length > 0 && !isDryRun && !allowDirty) {
-    throw new Error([
-      '작업 트리가 깨끗하지 않습니다. 변경 사항을 먼저 정리하거나 --allow-dirty를 사용해 주세요.',
-      ...worktreeLines,
-    ].join('\n'));
+    throw new Error(
+      [
+        '작업 트리가 깨끗하지 않습니다. 변경 사항을 먼저 정리하거나 --allow-dirty를 사용해 주세요.',
+        ...worktreeLines,
+      ].join('\n'),
+    );
   }
 
   if (worktreeLines.length > 0 && (isDryRun || allowDirty)) {
@@ -60,15 +62,18 @@ try {
   if (allowDirty) {
     const stagedChanges = worktreeLines.filter((line) => line[0] !== ' ' && line[0] !== '?');
     if (stagedChanges.length > 0) {
-      throw new Error([
-        '--allow-dirty를 사용하더라도 staged 변경은 허용하지 않습니다.',
-        ...stagedChanges,
-      ].join('\n'));
+      throw new Error(
+        ['--allow-dirty를 사용하더라도 staged 변경은 허용하지 않습니다.', ...stagedChanges].join(
+          '\n',
+        ),
+      );
     }
 
     const appConfigDirty = worktreeLines.find((line) => line.slice(3) === 'app.config.ts');
     if (appConfigDirty) {
-      throw new Error('--allow-dirty를 사용하더라도 app.config.ts에 기존 변경이 있으면 실행할 수 없습니다.');
+      throw new Error(
+        '--allow-dirty를 사용하더라도 app.config.ts에 기존 변경이 있으면 실행할 수 없습니다.',
+      );
     }
   }
 
@@ -130,10 +135,12 @@ try {
 
   const changedFiles = git(['diff', '--name-only']);
   if (changedFiles.trim() !== 'app.config.ts') {
-    throw new Error([
-      '의도하지 않은 변경이 감지되었습니다. release:today는 app.config.ts만 수정해야 합니다.',
-      changedFiles,
-    ].join('\n'));
+    throw new Error(
+      [
+        '의도하지 않은 변경이 감지되었습니다. release:today는 app.config.ts만 수정해야 합니다.',
+        changedFiles,
+      ].join('\n'),
+    );
   }
 
   runGit(['add', 'app.config.ts'], { inherit: true });
@@ -155,7 +162,9 @@ try {
 }
 
 function printHelp() {
-  console.log(`사용법: node scripts/release-today.js [options]\n\n옵션:\n  --dry-run       계산 결과와 예정 동작만 출력합니다.\n  --no-push       commit과 local tag까지만 수행합니다.\n  --allow-dirty   unstaged/untracked 변경은 허용하지만 staged 변경과 app.config.ts 기존 변경은 막습니다.\n  --help          도움말을 출력합니다.`);
+  console.log(
+    `사용법: node scripts/release-today.js [options]\n\n옵션:\n  --dry-run       계산 결과와 예정 동작만 출력합니다.\n  --no-push       commit과 local tag까지만 수행합니다.\n  --allow-dirty   unstaged/untracked 변경은 허용하지만 staged 변경과 app.config.ts 기존 변경은 막습니다.\n  --help          도움말을 출력합니다.`,
+  );
 }
 
 function getTodayDatePart() {

@@ -160,7 +160,11 @@ export const FeedCalendarSourcePickerModal = ({
                 <ThemedText color="fgSecondary" typography="labelMd">
                   일정
                 </ThemedText>
-                <FlatList data={calendarSites} keyExtractor={(item) => item.slug} renderItem={renderCalendarSite} />
+                <FlatList
+                  data={calendarSites}
+                  keyExtractor={(item) => item.slug}
+                  renderItem={renderCalendarSite}
+                />
               </View>
             )}
           </View>

@@ -236,7 +236,13 @@ export default function FeedScreen() {
     if (!availableSelectedNoticeSlugs.includes(selectedNoticeSlug)) {
       void setSelectedNoticeSlug(availableSelectedNoticeSlugs[0]);
     }
-  }, [availableSelectedNoticeSlugs, noticeSites, selectedNoticeSlug, setSelectedNoticeSlug, setSelectedNoticeSlugs]);
+  }, [
+    availableSelectedNoticeSlugs,
+    noticeSites,
+    selectedNoticeSlug,
+    setSelectedNoticeSlug,
+    setSelectedNoticeSlugs,
+  ]);
 
   const {
     data: notices,
@@ -517,7 +523,6 @@ export default function FeedScreen() {
         </RefreshableScrollView>
         <FloatingHeader label="공지사항" scrollY={scrollY} title="피드" />
       </View>
-
     </>
   );
 }

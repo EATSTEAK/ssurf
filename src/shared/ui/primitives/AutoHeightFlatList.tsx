@@ -40,7 +40,9 @@ export function AutoHeightFlatList<T>({
 }: AutoHeightFlatListProps<T>) {
   const firstKey = data.length > 0 ? keyExtractor(data[0]) : null;
   const activeKey = selectedKey ?? firstKey;
-  const [currentHeight, setCurrentHeight] = useState<number>(firstKey ? DEFAULT_CONTAINER_HEIGHT : 0);
+  const [currentHeight, setCurrentHeight] = useState<number>(
+    firstKey ? DEFAULT_CONTAINER_HEIGHT : 0,
+  );
   const flatListRef = useRef<FlatList>(null);
   const pageHeights = useRef<Map<string, number>>(new Map());
   const screenWidth = Dimensions.get('window').width;
@@ -143,7 +145,14 @@ export function AutoHeightFlatList<T>({
     programmaticScrollFallbackRef.current = setTimeout(() => {
       finishProgrammaticScroll(selectedKey);
     }, 700);
-  }, [activeKey, clearProgrammaticScrollFallback, data, finishProgrammaticScroll, keyExtractor, selectedKey]);
+  }, [
+    activeKey,
+    clearProgrammaticScrollFallback,
+    data,
+    finishProgrammaticScroll,
+    keyExtractor,
+    selectedKey,
+  ]);
 
   useEffect(
     () => () => {

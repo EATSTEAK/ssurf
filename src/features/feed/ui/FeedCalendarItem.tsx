@@ -35,7 +35,11 @@ export function FeedCalendarItem({ item, isLast, onPress }: FeedCalendarItemProp
   return (
     <Pressable
       onPress={() => onPress(item)}
-      style={({ pressed }) => [styles.container, pressed && styles.pressed, !isLast && styles.border]}
+      style={({ pressed }) => [
+        styles.container,
+        pressed && styles.pressed,
+        !isLast && styles.border,
+      ]}
     >
       <ThemedText typography="headingMd">{item.title}</ThemedText>
       {item.description ? (

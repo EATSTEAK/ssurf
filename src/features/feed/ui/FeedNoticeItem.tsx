@@ -44,7 +44,11 @@ export const FeedNoticeItem = memo(function FeedNoticeItem({
   return (
     <Pressable
       onPress={() => onPress(item)}
-      style={({ pressed }) => [styles.container, pressed && styles.pressed, !isLast && styles.border]}
+      style={({ pressed }) => [
+        styles.container,
+        pressed && styles.pressed,
+        !isLast && styles.border,
+      ]}
     >
       <View style={styles.content}>
         <ThemedText numberOfLines={titleNumberOfLines ?? 2} typography="headingMd">

@@ -101,9 +101,13 @@ export default function FeedNoticeScreen() {
     [noticeSites, selectedNoticeSlugs],
   );
   const currentNoticeSlug =
-    visibleNoticeSites.find((site) => site.slug === selectedNoticeSlug)?.slug ?? visibleNoticeSites[0]?.slug ?? '';
-  const currentNoticeSite = visibleNoticeSites.find((site) => site.slug === currentNoticeSlug) ?? null;
-  const noticeListBottomPadding = NATIVE_TAB_BAR_HEIGHT + insets.bottom + styles.pageListContent.paddingBottom;
+    visibleNoticeSites.find((site) => site.slug === selectedNoticeSlug)?.slug ??
+    visibleNoticeSites[0]?.slug ??
+    '';
+  const currentNoticeSite =
+    visibleNoticeSites.find((site) => site.slug === currentNoticeSlug) ?? null;
+  const noticeListBottomPadding =
+    NATIVE_TAB_BAR_HEIGHT + insets.bottom + styles.pageListContent.paddingBottom;
 
   useEffect(() => {
     void syncSites();
@@ -123,9 +127,18 @@ export default function FeedNoticeScreen() {
     if (!visibleNoticeSites.some((site) => site.slug === selectedNoticeSlug)) {
       void setSelectedNoticeSlug(visibleNoticeSites[0].slug);
     }
-  }, [noticeSites, selectedNoticeSlug, setSelectedNoticeSlug, setSelectedNoticeSlugs, visibleNoticeSites]);
+  }, [
+    noticeSites,
+    selectedNoticeSlug,
+    setSelectedNoticeSlug,
+    setSelectedNoticeSlugs,
+    visibleNoticeSites,
+  ]);
 
-  const { data, error, isSyncing } = useFeedNotices(studentId ?? '', currentNoticeSlug ? [currentNoticeSlug] : []);
+  const { data, error, isSyncing } = useFeedNotices(
+    studentId ?? '',
+    currentNoticeSlug ? [currentNoticeSlug] : [],
+  );
 
   const pages = useMemo<NoticePage[]>(
     () =>
@@ -218,7 +231,11 @@ export default function FeedNoticeScreen() {
         }}
       />
       <View style={styles.root}>
-        <Animated.ScrollView contentContainerStyle={styles.scrollContent} onScroll={scrollHandler} scrollEventThrottle={16}>
+        <Animated.ScrollView
+          contentContainerStyle={styles.scrollContent}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+        >
           {renderHeader()}
           {visibleNoticeSites.length === 0 ? (
             <View style={styles.pageEmpty}>
@@ -264,7 +281,10 @@ export default function FeedNoticeScreen() {
                 return (
                   <View style={styles.pageContent}>
                     <AnimatedFlatList
-                      contentContainerStyle={[styles.pageListContent, { paddingBottom: noticeListBottomPadding }]}
+                      contentContainerStyle={[
+                        styles.pageListContent,
+                        { paddingBottom: noticeListBottomPadding },
+                      ]}
                       data={data}
                       initialNumToRender={8}
                       keyExtractor={(item) => `${item.slug}-${item.id}`}
@@ -272,7 +292,13 @@ export default function FeedNoticeScreen() {
                       onRefresh={handleRefresh}
                       refreshing={isSyncing}
                       removeClippedSubviews
-                      renderItem={({ index, item }) => <FeedNoticeItem isLast={index === data.length - 1} item={item} onPress={handlePressNotice} />}
+                      renderItem={({ index, item }) => (
+                        <FeedNoticeItem
+                          isLast={index === data.length - 1}
+                          item={item}
+                          onPress={handlePressNotice}
+                        />
+                      )}
                       style={styles.pageList}
                       updateCellsBatchingPeriod={50}
                       windowSize={5}
@@ -284,7 +310,11 @@ export default function FeedNoticeScreen() {
             />
           )}
         </Animated.ScrollView>
-        <FloatingHeader label={currentNoticeSite?.title ?? '공지사항'} scrollY={scrollY} title="공지사항" />
+        <FloatingHeader
+          label={currentNoticeSite?.title ?? '공지사항'}
+          scrollY={scrollY}
+          title="공지사항"
+        />
       </View>
     </>
   );

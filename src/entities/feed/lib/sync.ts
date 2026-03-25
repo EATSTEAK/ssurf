@@ -35,7 +35,6 @@ export const useSyncFeed = (studentId: string, options?: UseSyncFeedOptions): Us
     const force = syncOptions?.force ?? false;
     const cacheKey = 'feed.sites';
 
-
     if (force) {
       setError(cacheKey, undefined);
     }

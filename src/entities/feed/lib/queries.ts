@@ -22,7 +22,10 @@ export const useFeedNotices = (studentId: string, selectedSlugs: string[]) => {
           .from(feedNotices)
           .where(inArray(feedNotices.slug, selectedSlugs))
           .orderBy(desc(sql`coalesce(${feedNotices.updatedAt}, ${feedNotices.createdAt})`))
-      : db.select().from(feedNotices).where(sql`1 = 0`),
+      : db
+          .select()
+          .from(feedNotices)
+          .where(sql`1 = 0`),
     [selectedSlugs.join(',')],
   );
 
@@ -45,7 +48,10 @@ export const useFeedCalendars = (studentId: string, selectedSlugs: string[]) => 
           .from(feedCalendars)
           .where(inArray(feedCalendars.slug, selectedSlugs))
           .orderBy(feedCalendars.startsAt)
-      : db.select().from(feedCalendars).where(sql`1 = 0`),
+      : db
+          .select()
+          .from(feedCalendars)
+          .where(sql`1 = 0`),
     [selectedSlugs.join(',')],
   );
 

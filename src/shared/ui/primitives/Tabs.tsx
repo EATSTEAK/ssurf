@@ -116,7 +116,9 @@ type ExtendedTriggerState = {
   pressed: boolean;
 };
 
-type ExtendedTriggerStyle = ((state: ExtendedTriggerState) => StyleProp<ViewStyle>) | StyleProp<ViewStyle>;
+type ExtendedTriggerStyle =
+  | ((state: ExtendedTriggerState) => StyleProp<ViewStyle>)
+  | StyleProp<ViewStyle>;
 
 function Trigger({
   children,
@@ -145,7 +147,10 @@ function Trigger({
             { isActive, pressed: state.pressed },
             style,
           ) as StyleProp<ViewStyle>;
-          return [styles.trigger(isActive, state.pressed), propagatedStyle].flat() as StyleProp<ViewStyle>;
+          return [
+            styles.trigger(isActive, state.pressed),
+            propagatedStyle,
+          ].flat() as StyleProp<ViewStyle>;
         }}
         value={value}
       >
