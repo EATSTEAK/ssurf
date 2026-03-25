@@ -156,9 +156,20 @@ export function AutoHeightFlatList<T>({
       <FlatList
         {...flatListProps}
         data={data}
+        getItemLayout={(_, index) => ({
+          index,
+          length: screenWidth,
+          offset: screenWidth * index,
+        })}
         horizontal
         keyExtractor={(item) => keyExtractor(item)}
         onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScrollToIndexFailed={(info) => {
+          flatListRef.current?.scrollToOffset({
+            animated: true,
+            offset: screenWidth * info.index,
+          });
+        }}
         onViewableItemsChanged={onViewableItemsChanged}
         pagingEnabled
         ref={flatListRef}
