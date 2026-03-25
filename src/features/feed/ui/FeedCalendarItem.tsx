@@ -8,12 +8,12 @@ import { formatFeedDate } from './formatFeedDate';
 
 const styles = StyleSheet.create((theme) => ({
   container: {
+    paddingHorizontal: theme.gap(3),
     paddingVertical: theme.gap(2),
     gap: theme.gap(1.5),
   },
   pressed: {
-    backgroundColor: theme.colors.primaryContainer,
-    borderRadius: theme.cornerRadius.sm,
+    backgroundColor: theme.colors.surfaceDimmer,
   },
   border: {
     borderBottomWidth: 1,
