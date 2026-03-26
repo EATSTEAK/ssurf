@@ -1,6 +1,5 @@
-import * as ProgressPrimitive from '@rn-primitives/progress';
 import { ComponentProps } from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 const styles = StyleSheet.create((theme) => ({
@@ -12,30 +11,46 @@ const styles = StyleSheet.create((theme) => ({
     overflow: 'hidden',
     position: 'relative',
   },
-  indicator: ({ value, max }) => ({
+  indicator: {
     left: 0,
     top: 0,
     position: 'absolute',
     height: '100%',
     backgroundColor: theme.colors.primary,
-    transitionProperty: 'width',
-    transitionDuration: '300ms',
-    transitionTimingFunction: 'ease-in-out',
-    flex: 1,
-    width: `${((value ?? 0) / (max ?? 100)) * 100}%`,
-  }),
+  },
 }));
 
-export const Progress = ({
-  style,
-  indicatorStyle,
-  ...props
-}: ComponentProps<typeof ProgressPrimitive.Root> & { indicatorStyle?: StyleProp<ViewStyle> }) => {
+const getProgressWidth = (value: number, max: number): `${number}%` => {
+  const percentage = Math.min(100, Math.max(0, (value / max) * 100));
+
+  return `${percentage}%`;
+};
+
+export interface ProgressProps extends ComponentProps<typeof View> {
+  indicatorStyle?: StyleProp<ViewStyle>;
+  max?: number;
+  value?: number;
+}
+
+export const Progress = ({ indicatorStyle, max, style, value, ...props }: ProgressProps) => {
+  const resolvedMax = typeof max === 'number' && Number.isFinite(max) && max > 0 ? max : 100;
+  const resolvedValue = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+
   return (
-    <ProgressPrimitive.Root {...props} style={[styles.root, style]}>
-      <ProgressPrimitive.Indicator
-        style={[styles.indicator({ value: props.value, max: props.max }), indicatorStyle]}
+    <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ max: resolvedMax, min: 0, now: Math.min(resolvedValue, resolvedMax) }}
+      {...props}
+      style={[styles.root, style]}
+    >
+      <View
+        pointerEvents="none"
+        style={[
+          styles.indicator,
+          { width: getProgressWidth(resolvedValue, resolvedMax) },
+          indicatorStyle,
+        ]}
       />
-    </ProgressPrimitive.Root>
+    </View>
   );
 };
