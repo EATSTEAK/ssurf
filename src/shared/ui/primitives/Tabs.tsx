@@ -1,22 +1,5 @@
-import {
-  Children,
-  createContext,
-  isValidElement,
-  ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import {
-  Animated,
-  LayoutChangeEvent,
-  Pressable,
-  StyleProp,
-  useWindowDimensions,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { ReactNode, useCallback, useState } from 'react';
+import { LayoutChangeEvent, Pressable, StyleProp, View, ViewStyle } from 'react-native';
 import {
   NavigationState,
   Route,
@@ -30,9 +13,13 @@ import { propagateState } from '@/shared/lib/propagateState';
 
 import { ThemedText } from './ThemedText';
 
+export const DEFAULT_TAB_VIEW_HEIGHT = 1000;
+const DEFAULT_TAB_BAR_HEIGHT = 40;
+
 const styles = StyleSheet.create((theme) => ({
   listContainer: {
     backgroundColor: theme.colors.surface,
+    paddingBottom: theme.gap(1),
   },
   listContent: {
     paddingHorizontal: theme.gap(3),
@@ -68,167 +55,50 @@ const styles = StyleSheet.create((theme) => ({
   triggerDisabled: {
     opacity: 0.5,
   },
-  content: {
-    paddingTop: theme.gap(2),
-  },
 }));
 
-type ExtendedTriggerState = {
+export type TabsTriggerState = {
   isActive: boolean;
   pressed: boolean;
 };
 
-type ExtendedTriggerStyle =
-  | ((state: ExtendedTriggerState) => StyleProp<ViewStyle>)
+export type TabsTriggerStyle =
+  | ((state: TabsTriggerState) => StyleProp<ViewStyle>)
   | StyleProp<ViewStyle>;
 
-interface TabsRootContextValue {
-  onValueChange?: (value: string) => void;
-  value: string;
-}
-
-const TabsRootContext = createContext<null | TabsRootContextValue>(null);
-
-const useTabsRootContext = () => {
-  const context = useContext(TabsRootContext);
-  if (!context) {
-    throw new Error('Tabs components must be used within Tabs.Root');
-  }
-  return context;
-};
-
-interface TabsRootProps {
-  children: ReactNode;
-  onValueChange?: (value: string) => void;
-  style?: StyleProp<ViewStyle>;
-  value: string;
-}
-
-interface TabsListProps {
-  children: ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
-
-interface TabsTriggerProps {
+export interface TabsRoute extends Route {
   accessibilityLabel?: string;
   accessible?: boolean;
-  children?: ReactNode;
   disabled?: boolean;
   onLongPress?: () => void;
-  style?: ExtendedTriggerStyle;
+  renderLabel?: (state: { isActive: boolean }) => ReactNode;
   testID?: string;
-  value: string;
+  title: string;
+  triggerStyle?: TabsTriggerStyle;
 }
 
-interface TabsContentProps {
-  children: ReactNode;
-  style?: StyleProp<ViewStyle>;
-  value: string;
+export interface TabsTabBarProps<T extends TabsRoute> extends SceneRendererProps {
+  listStyle?: StyleProp<ViewStyle>;
+  navigationState: NavigationState<T>;
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
-type TabRoute = Route & {
-  accessibilityLabel?: string;
-  accessible?: boolean;
-  children?: ReactNode;
-  disabled?: boolean;
-  onLongPress?: () => void;
-  style?: ExtendedTriggerStyle;
-  testID?: string;
-};
-
-const extractTriggerRoutes = (children: ReactNode): TabRoute[] => {
-  return Children.toArray(children).flatMap((child): TabRoute[] => {
-    if (!isValidElement(child)) {
-      return [];
-    }
-
-    if (child.type === Trigger) {
-      const {
-        accessibilityLabel,
-        accessible,
-        children: triggerChildren,
-        disabled,
-        onLongPress,
-        style,
-        testID,
-        value,
-      } = child.props as TabsTriggerProps;
-
-      return [
-        {
-          accessibilityLabel,
-          accessible,
-          children: triggerChildren,
-          disabled,
-          key: value,
-          onLongPress,
-          style,
-          testID,
-          title: value,
-        },
-      ];
-    }
-
-    const nestedChildren = (child.props as { children?: ReactNode }).children;
-    if (nestedChildren) {
-      return extractTriggerRoutes(nestedChildren);
-    }
-
-    return [];
-  });
-};
-
-function Root({ children, onValueChange, style, value }: TabsRootProps) {
+export function TabsTabBar<T extends TabsRoute>({
+  listStyle,
+  navigationState,
+  onLayout,
+  ...sceneRendererProps
+}: TabsTabBarProps<T>) {
   return (
-    <TabsRootContext.Provider value={{ onValueChange, value }}>
-      {style ? <View style={style}>{children}</View> : children}
-    </TabsRootContext.Provider>
-  );
-}
-
-function List({ children, style }: TabsListProps) {
-  const { width: windowWidth } = useWindowDimensions();
-  const { onValueChange, value } = useTabsRootContext();
-  const [layout, setLayout] = useState({ height: 0, width: windowWidth });
-  const routes = useMemo(() => extractTriggerRoutes(children), [children]);
-  const selectedIndex = routes.findIndex((route) => route.key === value);
-  const safeIndex = selectedIndex === -1 ? 0 : selectedIndex;
-  const navigationState = useMemo<NavigationState<TabRoute>>(
-    () => ({ index: safeIndex, routes }),
-    [routes, safeIndex],
-  );
-  const [position] = useState(() => new Animated.Value(safeIndex));
-
-  useEffect(() => {
-    position.setValue(safeIndex);
-  }, [position, safeIndex]);
-
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const { height, width } = event.nativeEvent.layout;
-    setLayout((prev) => (prev.height === height && prev.width === width ? prev : { height, width }));
-  };
-
-  if (routes.length === 0) {
-    return <View onLayout={handleLayout} style={[styles.listContainer, style]} />;
-  }
-
-  return (
-    <View onLayout={handleLayout} style={[styles.listContainer, style]}>
-      <TabBar<TabRoute>
+    <View onLayout={onLayout} style={[styles.listContainer, listStyle]}>
+      <TabBar<T>
         bounces={false}
         contentContainerStyle={styles.listContent}
         gap={styles.listGap.gap}
-        jumpTo={(key) => {
-          if (key !== value) {
-            onValueChange?.(key);
-          }
-        }}
-        layout={layout}
         navigationState={navigationState}
-        position={position as unknown as SceneRendererProps['position']}
         renderIndicator={() => null}
         renderTabBarItem={(
-          props: TabBarItemProps<TabRoute> & {
+          props: TabBarItemProps<T> & {
             key: string;
           },
         ) => {
@@ -255,13 +125,13 @@ function List({ children, style }: TabsListProps) {
                     props.style,
                     styles.trigger(isActive, pressed),
                     props.route.disabled && styles.triggerDisabled,
-                    propagateState<ExtendedTriggerState, StyleProp<ViewStyle>>(
+                    propagateState<TabsTriggerState, StyleProp<ViewStyle>>(
                       { isActive, pressed },
-                      props.route.style,
+                      props.route.triggerStyle,
                     ),
                   ]}
                 >
-                  {props.route.children ?? (
+                  {props.route.renderLabel?.({ isActive }) ?? (
                     <ThemedText color={isActive ? 'fgPrimary' : 'fgSurface'} typography="labelMd">
                       {props.route.title}
                     </ThemedText>
@@ -271,32 +141,55 @@ function List({ children, style }: TabsListProps) {
             </Pressable>
           );
         }}
-        scrollEnabled
+        scrollEnabled={navigationState.routes.length > 1}
         style={styles.tabBar}
         tabStyle={styles.tab}
+        {...sceneRendererProps}
       />
     </View>
   );
 }
 
-function Trigger(props: TabsTriggerProps) {
-  void props;
-  return null;
+export function useAutoHeightTabView<T extends Route>(
+  navigationState: NavigationState<T>,
+  initialSceneHeight = DEFAULT_TAB_VIEW_HEIGHT,
+) {
+  const activeRouteKey = navigationState.routes[navigationState.index]?.key;
+  const [sceneHeights, setSceneHeights] = useState<Record<string, number>>({});
+  const [tabBarHeight, setTabBarHeight] = useState(DEFAULT_TAB_BAR_HEIGHT);
+  const [fallbackSceneHeight, setFallbackSceneHeight] = useState(initialSceneHeight);
+
+  const handleSceneLayout = useCallback(
+    (key: string) => (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+
+      if (height <= 0) {
+        return;
+      }
+
+      setSceneHeights((prevHeights) =>
+        prevHeights[key] === height ? prevHeights : { ...prevHeights, [key]: height },
+      );
+
+      if (key === activeRouteKey) {
+        setFallbackSceneHeight((prevHeight) => (prevHeight === height ? prevHeight : height));
+      }
+    },
+    [activeRouteKey],
+  );
+
+  const handleTabBarLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+
+    setTabBarHeight((prevHeight) => (prevHeight === height ? prevHeight : height));
+  }, []);
+
+  const currentSceneHeight =
+    (activeRouteKey ? sceneHeights[activeRouteKey] : undefined) ?? fallbackSceneHeight;
+
+  return {
+    handleSceneLayout,
+    handleTabBarLayout,
+    tabViewHeight: currentSceneHeight + tabBarHeight,
+  };
 }
-
-function Content({ children, style, value }: TabsContentProps) {
-  const context = useTabsRootContext();
-
-  if (context.value !== value) {
-    return null;
-  }
-
-  return <View style={[styles.content, style]}>{children}</View>;
-}
-
-export const Tabs = {
-  Content,
-  List,
-  Root,
-  Trigger,
-};

@@ -33,6 +33,10 @@ export const feedNotices = sqliteTable(
 );
 
 export type FeedNoticeEntity = typeof feedNotices.$inferSelect;
+export type FeedNoticeListItem = Pick<
+  FeedNoticeEntity,
+  'author' | 'createdAt' | 'description' | 'id' | 'slug' | 'title' | 'updatedAt' | 'url'
+>;
 
 export const feedCalendars = sqliteTable(
   'feed_calendars',

@@ -1,8 +1,9 @@
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { TabView } from 'react-native-tab-view';
 import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
@@ -21,9 +22,8 @@ import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollV
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
-import { AutoHeightFlatList } from '@/shared/ui/primitives/AutoHeightFlatList';
 import { Space } from '@/shared/ui/primitives/Space';
-import { Tabs } from '@/shared/ui/primitives/Tabs';
+import { TabsRoute, TabsTabBar, useAutoHeightTabView } from '@/shared/ui/primitives/Tabs';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
@@ -33,7 +33,6 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     position: 'relative',
   },
-
   topView: {
     width: '100%',
     display: 'flex',
@@ -81,6 +80,7 @@ function getTabKey(item: GradeTabView): string {
 }
 
 function GradesContent() {
+  const { width } = useWindowDimensions();
   const { data, error, isLoading, refresh } = useGradeTabView();
   const {
     data: graduation,
@@ -98,13 +98,43 @@ function GradesContent() {
     },
   });
 
+  const gradeData = useMemo(() => data ?? [], [data]);
+  const tabs = useMemo(() => gradeData.map(getTabKey), [gradeData]);
   const tabMap = useMemo(
-    () => Object.fromEntries((data ?? []).map((item) => [getTabKey(item), item])),
-    [data],
+    () => Object.fromEntries(gradeData.map((item) => [getTabKey(item), item])),
+    [gradeData],
   );
+  const overview = useMemo(
+    () => gradeData.find((item): item is GradeOverviewTabView => item.type === 'overview'),
+    [gradeData],
+  );
+  const semesters = useMemo(
+    () =>
+      gradeData
+        .filter((item): item is SemesterGradeTabView => item.type === 'semester')
+        .map((item) => item.data)
+        .filter((s) => s !== undefined),
+    [gradeData],
+  );
+  const selectedTab = tabMap[selectedTabKey];
+  const selectedSemesterData = selectedTab?.type === 'semester' ? selectedTab.data : undefined;
+  const displayedSummary = selectedSemesterData ?? overview?.certificated ?? {
+    attemptedCredits: 0,
+    earnedCredits: 0,
+    gradePointsAverage: 0,
+  };
+  const routes = useMemo<TabsRoute[]>(() => tabs.map((tab) => ({ key: tab, title: tab })), [tabs]);
+  const currentIndex = Math.max(
+    0,
+    routes.findIndex((route) => route.key === selectedTabKey),
+  );
+  const navigationState = useMemo(
+    () => ({ index: currentIndex, routes }),
+    [currentIndex, routes],
+  );
+  const { handleSceneLayout, handleTabBarLayout, tabViewHeight } = useAutoHeightTabView(navigationState);
 
   const handleErrorRefresh = async () => {
-    // 로딩 중이면 리프레시하지 않음
     if (isLoading || isGraduationLoading) {
       return;
     }
@@ -112,7 +142,7 @@ function GradesContent() {
     await graduationRefresh();
   };
 
-  if (!data || !graduation) {
+  if (!data || !graduation || !overview) {
     return (
       <View style={styles.root}>
         <RefreshableScrollView
@@ -160,20 +190,6 @@ function GradesContent() {
     );
   }
 
-  const tabs = data.map(getTabKey);
-  const overview = data.find((item): item is GradeOverviewTabView => item.type === 'overview');
-  const semesters = data
-    .filter((item): item is SemesterGradeTabView => item.type === 'semester')
-    .map((item) => item.data)
-    .filter((s) => s !== undefined);
-
-  const selectedTab = tabMap[selectedTabKey];
-  const selectedSemesterData = selectedTab?.type === 'semester' ? selectedTab.data : undefined;
-  const displayedSummary = selectedSemesterData ?? overview!.certificated;
-
-  const handleTabSelect = (key: string) => {
-    setSelectedTabKey(key);
-  };
 
   const handleRefresh = async () => {
     if (selectedTab?.type === 'semester') {
@@ -183,24 +199,39 @@ function GradesContent() {
     }
   };
 
-  const renderItem = (item: GradeTabView) => {
-    if (item.type === 'overview') {
-      return (
-        <SemestersSection
-          certiSummary={item.certificated}
-          recordedSummary={item.recorded}
-          semesters={semesters}
-        />
-      );
+  const handleTabIndexChange = (index: number) => {
+    const route = routes[index];
+    if (!route || route.key === selectedTabKey) {
+      return;
+    }
+
+    setSelectedTabKey(route.key);
+  };
+
+  const renderScene = ({ route }: { route: TabsRoute }) => {
+    const item = tabMap[route.key];
+
+    if (!item || !overview) {
+      return <View onLayout={handleSceneLayout(route.key)} />;
     }
 
     return (
-      <SemesterSection
-        certiSummary={overview?.certificated}
-        semester={item.semester}
-        semesterGrade={item.data}
-        year={item.year}
-      />
+      <View onLayout={handleSceneLayout(route.key)}>
+        {item.type === 'overview' ? (
+          <SemestersSection
+            certiSummary={item.certificated}
+            recordedSummary={item.recorded}
+            semesters={semesters}
+          />
+        ) : (
+          <SemesterSection
+            certiSummary={overview.certificated}
+            semester={item.semester}
+            semesterGrade={item.data}
+            year={item.year}
+          />
+        )}
+      </View>
     );
   };
 
@@ -244,20 +275,17 @@ function GradesContent() {
               semesters={semesters}
             />
           </View>
-          <Tabs.Root onValueChange={handleTabSelect} value={selectedTabKey}>
-            <Tabs.List>
-              {tabs.map((tab) => (
-                <Tabs.Trigger key={tab} value={tab} />
-              ))}
-            </Tabs.List>
-          </Tabs.Root>
-          <AutoHeightFlatList
-            data={data}
-            keyExtractor={getTabKey}
-            onPageChange={handleTabSelect}
-            renderItem={renderItem}
-            selectedKey={selectedTabKey}
-          />
+          {routes.length > 0 ? (
+            <TabView
+              initialLayout={{ width }}
+              navigationState={navigationState}
+              onIndexChange={handleTabIndexChange}
+              renderScene={renderScene}
+              renderTabBar={(props) => <TabsTabBar {...props} onLayout={handleTabBarLayout} />}
+              style={{ height: tabViewHeight }}
+              swipeEnabled={routes.length > 1}
+            />
+          ) : null}
           <Space gap={8} />
         </SafeContainer>
       </RefreshableScrollView>

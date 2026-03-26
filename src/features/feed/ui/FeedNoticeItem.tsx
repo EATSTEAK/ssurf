@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { FeedNoticeEntity } from '@/entities/feed/model';
+import { FeedNoticeListItem } from '@/entities/feed/model';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 import { formatFeedDate } from './formatFeedDate';
@@ -30,8 +30,8 @@ const styles = StyleSheet.create((theme) => ({
 
 type FeedNoticeItemProps = {
   isLast: boolean;
-  item: FeedNoticeEntity;
-  onPress: (item: FeedNoticeEntity) => void;
+  item: FeedNoticeListItem;
+  onPress: (item: FeedNoticeListItem) => void;
   titleNumberOfLines?: number;
 };
 

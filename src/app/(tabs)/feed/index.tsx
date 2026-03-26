@@ -1,15 +1,15 @@
 import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
-import { FlatList, Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useFeedCalendars, useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
 import { useSyncFeed } from '@/entities/feed/lib/sync';
-import { FeedCalendarEntity, FeedNoticeEntity } from '@/entities/feed/model';
+import { FeedCalendarEntity, FeedNoticeListItem } from '@/entities/feed/model';
 import { FeedCalendarItem } from '@/features/feed/ui/FeedCalendarItem';
-import { FeedNoticeItem } from '@/features/feed/ui/FeedNoticeItem';
+import { NoticeCard } from '@/features/feed/ui/NoticeCard';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -17,10 +17,8 @@ import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollV
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { ArrowForwardIcon, SettingsIcon } from '@/shared/ui/icons';
-import { AutoHeightFlatList } from '@/shared/ui/primitives/AutoHeightFlatList';
 import { Button } from '@/shared/ui/primitives/Button';
 import { Space } from '@/shared/ui/primitives/Space';
-import { Tabs } from '@/shared/ui/primitives/Tabs';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const DEFAULT_NOTICE_SLUG = 'scatch.ssu.ac.kr';
@@ -79,75 +77,8 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     gap: theme.gap(1),
   },
-  noticeSection: {
-    paddingVertical: theme.gap(2),
-    backgroundColor: theme.colors.surfaceDim,
-    gap: theme.gap(1),
-  },
-  noticeTabs: {
-    marginTop: theme.gap(0.5),
-    marginBottom: theme.gap(0.5),
-    paddingLeft: theme.gap(0.5),
-    backgroundColor: theme.colors.surfaceDim,
-  },
-  noticeTabTrigger: (state: { isActive: boolean; pressed: boolean }) => ({
-    backgroundColor: state.isActive
-      ? state.pressed
-        ? theme.colors.primaryContainer
-        : theme.colors.primary
-      : state.pressed
-        ? theme.colors.surfaceDimmer
-        : theme.colors.surface,
-  }),
-  noticeSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: theme.gap(2),
-    paddingHorizontal: theme.gap(3),
-  },
-  noticeSectionTitle: {
-    flex: 1,
-    gap: theme.gap(0.5),
-  },
-  noticeSectionAction: {
-    width: 'auto',
-    paddingHorizontal: theme.gap(2),
-  },
   sectionActionButton: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.gap(1),
-  },
-  noticePreviewSection: {
-    backgroundColor: theme.colors.surfaceDim,
-    gap: theme.gap(2),
-  },
-  noticePreviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: theme.gap(2),
-    paddingHorizontal: theme.gap(3),
-  },
-  noticePreviewTitle: {
-    flex: 1,
-    gap: theme.gap(0.5),
-  },
-  noticePreviewPager: {
-    height: 272,
-  },
-  noticePreviewList: {
-    overflow: 'hidden',
-    backgroundColor: theme.colors.surfaceDim,
-  },
-  noticePreviewPage: {
-    width: '100%',
-    height: 272,
-  },
-  noticePreviewEmpty: {
-    paddingVertical: theme.gap(4),
-    paddingHorizontal: theme.gap(3),
     alignItems: 'center',
     gap: theme.gap(1),
   },
@@ -176,6 +107,7 @@ function isTodayCalendar(item: FeedCalendarEntity, now: Date) {
 
 export default function FeedScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const { studentId } = useRusaintApplication();
 
   const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useExpoSecureStore<string[]>({
@@ -192,7 +124,7 @@ export default function FeedScreen() {
   });
 
   const { data: sites } = useFeedSites();
-  const { sync, syncSites } = useSyncFeed(studentId ?? '');
+  const { syncEntry, syncSites } = useSyncFeed(studentId ?? '');
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const availableSelectedNoticeSlugs = useMemo(
@@ -260,19 +192,14 @@ export default function FeedScreen() {
     return calendars.filter((item) => isTodayCalendar(item, now));
   }, [calendars]);
 
-  const currentNoticePreviewItems = useMemo(
-    () => notices.filter((item) => item.slug === currentNoticeSlug).slice(0, NOTICE_PREVIEW_LIMIT),
-    [currentNoticeSlug, notices],
-  );
-
-  const noticePreviewPages = useMemo(
-    () =>
-      visibleNoticeSites.map((site) => ({
-        slug: site.slug,
-        title: site.title,
-      })),
-    [visibleNoticeSites],
-  );
+  const noticePreviewItemsBySlug = useMemo(() => {
+    return visibleNoticeSites.reduce<Record<string, FeedNoticeListItem[]>>((acc, site) => {
+      acc[site.slug] = notices
+        .filter((item) => item.slug === site.slug)
+        .slice(0, NOTICE_PREVIEW_LIMIT);
+      return acc;
+    }, {});
+  }, [notices, visibleNoticeSites]);
 
   const scrollY = useSharedValue(0);
 
@@ -281,11 +208,14 @@ export default function FeedScreen() {
       return;
     }
 
-    const slugs = Array.from(new Set([...noticeSlugs, ...selectedCalendarSlugs].filter(Boolean)));
-
     void syncSites({ force: true });
-    void sync(slugs, { force: true });
-  }, [isCalendarSyncing, isNoticeSyncing, noticeSlugs, selectedCalendarSlugs, sync, syncSites]);
+
+    if (!currentNoticeSlug) {
+      return;
+    }
+
+    void syncEntry(currentNoticeSlug, { force: true });
+  }, [currentNoticeSlug, isCalendarSyncing, isNoticeSyncing, syncEntry, syncSites]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -312,7 +242,7 @@ export default function FeedScreen() {
   }, []);
 
   const handlePressNotice = useCallback(
-    (item: FeedNoticeEntity) => {
+    (item: FeedNoticeListItem) => {
       void handleOpenUrl(item.url);
     },
     [handleOpenUrl],
@@ -328,6 +258,17 @@ export default function FeedScreen() {
   const handleOpenNoticePage = useCallback(() => {
     router.push('/feed/notice');
   }, [router]);
+
+  const handleSelectNoticeSlug = useCallback(
+    (slug: string) => {
+      if (slug === currentNoticeSlug) {
+        return;
+      }
+
+      void setSelectedNoticeSlug(slug);
+    },
+    [currentNoticeSlug, setSelectedNoticeSlug],
+  );
 
   return (
     <>
@@ -418,106 +359,18 @@ export default function FeedScreen() {
                 )}
               </View>
 
-              <View style={styles.noticeSection}>
-                <View style={styles.noticeSectionHeader}>
-                  <View style={styles.noticeSectionTitle}>
-                    <ThemedText typography="headingLg">공지사항</ThemedText>
-                  </View>
-                  <Button
-                    onPress={handleOpenNoticePage}
-                    style={styles.noticeSectionAction}
-                    textStyle={{ fontSize: 14 }}
-                    variant="surface"
-                  >
-                    {() => (
-                      <View style={styles.sectionActionButton}>
-                        <ThemedText color="fgPrimary" typography="labelMd">
-                          전체 공지 보기
-                        </ThemedText>
-                        <ArrowForwardIcon color="white" size={16} />
-                      </View>
-                    )}
-                  </Button>
-                </View>
-
-                {noticeSites.length === 0 ? (
-                  <View style={styles.noticePreviewSection}>
-                    <View style={styles.noticePreviewEmpty}>
-                      <ThemedText typography="bodyMd">선택 가능한 공지 소스가 없어요</ThemedText>
-                    </View>
-                  </View>
-                ) : noticeError ? (
-                  <View style={styles.noticePreviewSection}>
-                    <View style={styles.noticePreviewEmpty}>
-                      <ThemedText color="error" typography="bodyMd">
-                        공지사항을 불러오지 못했어요
-                      </ThemedText>
-                      <ThemedText color="fgSecondary" typography="bodySm">
-                        아래로 당겨 다시 시도해주세요
-                      </ThemedText>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.noticePreviewSection}>
-                    <Tabs.Root onValueChange={setSelectedNoticeSlug} value={currentNoticeSlug}>
-                      <Tabs.List style={styles.noticeTabs}>
-                        {visibleNoticeSites.map((site) => (
-                          <Tabs.Trigger
-                            key={site.slug}
-                            style={styles.noticeTabTrigger}
-                            value={site.slug}
-                          >
-                            <ThemedText typography="labelMd">{site.title}</ThemedText>
-                          </Tabs.Trigger>
-                        ))}
-                      </Tabs.List>
-                    </Tabs.Root>
-
-                    <AutoHeightFlatList
-                      data={noticePreviewPages}
-                      keyExtractor={(item) => item.slug}
-                      onPageChange={setSelectedNoticeSlug}
-                      renderItem={(page) => {
-                        if (page.slug !== currentNoticeSlug) {
-                          return <View style={styles.noticePreviewPage} />;
-                        }
-
-                        if (currentNoticePreviewItems.length === 0) {
-                          return (
-                            <View style={styles.noticePreviewPage}>
-                              <View style={styles.noticePreviewEmpty}>
-                                <ThemedText typography="bodyMd">등록된 공지가 없어요</ThemedText>
-                              </View>
-                            </View>
-                          );
-                        }
-
-                        return (
-                          <View style={styles.noticePreviewPage}>
-                            <FlatList
-                              data={currentNoticePreviewItems}
-                              keyExtractor={(item) => `${item.slug}-${item.id}`}
-                              renderItem={({ index, item }) => (
-                                <FeedNoticeItem
-                                  isLast={index === currentNoticePreviewItems.length - 1}
-                                  item={item}
-                                  onPress={handlePressNotice}
-                                  titleNumberOfLines={1}
-                                />
-                              )}
-                              scrollEnabled={false}
-                              style={styles.noticePreviewList}
-                            />
-                          </View>
-                        );
-                      }}
-                      selectedKey={currentNoticeSlug}
-                      showsHorizontalScrollIndicator={false}
-                      style={styles.noticePreviewPager}
-                    />
-                  </View>
-                )}
-              </View>
+              <NoticeCard
+                actionLabel="전체 공지 보기"
+                currentNoticeSlug={currentNoticeSlug}
+                error={noticeError}
+                itemsBySlug={noticePreviewItemsBySlug}
+                limit={NOTICE_PREVIEW_LIMIT}
+                onPressAction={handleOpenNoticePage}
+                onPressNotice={handlePressNotice}
+                onSelectNoticeSlug={handleSelectNoticeSlug}
+                sites={visibleNoticeSites}
+                width={width}
+              />
             </View>
           </SafeContainer>
         </RefreshableScrollView>
