@@ -76,7 +76,6 @@ function ScrollableContent({
         {...extraProps}
         {...scrollableProps}
         onScroll={composedOnScroll}
-        showsVerticalScrollIndicator={showsVerticalScrollIndicator}
         refreshControl={
           <RefreshControl
             onRefresh={resolvedOnRefresh}
@@ -86,6 +85,7 @@ function ScrollableContent({
           />
         }
         scrollEventThrottle={scrollEventThrottle ?? 16}
+        showsVerticalScrollIndicator={showsVerticalScrollIndicator}
       >
         <Animated.View
           style={[
