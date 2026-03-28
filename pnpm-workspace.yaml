@@ -3,6 +3,9 @@ ignoredBuiltDependencies:
 
 nodeLinker: hoisted
 
+overrides:
+  'hermes-compiler': '250829098.0.4'
+
 onlyBuiltDependencies:
   - '@shopify/react-native-skia'
   - react-native-nitro-modules

@@ -41,6 +41,13 @@ const config: ExpoConfig = {
     favicon: './assets/images/favicon.png',
   },
   plugins: [
+    [
+      'expo-build-properties',
+      {
+        buildReactNativeFromSource: true,
+        useHermesV1: true,
+      },
+    ],
     'expo-router',
     [
       'expo-splash-screen',
