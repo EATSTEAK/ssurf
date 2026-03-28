@@ -28,10 +28,8 @@ export interface SsufidSiteResponse {
 }
 
 export interface SsufidNoticeItem {
-  attachments?: Array<{ name?: string; url?: string }>;
   author?: string;
   category?: string[];
-  content?: string;
   created_at: string;
   description?: string;
   id: string;
@@ -134,14 +132,12 @@ export const syncFeedEntry = async (studentId: string, slug: string) => {
           id: item.id,
           title: item.title,
           description: item.description ?? null,
-          content: item.content ?? null,
           url: item.url ?? null,
           createdAt: item.created_at ? new Date(item.created_at).getTime() : null,
           updatedAt: item.updated_at ? new Date(item.updated_at).getTime() : null,
           author: item.author ?? null,
           thumbnail: item.thumbnail ?? null,
           categoriesJson: item.category ? JSON.stringify(item.category) : null,
-          attachmentsJson: item.attachments ? JSON.stringify(item.attachments) : null,
           metadataJson: item.metadata ? JSON.stringify(item.metadata) : null,
         }));
 
