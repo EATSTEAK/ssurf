@@ -35,9 +35,7 @@ export function CollapsibleLegendList<T>({
         const attachScrollRef = (
           instance: null | React.ComponentRef<typeof Reanimated.ScrollView>,
         ) => {
-          (scrollableProps.ref as AnimatedRef<React.ComponentRef<typeof Reanimated.ScrollView>>)(
-            instance,
-          );
+          (scrollableProps.ref as AnimatedRef<Reanimated.ScrollView>)(instance as never);
         };
 
         return (

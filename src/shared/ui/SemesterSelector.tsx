@@ -1,13 +1,12 @@
-import {
-  Button as JetpackButton,
-  ContextMenu as JetpackContextMenu,
-} from '@expo/ui/jetpack-compose';
+import { DropdownMenu, Button as JetpackButton } from '@expo/ui/jetpack-compose';
 import {
   Host,
   Button as SwiftButton,
   ContextMenu as SwiftContextMenu,
   Picker as SwiftPicker,
+  Text as SwiftText,
 } from '@expo/ui/swift-ui';
+import { tag, tint } from '@expo/ui/swift-ui/modifiers';
 import { YearSemester } from '@rusaint/react-native';
 import { Platform } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
@@ -49,37 +48,47 @@ export const SemesterSelector = withUnistyles(
         >
           <SwiftContextMenu>
             <SwiftContextMenu.Trigger>
-              <SwiftButton color={styles.triggerColor.color}>학기</SwiftButton>
+              <SwiftButton label="학기" modifiers={[tint(styles.triggerColor.color)]} />
             </SwiftContextMenu.Trigger>
             <SwiftContextMenu.Items>
               <SwiftPicker
-                onOptionSelected={({ nativeEvent: { index } }) => handleSelect(index)}
-                options={semesters.map(semesterToString)}
-                selectedIndex={selectedIndex ?? null}
-                variant="inline"
-              />
+                onSelectionChange={(index) => {
+                  if (typeof index === 'number') {
+                    handleSelect(index);
+                  }
+                }}
+                selection={selectedIndex ?? null}
+              >
+                {semesters.map((semester, index) => (
+                  <SwiftText key={`${semester.year}-${semester.semester}`} modifiers={[tag(index)]}>
+                    {semesterToString(semester)}
+                  </SwiftText>
+                ))}
+              </SwiftPicker>
             </SwiftContextMenu.Items>
           </SwiftContextMenu>
         </Host>
       ),
       android: (
-        <JetpackContextMenu>
-          <JetpackContextMenu.Trigger>
-            <JetpackButton color={styles.triggerColor.color}>학기</JetpackButton>
-          </JetpackContextMenu.Trigger>
-          <JetpackContextMenu.Items>
+        <DropdownMenu>
+          <DropdownMenu.Trigger>
+            <JetpackButton colors={{ contentColor: styles.triggerColor.color }}>학기</JetpackButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Items>
             {semesters.map((semester, index) => (
               <JetpackButton
-                color={styles.jetpackItemColor.backgroundColor}
-                elementColors={{ contentColor: styles.jetpackItemColor.color }}
+                colors={{
+                  containerColor: styles.jetpackItemColor.backgroundColor,
+                  contentColor: styles.jetpackItemColor.color,
+                }}
                 key={`${semester.year}-${semester.semester}`}
-                onPress={() => handleSelect(index)}
+                onClick={() => handleSelect(index)}
               >
                 {semesterToString(semester)}
               </JetpackButton>
             ))}
-          </JetpackContextMenu.Items>
-        </JetpackContextMenu>
+          </DropdownMenu.Items>
+        </DropdownMenu>
       ),
     });
   },

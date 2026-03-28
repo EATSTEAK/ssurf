@@ -16,7 +16,6 @@ const config: ExpoConfig = {
   icon: './assets/images/icon.png',
   scheme: 'ssurf',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: true,
   ios: {
     supportsTablet: true,
     bundleIdentifier,
@@ -33,7 +32,6 @@ const config: ExpoConfig = {
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
-    edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: bundleIdentifier,
     versionCode,
@@ -43,6 +41,13 @@ const config: ExpoConfig = {
     favicon: './assets/images/favicon.png',
   },
   plugins: [
+    [
+      'expo-build-properties',
+      {
+        buildReactNativeFromSource: true,
+        useHermesV1: true,
+      },
+    ],
     'expo-router',
     [
       'expo-splash-screen',
@@ -67,6 +72,8 @@ const config: ExpoConfig = {
     ],
     'expo-font',
     './plugins/android-release',
+    'expo-image',
+    'expo-web-browser',
   ],
   experiments: {
     typedRoutes: true,
