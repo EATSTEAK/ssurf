@@ -1,8 +1,10 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { useUnistyles } from 'react-native-unistyles';
 
 export default function TabsLayout() {
+  const { theme } = useUnistyles();
   return (
-    <NativeTabs>
+    <NativeTabs backgroundColor={theme.colors.surfaceDim} tintColor={theme.colors.primary}>
       <NativeTabs.Trigger name="feed">
         <NativeTabs.Trigger.Label>피드</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon md="newspaper" sf="newspaper.fill" />
