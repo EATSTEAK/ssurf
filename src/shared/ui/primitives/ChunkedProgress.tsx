@@ -27,14 +27,24 @@ export interface ChunkedProgressProps extends ComponentProps<typeof View> {
   value?: number;
 }
 
-export const ChunkedProgress = ({ indicatorStyle, max, style, value, ...props }: ChunkedProgressProps) => {
+export const ChunkedProgress = ({
+  indicatorStyle,
+  max,
+  style,
+  value,
+  ...props
+}: ChunkedProgressProps) => {
   const segmentCount = Math.max(0, Math.floor(max ?? 100));
   const resolvedValue = typeof value === 'number' && Number.isFinite(value) ? value : 0;
 
   return (
     <View
       accessibilityRole="progressbar"
-      accessibilityValue={{ max: segmentCount, min: 0, now: Math.min(Math.max(resolvedValue, 0), segmentCount) }}
+      accessibilityValue={{
+        max: segmentCount,
+        min: 0,
+        now: Math.min(Math.max(resolvedValue, 0), segmentCount),
+      }}
       {...props}
       style={[styles.root, style]}
     >

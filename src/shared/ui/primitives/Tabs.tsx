@@ -102,7 +102,8 @@ export function TabsTabBar<T extends TabsRoute>({
             key: string;
           },
         ) => {
-          const isActive = props.navigationState.routes[props.navigationState.index]?.key === props.route.key;
+          const isActive =
+            props.navigationState.routes[props.navigationState.index]?.key === props.route.key;
 
           return (
             <Pressable

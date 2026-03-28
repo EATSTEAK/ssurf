@@ -118,21 +118,20 @@ function GradesContent() {
   );
   const selectedTab = tabMap[selectedTabKey];
   const selectedSemesterData = selectedTab?.type === 'semester' ? selectedTab.data : undefined;
-  const displayedSummary = selectedSemesterData ?? overview?.certificated ?? {
-    attemptedCredits: 0,
-    earnedCredits: 0,
-    gradePointsAverage: 0,
-  };
+  const displayedSummary = selectedSemesterData ??
+    overview?.certificated ?? {
+      attemptedCredits: 0,
+      earnedCredits: 0,
+      gradePointsAverage: 0,
+    };
   const routes = useMemo<TabsRoute[]>(() => tabs.map((tab) => ({ key: tab, title: tab })), [tabs]);
   const currentIndex = Math.max(
     0,
     routes.findIndex((route) => route.key === selectedTabKey),
   );
-  const navigationState = useMemo(
-    () => ({ index: currentIndex, routes }),
-    [currentIndex, routes],
-  );
-  const { handleSceneLayout, handleTabBarLayout, tabViewHeight } = useAutoHeightTabView(navigationState);
+  const navigationState = useMemo(() => ({ index: currentIndex, routes }), [currentIndex, routes]);
+  const { handleSceneLayout, handleTabBarLayout, tabViewHeight } =
+    useAutoHeightTabView(navigationState);
 
   const handleErrorRefresh = async () => {
     if (isLoading || isGraduationLoading) {
@@ -189,7 +188,6 @@ function GradesContent() {
       </View>
     );
   }
-
 
   const handleRefresh = async () => {
     if (selectedTab?.type === 'semester') {
