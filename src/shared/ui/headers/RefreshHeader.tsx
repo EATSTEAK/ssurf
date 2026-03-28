@@ -1,5 +1,6 @@
 import { useWindowDimensions } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   Extrapolation,
   interpolate,
@@ -72,6 +73,7 @@ export function RefreshHeader({ refreshState, pullDistance }: RefreshHeaderProps
 
   const phase = useSharedValue<Phase>(Phase.Idle);
   const waveOffset = useSharedValue(0);
+  const debounceTimer = useSharedValue(0);
 
   // Separate animated properties for smooth transitions
   const headerOpacity = useSharedValue(0);
@@ -84,6 +86,14 @@ export function RefreshHeader({ refreshState, pullDistance }: RefreshHeaderProps
     () => refreshState.value,
     (current, previous) => {
       if (current === RefreshState.Syncing && previous !== RefreshState.Syncing) {
+        // Cancel pending Completing transition if re-syncing during debounce window
+        cancelAnimation(debounceTimer);
+
+        // If already in Syncing/Completing phase, just keep the current state (no re-entry)
+        if (phase.value !== Phase.Idle) {
+          return;
+        }
+
         // Capture current pull-based values as starting point for seamless transition
         const currentOpacity = interpolate(
           pullDistance.value,
@@ -129,20 +139,33 @@ export function RefreshHeader({ refreshState, pullDistance }: RefreshHeaderProps
         contentOpacity.value = withTiming(1, { duration: 200 });
         contentTranslateY.value = withSpring(0, { damping: 20, stiffness: 200 });
       } else if (current === RefreshState.Idle && previous === RefreshState.Syncing) {
-        waveOffset.value = withTiming(0, { duration: 300 });
-        phase.value = Phase.Completing;
-        // After 500ms delay, fade out over 300ms, then reset phase to Idle
-        headerOpacity.value = withDelay(
-          500,
-          withTiming(0, { duration: 300 }, (finished) => {
+        // Debounce: wait 100ms before starting Completing transition
+        // If Syncing comes back within the window, the timer is cancelled above
+        debounceTimer.value = withDelay(
+          100,
+          withTiming(1, { duration: 0 }, (finished) => {
             if (finished) {
-              phase.value = Phase.Idle;
+              debounceTimer.value = 0;
+              waveOffset.value = withTiming(0, { duration: 300 });
+              phase.value = Phase.Completing;
+              // After 500ms delay, fade out over 300ms, then reset phase to Idle
+              headerOpacity.value = withDelay(
+                500,
+                withTiming(0, { duration: 300 }, (f) => {
+                  if (f) {
+                    phase.value = Phase.Idle;
+                  }
+                }),
+              );
+              headerHeight.value = withDelay(500, withTiming(0, { duration: 300 }));
+              headerTranslateY.value = withDelay(
+                500,
+                withTiming(-insets.top - 36, { duration: 300 }),
+              );
+              contentOpacity.value = withDelay(500, withTiming(0, { duration: 300 }));
             }
           }),
         );
-        headerHeight.value = withDelay(500, withTiming(0, { duration: 300 }));
-        headerTranslateY.value = withDelay(500, withTiming(-insets.top - 36, { duration: 300 }));
-        contentOpacity.value = withDelay(500, withTiming(0, { duration: 300 }));
       }
     },
     [],
