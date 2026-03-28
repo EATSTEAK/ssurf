@@ -52,12 +52,12 @@ export const SemesterSelector = withUnistyles(
             </SwiftContextMenu.Trigger>
             <SwiftContextMenu.Items>
               <SwiftPicker
-                selection={selectedIndex ?? null}
                 onSelectionChange={(index) => {
                   if (typeof index === 'number') {
                     handleSelect(index);
                   }
                 }}
+                selection={selectedIndex ?? null}
               >
                 {semesters.map((semester, index) => (
                   <SwiftText key={`${semester.year}-${semester.semester}`} modifiers={[tag(index)]}>
