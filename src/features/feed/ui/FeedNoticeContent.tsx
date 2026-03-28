@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
+import loadingImage from '@/assets/loading.png';
 import { FeedNoticeListItem } from '@/entities/feed/model';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
@@ -20,16 +21,25 @@ const styles = StyleSheet.create(() => ({
   },
 }));
 
+export function renderFeedNoticeLoadingState() {
+  return (
+    <View style={styles.errorView}>
+      <Image contentFit="contain" source={loadingImage} style={{ width: 150, height: 150 }} />
+      <ThemedText typography="headingLg">공지를 가져오는 중이에요.</ThemedText>
+    </View>
+  );
+}
+
 export function renderFeedNoticeEmptyState(variant: 'empty' | 'noSource' = 'noSource') {
   return (
     <View style={styles.errorView}>
       <Image contentFit="contain" source={emptyImage} style={{ width: 150, height: 150 }} />
       <ThemedText typography="headingLg">
-        {variant === 'noSource' ? '선택된 소스가 없어요' : '표시할 항목이 없어요'}
+        {variant === 'noSource' ? '선택된 사이트가 없어요' : '표시할 항목이 없어요'}
       </ThemedText>
       {variant === 'noSource' ? (
         <ThemedText color="fgSecondary" typography="bodyLg">
-          우측 상단 설정 버튼을 눌러 소스를 선택해주세요
+          우측 상단 설정 버튼을 눌러 사이트를 선택해주세요
         </ThemedText>
       ) : null}
     </View>

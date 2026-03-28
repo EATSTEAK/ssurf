@@ -11,6 +11,7 @@ import {
   FeedNoticeContent,
   renderFeedNoticeEmptyState,
   renderFeedNoticeErrorState,
+  renderFeedNoticeLoadingState,
 } from './FeedNoticeContent';
 
 const styles = StyleSheet.create((theme) => ({
@@ -33,7 +34,7 @@ export function FeedNoticeTabScene({
   listContentContainerStyle,
   slug,
 }: FeedNoticeTabSceneProps) {
-  const { data } = useFeedNoticeItems(slug ? [slug] : []);
+  const { data, updatedAt } = useFeedNoticeItems(slug ? [slug] : []);
 
   const handleOpenUrl = useCallback(async (url: null | string) => {
     if (!url) {
@@ -60,15 +61,19 @@ export function FeedNoticeTabScene({
     [handleOpenUrl],
   );
 
+  if (error && data.length === 0) {
+    return renderFeedNoticeErrorState(error);
+  }
+
   if (!slug) {
     return renderFeedNoticeEmptyState();
   }
 
-  if (error) {
-    return renderFeedNoticeErrorState(error);
+  if ((isSyncing || updatedAt === undefined) && data.length === 0) {
+    return renderFeedNoticeLoadingState();
   }
 
-  if (data.length === 0 && !isSyncing) {
+  if (data.length === 0) {
     return renderFeedNoticeEmptyState('empty');
   }
 

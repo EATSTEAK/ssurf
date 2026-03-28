@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
@@ -5,6 +6,8 @@ import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
+import emptyImage from '@/assets/empty.png';
+import loadingImage from '@/assets/loading.png';
 import { useFeedSites } from '@/entities/feed/lib/queries';
 import { useSyncFeed } from '@/entities/feed/lib/sync';
 import { FeedNoticeTabScene } from '@/features/feed/ui/FeedNoticeTabScene';
@@ -57,6 +60,19 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     gap: theme.gap(1),
     backgroundColor: theme.colors.surface,
+  },
+  statusView: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+    gap: 16,
+    marginBottom: 96,
+  },
+  imageView: {
+    width: 150,
+    height: 150,
+    marginBottom: 16,
   },
   sceneListContent: {
     paddingBottom: theme.gap(8),
@@ -150,6 +166,15 @@ export default function FeedNoticeScreen() {
   );
   const navigationState = useMemo(() => ({ index: currentIndex, routes }), [currentIndex, routes]);
 
+  const [visitedSlugs, setVisitedSlugs] = useState(new Set<string>());
+  const loadedSlugs = useMemo(() => {
+    const next = new Set(visitedSlugs);
+    if (currentNoticeSlug) {
+      next.add(currentNoticeSlug);
+    }
+    return next;
+  }, [visitedSlugs, currentNoticeSlug]);
+
   const listBottomPadding =
     NATIVE_TAB_BAR_HEIGHT + insets.bottom + styles.sceneListContent.paddingBottom;
   const isLoadingSites = !hasBootstrappedSites && sites.length === 0;
@@ -171,6 +196,11 @@ export default function FeedNoticeScreen() {
       }
 
       void setSelectedNoticeSlug(route.key);
+      setVisitedSlugs((prev) => {
+        const next = new Set(prev);
+        next.add(route.key);
+        return next;
+      });
     },
     [currentNoticeSlug, routes, setSelectedNoticeSlug],
   );
@@ -191,42 +221,70 @@ export default function FeedNoticeScreen() {
         }}
       />
       <View style={styles.root}>
-        <SafeContainer>
-          {Platform.OS === 'ios' && <Space gap={2} />}
-          {isLoadingSites ? (
-            <View style={styles.emptyState}>
-              <ThemedText color="fgSecondary" typography="bodyMd">
-                공지 소스를 불러오는 중이에요
+        {isLoadingSites ? (
+          <SafeContainer>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.topView}>
+              <View style={styles.topInnerView}>
+                <Header title="공지사항" />
+                <ThemedText color="fgSecondary" typography="labelMd">
+                  사이트별 전체 공지
+                </ThemedText>
+              </View>
+            </View>
+            <View style={styles.statusView}>
+              <Image contentFit="contain" source={loadingImage} style={styles.imageView} />
+              <ThemedText typography="headingLg">공지 목록을 가져오는 중이에요.</ThemedText>
+              <ThemedText color="fgSecondary" typography="bodyLg">
+                잠시만 기다려주세요.
               </ThemedText>
             </View>
-          ) : routes.length === 0 ? (
-            <View style={styles.emptyState}>
-              <ThemedText typography="bodyMd">선택 가능한 공지 소스가 없어요</ThemedText>
+          </SafeContainer>
+        ) : routes.length === 0 ? (
+          <SafeContainer>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.topView}>
+              <View style={styles.topInnerView}>
+                <Header title="공지사항" />
+                <ThemedText color="fgSecondary" typography="labelMd">
+                  사이트별 전체 공지
+                </ThemedText>
+              </View>
             </View>
-          ) : (
-            <CollapsibleTabs.Container
-              index={navigationState.index}
-              onIndexChange={handleNoticeIndexChange}
-              onRefresh={handleRefresh}
-              pullDistance={pullDistance}
-              refreshing={isSyncing}
-              renderHeader={() => (
-                <View style={styles.topView}>
-                  <View style={styles.topInnerView}>
-                    <Header title="공지사항" />
-                    <ThemedText color="fgSecondary" typography="labelMd">
-                      사이트별 전체 공지
-                    </ThemedText>
-                  </View>
+            <View style={styles.statusView}>
+              <Image contentFit="contain" source={emptyImage} style={styles.imageView} />
+              <ThemedText typography="headingLg">선택 가능한 공지 소스가 없어요</ThemedText>
+              <ThemedText color="fgSecondary" typography="bodyLg">
+                우측 상단 설정 버튼을 눌러 소스를 선택해주세요
+              </ThemedText>
+            </View>
+          </SafeContainer>
+        ) : (
+          <CollapsibleTabs.Container
+            index={navigationState.index}
+            onIndexChange={handleNoticeIndexChange}
+            onRefresh={handleRefresh}
+            pullDistance={pullDistance}
+            refreshing={isSyncing}
+            renderHeader={() => (
+              <SafeContainer edges={{ top: 'additive' }} style={styles.topView}>
+                {Platform.OS === 'ios' && <Space gap={2} />}
+                <View style={styles.topInnerView}>
+                  <Header title="공지사항" />
+                  <ThemedText color="fgSecondary" typography="labelMd">
+                    사이트별 전체 공지
+                  </ThemedText>
                 </View>
-              )}
-              renderTabBar={(props: React.ComponentProps<typeof TabsTabBar<TabsRoute>>) => (
-                <TabsTabBar {...props} />
-              )}
-              routes={routes}
-            >
-              {routes.map((route) => (
-                <CollapsibleTabs.Scene key={route.key} routeKey={route.key}>
+              </SafeContainer>
+            )}
+            renderTabBar={(props: React.ComponentProps<typeof TabsTabBar<TabsRoute>>) => (
+              <TabsTabBar {...props} />
+            )}
+            routes={routes}
+          >
+            {routes.map((route) => (
+              <CollapsibleTabs.Scene key={route.key} routeKey={route.key}>
+                {loadedSlugs.has(route.key) ? (
                   <FeedNoticeTabScene
                     error={route.key === currentNoticeSlug ? error : undefined}
                     isSyncing={isSyncing}
@@ -236,12 +294,12 @@ export default function FeedNoticeScreen() {
                     ]}
                     slug={route.key}
                   />
-                </CollapsibleTabs.Scene>
-              ))}
-            </CollapsibleTabs.Container>
-          )}
-          <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
-        </SafeContainer>
+                ) : null}
+              </CollapsibleTabs.Scene>
+            ))}
+          </CollapsibleTabs.Container>
+        )}
+        <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
       </View>
     </>
   );
