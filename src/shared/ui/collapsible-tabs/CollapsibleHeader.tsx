@@ -8,7 +8,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
 const styles = StyleSheet.create((theme) => ({
@@ -40,7 +39,6 @@ export function CollapsibleHeader({
   renderHeader,
   renderTabBar,
 }: CollapsibleHeaderProps) {
-  const insets = useSafeAreaInsets();
   const threshold = useSharedValue(0);
 
   useEffect(() => {
@@ -69,7 +67,7 @@ export function CollapsibleHeader({
         measureTotalHeight(event);
         onMeasuredHeight(event.nativeEvent.layout.height);
       }}
-      style={[styles.header, { paddingTop: insets.top }, animatedStyle]}
+      style={[styles.header, animatedStyle]}
     >
       <Animated.View onLayout={measureDynamic} style={styles.content}>
         {renderHeader({ progress })}

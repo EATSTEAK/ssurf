@@ -217,8 +217,7 @@ function GradesContent() {
 
   return (
     <View style={styles.root}>
-      <SafeContainer>
-        {Platform.OS === 'ios' && <Space gap={2} />}
+      <SafeContainer edges={['bottom', 'left', 'right']}>
         <CollapsibleTabs.Container
           index={currentIndex}
           onIndexChange={handleTabIndexChange}
@@ -226,36 +225,42 @@ function GradesContent() {
           pullDistance={pullDistance}
           refreshing={isLoading || isGraduationLoading}
           renderHeader={() => (
-            <View style={styles.topView}>
-              <View style={styles.topInnerView}>
-                <Pressable onPress={toggleBlur}>
-                  <Header
-                    action={
-                      isBlurred ? (
-                        <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
-                      ) : (
-                        <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
-                      )
-                    }
-                    title="성적"
-                  />
-                </Pressable>
-                <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
+            <SafeContainer edges={['top']}>
+              {Platform.OS === 'ios' && <Space gap={2} />}
+              <View style={styles.topView}>
+                <View style={styles.topInnerView}>
+                  <Pressable onPress={toggleBlur}>
+                    <Header
+                      action={
+                        isBlurred ? (
+                          <EyeOffIcon
+                            color={styles.eyeOffIcon.color}
+                            size={styles.eyeOffIcon.size}
+                          />
+                        ) : (
+                          <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
+                        )
+                      }
+                      title="성적"
+                    />
+                  </Pressable>
+                  <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
+                  <Space gap={1} />
+                </View>
+                <GradeSummarySection
+                  graduationGeneral={graduation.general}
+                  graduationStudent={graduation.student}
+                  isSemesterSummary={!!selectedSemesterData}
+                  summary={displayedSummary}
+                />
                 <Space gap={1} />
+                <GradeSequenceGraphSection
+                  selectedSemester={selectedSemesterData?.semester}
+                  selectedYear={selectedSemesterData?.year}
+                  semesters={semesters}
+                />
               </View>
-              <GradeSummarySection
-                graduationGeneral={graduation.general}
-                graduationStudent={graduation.student}
-                isSemesterSummary={!!selectedSemesterData}
-                summary={displayedSummary}
-              />
-              <Space gap={1} />
-              <GradeSequenceGraphSection
-                selectedSemester={selectedSemesterData?.semester}
-                selectedYear={selectedSemesterData?.year}
-                semesters={semesters}
-              />
-            </View>
+            </SafeContainer>
           )}
           renderTabBar={(props) => <TabsTabBar {...props} />}
           routes={routes}

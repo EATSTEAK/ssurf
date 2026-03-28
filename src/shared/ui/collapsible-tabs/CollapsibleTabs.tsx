@@ -2,8 +2,8 @@ import { PropsWithChildren, ReactNode, useCallback, useMemo, useState } from 're
 import { StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native';
 import HeaderMotion, { MotionProgress } from 'react-native-header-motion';
 import PagerView, {
-  PagerViewOnPageScrollStateChangedEvent,
   PagerViewOnPageSelectedEvent,
+  PageScrollStateChangedNativeEvent,
 } from 'react-native-pager-view';
 import { SharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -117,7 +117,7 @@ function ContainerContent<T extends TabsRoute>({
         </HeaderMotion.Header>
         <PagerView
           initialPage={index}
-          onPageScrollStateChanged={(event: PagerViewOnPageScrollStateChangedEvent) => {
+          onPageScrollStateChanged={(event: PageScrollStateChangedNativeEvent) => {
             setIsSwiping(event.nativeEvent.pageScrollState !== 'idle');
           }}
           onPageSelected={(event: PagerViewOnPageSelectedEvent) =>
