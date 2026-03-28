@@ -1,7 +1,10 @@
 import { PropsWithChildren, ReactNode, useCallback, useMemo, useState } from 'react';
 import { StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native';
 import HeaderMotion, { MotionProgress } from 'react-native-header-motion';
-import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
+import PagerView, {
+  PagerViewOnPageScrollStateChangedEvent,
+  PagerViewOnPageSelectedEvent,
+} from 'react-native-pager-view';
 import { SharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -59,6 +62,7 @@ function ContainerContent<T extends TabsRoute>({
 }) {
   const { width } = useWindowDimensions();
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
   const { onPageSelected, setPagerRef } = headerController;
 
   const navigationState = useMemo(() => ({ index, routes }), [index, routes]);
@@ -67,13 +71,14 @@ function ContainerContent<T extends TabsRoute>({
     () => ({
       activeIndex: index,
       headerHeight,
+      isSwiping,
       onRefresh,
       pullDistance,
       refreshing,
       routes: routes as CollapsibleRoute[],
       setIndex: onIndexChange,
     }),
-    [headerHeight, index, onIndexChange, onRefresh, pullDistance, refreshing, routes],
+    [headerHeight, index, isSwiping, onIndexChange, onRefresh, pullDistance, refreshing, routes],
   );
 
   const jumpTo = useCallback(
@@ -112,6 +117,9 @@ function ContainerContent<T extends TabsRoute>({
         </HeaderMotion.Header>
         <PagerView
           initialPage={index}
+          onPageScrollStateChanged={(event: PagerViewOnPageScrollStateChangedEvent) => {
+            setIsSwiping(event.nativeEvent.pageScrollState !== 'idle');
+          }}
           onPageSelected={(event: PagerViewOnPageSelectedEvent) =>
             onPageSelected(event.nativeEvent.position)
           }

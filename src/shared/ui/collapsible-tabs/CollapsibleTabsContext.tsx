@@ -9,6 +9,7 @@ export type CollapsibleRoute = {
 export type CollapsibleTabsContextValue = {
   activeIndex: number;
   headerHeight: number;
+  isSwiping: boolean;
   onRefresh?: () => void;
   pullDistance: SharedValue<number>;
   refreshing: boolean;

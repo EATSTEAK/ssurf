@@ -50,6 +50,7 @@ type ScrollableContentProps = PropsWithChildren<{
   resolvedRefreshing: boolean;
   scrollableProps: Omit<AnimatedProps<ScrollViewProps>, 'onScroll'>;
   scrollEventThrottle?: number;
+  showsVerticalScrollIndicator: boolean;
 }>;
 
 function ScrollableContent({
@@ -65,6 +66,7 @@ function ScrollableContent({
   resolvedRefreshing,
   scrollEventThrottle,
   scrollableProps,
+  showsVerticalScrollIndicator,
 }: ScrollableContentProps) {
   const composedOnScroll = useComposedEventHandler([managedOnScroll, refreshScrollHandler]);
 
@@ -74,6 +76,7 @@ function ScrollableContent({
         {...extraProps}
         {...scrollableProps}
         onScroll={composedOnScroll}
+        showsVerticalScrollIndicator={showsVerticalScrollIndicator}
         refreshControl={
           <RefreshControl
             onRefresh={resolvedOnRefresh}
@@ -116,6 +119,7 @@ export function CollapsibleScrollView({
   const resolvedScrollId = useCollapsibleSceneKey(scrollId);
   const {
     activeIndex,
+    isSwiping,
     onRefresh: containerOnRefresh,
     pullDistance,
     refreshing: containerRefreshing,
@@ -193,6 +197,7 @@ export function CollapsibleScrollView({
           scrollEventThrottle={
             typeof scrollEventThrottle === 'number' ? scrollEventThrottle : undefined
           }
+          showsVerticalScrollIndicator={!isSwiping}
         >
           {children}
         </ScrollableContent>

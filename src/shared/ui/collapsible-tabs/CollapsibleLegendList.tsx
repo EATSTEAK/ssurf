@@ -5,7 +5,7 @@ import HeaderMotion from 'react-native-header-motion';
 import Reanimated, { AnimatedRef } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useCollapsibleSceneKey } from './CollapsibleTabsContext';
+import { useCollapsibleSceneKey, useCollapsibleTabsContext } from './CollapsibleTabsContext';
 
 const styles = StyleSheet.create((theme) => ({
   list: {
@@ -27,6 +27,7 @@ export function CollapsibleLegendList<T>({
   ...props
 }: CollapsibleLegendListProps<T>) {
   const resolvedScrollId = useCollapsibleSceneKey(scrollId);
+  const { isSwiping } = useCollapsibleTabsContext();
 
   return (
     <HeaderMotion.ScrollManager scrollId={resolvedScrollId}>
@@ -52,6 +53,7 @@ export function CollapsibleLegendList<T>({
               refreshControl: scrollableProps.refreshControl,
               refScrollView: attachScrollRef,
               scrollEventThrottle: scrollableProps.scrollEventThrottle,
+              showsVerticalScrollIndicator: !isSwiping,
               style: [styles.list, style],
             } as AnimatedLegendListProps<T>)}
           />

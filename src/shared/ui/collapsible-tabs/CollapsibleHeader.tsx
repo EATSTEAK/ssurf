@@ -1,7 +1,13 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { View } from 'react-native';
 import { AnimatedHeaderBase, WithCollapsibleHeaderProps } from 'react-native-header-motion';
-import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -9,6 +15,7 @@ const styles = StyleSheet.create((theme) => ({
   header: {
     width: '100%',
     backgroundColor: theme.colors.surface,
+    zIndex: 1,
   },
   content: {
     gap: theme.gap(1),
@@ -34,32 +41,33 @@ export function CollapsibleHeader({
   renderTabBar,
 }: CollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
-  const [headerHeight, setHeaderHeight] = useState(0);
+  const threshold = useSharedValue(0);
 
-  const animatedStyle = useAnimatedStyle(
-    () => ({
-      opacity: interpolate(progress.value, [0, 0.85, 1], [1, 0.08, 0], Extrapolation.CLAMP),
-      transform: [
-        {
-          translateY: interpolate(
-            progress.value,
-            [0, 1],
-            [0, -Math.max(headerHeight, progressThreshold + insets.top)],
-            Extrapolation.CLAMP,
-          ),
-        },
-      ],
-    }),
-    [headerHeight, insets.top, progressThreshold],
-  );
+  useEffect(() => {
+    if (Number.isFinite(progressThreshold)) {
+      threshold.value = progressThreshold;
+    }
+  }, [progressThreshold, threshold]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 0.85, 1], [1, 0.08, 0], Extrapolation.CLAMP),
+    transform: [
+      {
+        translateY: interpolate(progress.value, [0, 1], [0, -threshold.value], Extrapolation.CLAMP),
+      },
+    ],
+  }));
+
+  const animatedProps = useAnimatedProps((): { pointerEvents: 'auto' | 'none' } => ({
+    pointerEvents: progress.value > 0.95 ? 'none' : 'auto',
+  }));
 
   return (
     <AnimatedHeaderBase
+      animatedProps={animatedProps}
       onLayout={(event) => {
-        const nextHeight = event.nativeEvent.layout.height;
         measureTotalHeight(event);
-        setHeaderHeight((prevHeight) => (prevHeight === nextHeight ? prevHeight : nextHeight));
-        onMeasuredHeight(nextHeight);
+        onMeasuredHeight(event.nativeEvent.layout.height);
       }}
       style={[styles.header, { paddingTop: insets.top }, animatedStyle]}
     >
