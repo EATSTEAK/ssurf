@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   Extrapolation,
   interpolate,
   SharedValue,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSpring,
   withTiming,
@@ -49,141 +50,193 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
+export const RefreshState = { Idle: 0, Syncing: 1 } as const;
+export type RefreshState = (typeof RefreshState)[keyof typeof RefreshState];
+
+// Internal phases (discrete, only integer values)
+const Phase = {
+  Idle: 0,
+  Syncing: 1,
+  Completing: 2,
+} as const;
+type Phase = (typeof Phase)[keyof typeof Phase];
+
 interface RefreshHeaderProps {
-  isSyncing: boolean;
   pullDistance: SharedValue<number>;
+  refreshState: SharedValue<RefreshState>;
 }
 
-export function RefreshHeader({ pullDistance, isSyncing }: RefreshHeaderProps) {
+export function RefreshHeader({ refreshState, pullDistance }: RefreshHeaderProps) {
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
-  const isShowing = useSharedValue(isSyncing);
-  const animatingOut = useSharedValue(false);
-  const prevIsSyncingRef = useRef(isSyncing);
+
+  const phase = useSharedValue<Phase>(Phase.Idle);
   const waveOffset = useSharedValue(0);
-  const [showingComplete, setShowingComplete] = useState(false);
 
-  useEffect(() => {
-    if (isSyncing) {
-      // isSyncing 중에는 파도 애니메이션 시작
-      waveOffset.value = withRepeat(
-        withTiming(1, {
-          duration: 1500,
-          easing: Easing.linear,
-        }),
-        -1,
-        false,
-      );
-    } else {
-      // isSyncing이 아닐 때는 애니메이션 정지
-      waveOffset.value = withTiming(0, { duration: 300 });
-    }
-  }, [isSyncing, waveOffset]);
+  // Separate animated properties for smooth transitions
+  const headerOpacity = useSharedValue(0);
+  const headerHeight = useSharedValue(0);
+  const headerTranslateY = useSharedValue(0);
+  const contentOpacity = useSharedValue(0);
+  const contentTranslateY = useSharedValue(0);
 
-  useEffect(() => {
-    const wasSyncing = prevIsSyncingRef.current;
-    prevIsSyncingRef.current = isSyncing;
+  useAnimatedReaction(
+    () => refreshState.value,
+    (current, previous) => {
+      if (current === RefreshState.Syncing && previous !== RefreshState.Syncing) {
+        // Capture current pull-based values as starting point for seamless transition
+        const currentOpacity = interpolate(
+          pullDistance.value,
+          [0, 80],
+          [0, 1],
+          Extrapolation.CLAMP,
+        );
+        const currentHeight = interpolate(
+          pullDistance.value,
+          [0, 1, 120],
+          [0, insets.top, 120],
+          Extrapolation.CLAMP,
+        );
+        const currentContentOpacity = interpolate(
+          pullDistance.value,
+          [0, 40, 80],
+          [0, 0.5, 1],
+          Extrapolation.CLAMP,
+        );
+        const currentContentTranslateY = interpolate(
+          pullDistance.value,
+          [0, 80],
+          [-20, 0],
+          Extrapolation.CLAMP,
+        );
 
-    if (isSyncing) {
-      // sync 시작 시 즉시 표시
-      isShowing.value = true;
-      animatingOut.value = false;
-    } else if (wasSyncing && !isSyncing && animatingOut.value === false) {
-      // isSyncing이 false가 되었을 때 "새로고침 완료!" 표시 (비동기)
-      const completeShowTimer = setTimeout(() => {
-        setShowingComplete(true);
-      }, 0);
+        // Set starting values from current pull state
+        headerOpacity.value = currentOpacity;
+        headerHeight.value = currentHeight;
+        headerTranslateY.value = 0;
+        contentOpacity.value = currentContentOpacity;
+        contentTranslateY.value = currentContentTranslateY;
 
-      // 500ms 후 완료 메시지 숨기고 사라지는 애니메이션 시작
-      const completeTimer = setTimeout(() => {
-        setShowingComplete(false);
-        animatingOut.value = true;
-      }, 500);
-
-      // 800ms 후 isShowing과 애니메이션 상태 리셋
-      const animationTimer = setTimeout(() => {
-        isShowing.value = false;
-        animatingOut.value = false;
-      }, 800);
-
-      return () => {
-        clearTimeout(completeShowTimer);
-        clearTimeout(completeTimer);
-        clearTimeout(animationTimer);
-      };
-    }
-  }, [animatingOut, isShowing, isSyncing]);
+        phase.value = Phase.Syncing;
+        waveOffset.value = withRepeat(
+          withTiming(1, { duration: 1500, easing: Easing.linear }),
+          -1,
+          false,
+        );
+        // Animate from current pull values to sync targets
+        headerOpacity.value = withTiming(1, { duration: 200 });
+        headerHeight.value = withSpring(insets.top + 36, { damping: 20, stiffness: 200 });
+        contentOpacity.value = withTiming(1, { duration: 200 });
+        contentTranslateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      } else if (current === RefreshState.Idle && previous === RefreshState.Syncing) {
+        waveOffset.value = withTiming(0, { duration: 300 });
+        phase.value = Phase.Completing;
+        // After 500ms delay, fade out over 300ms, then reset phase to Idle
+        headerOpacity.value = withDelay(
+          500,
+          withTiming(0, { duration: 300 }, (finished) => {
+            if (finished) {
+              phase.value = Phase.Idle;
+            }
+          }),
+        );
+        headerHeight.value = withDelay(500, withTiming(0, { duration: 300 }));
+        headerTranslateY.value = withDelay(500, withTiming(-insets.top - 36, { duration: 300 }));
+        contentOpacity.value = withDelay(500, withTiming(0, { duration: 300 }));
+      }
+    },
+    [],
+  );
 
   const refreshHeaderAnimatedStyle = useAnimatedStyle(() => {
+    if (phase.value !== Phase.Idle) {
+      return {
+        opacity: headerOpacity.value,
+        height: headerHeight.value,
+        transform: [{ translateY: headerTranslateY.value }],
+      };
+    }
+
     const pullOpacity = interpolate(pullDistance.value, [0, 80], [0, 1], Extrapolation.CLAMP);
-    const height = interpolate(
+    const pullHeight = interpolate(
       pullDistance.value,
       [0, 1, 120],
       [0, insets.top, 120],
       Extrapolation.CLAMP,
     );
 
-    // isShowing이 true일 때 (syncing 중이거나 완료 메시지 표시 중)
-    if (isShowing.value && !animatingOut.value) {
-      return {
-        opacity: withTiming(1, { duration: 200 }),
-        height: withSpring(insets.top + 36, { damping: 20, stiffness: 200 }),
-        transform: [{ translateY: withTiming(0, { duration: 200 }) }],
-      };
-    }
-
-    // syncing이 막 끝났을 때 - 위로 올라가면서 fade out
-    if (animatingOut.value) {
-      return {
-        opacity: withTiming(0, { duration: 300 }),
-        height: withTiming(0, { duration: 300 }),
-        transform: [{ translateY: withTiming(-insets.top - 36, { duration: 300 }) }],
-      };
-    }
-
-    // 일반적인 pull 상태
     return {
       opacity: pullOpacity,
-      height,
+      height: pullHeight,
       transform: [{ translateY: 0 }],
     };
   });
 
   const refreshContentStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(pullDistance.value, [0, 80], [-20, 0], Extrapolation.CLAMP);
-    const opacity = interpolate(pullDistance.value, [0, 40, 80], [0, 0.5, 1], Extrapolation.CLAMP);
-
-    if (isShowing.value && !animatingOut.value) {
+    if (phase.value !== Phase.Idle) {
       return {
-        transform: [{ translateY: withSpring(0, { damping: 20, stiffness: 200 }) }],
-        opacity: withTiming(1, { duration: 200 }),
+        transform: [{ translateY: contentTranslateY.value }],
+        opacity: contentOpacity.value,
       };
     }
 
+    const pullTranslateY = interpolate(pullDistance.value, [0, 80], [-20, 0], Extrapolation.CLAMP);
+    const pullOpacity = interpolate(
+      pullDistance.value,
+      [0, 40, 80],
+      [0, 0.5, 1],
+      Extrapolation.CLAMP,
+    );
+
     return {
-      transform: [{ translateY }],
-      opacity,
+      transform: [{ translateY: pullTranslateY }],
+      opacity: pullOpacity,
     };
   });
 
   const waveAnimatedStyle = useAnimatedStyle(() => {
-    if (isSyncing) {
-      return {
-        transform: [{ translateX: -windowWidth * waveOffset.value }],
-      };
-    }
     return {
-      transform: [{ translateX: 0 }],
+      transform: [{ translateX: -windowWidth * waveOffset.value }],
     };
-  }, [isSyncing, windowWidth]);
+  });
+
+  const pullTextStyle = useAnimatedStyle(() => ({
+    opacity: phase.value === Phase.Idle ? 1 : 0,
+    position: phase.value === Phase.Idle ? 'relative' : 'absolute',
+    overflow: 'hidden',
+  }));
+
+  const syncTextStyle = useAnimatedStyle(() => ({
+    opacity: phase.value === Phase.Syncing ? 1 : 0,
+    position: phase.value === Phase.Syncing ? 'relative' : 'absolute',
+    overflow: 'hidden',
+  }));
+
+  const completeTextStyle = useAnimatedStyle(() => ({
+    opacity: phase.value === Phase.Completing ? 1 : 0,
+    position: phase.value === Phase.Completing ? 'relative' : 'absolute',
+    overflow: 'hidden',
+  }));
 
   return (
     <Animated.View style={[styles.refreshHeader, refreshHeaderAnimatedStyle]}>
       <SafeAreaView edges={{ top: 'additive' }} style={styles.safeArea}>
         <Animated.View style={refreshContentStyle}>
-          <ThemedText color="fgPrimary" typography="bodyMd">
-            {showingComplete ? '새로고침 완료!' : isSyncing ? '불러오는 중...' : '당겨서 새로고침'}
-          </ThemedText>
+          <Animated.View style={pullTextStyle}>
+            <ThemedText color="fgPrimary" typography="bodyMd">
+              당겨서 새로고침
+            </ThemedText>
+          </Animated.View>
+          <Animated.View style={syncTextStyle}>
+            <ThemedText color="fgPrimary" typography="bodyMd">
+              불러오는 중...
+            </ThemedText>
+          </Animated.View>
+          <Animated.View style={completeTextStyle}>
+            <ThemedText color="fgPrimary" typography="bodyMd">
+              새로고침 완료!
+            </ThemedText>
+          </Animated.View>
         </Animated.View>
       </SafeAreaView>
       <Animated.View style={[styles.waveContainer, waveAnimatedStyle]}>

@@ -13,7 +13,7 @@ import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProv
 import { CollapsibleTabs } from '@/shared/ui/collapsible-tabs/CollapsibleTabs';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { Header } from '@/shared/ui/headers/Header';
-import { RefreshHeader } from '@/shared/ui/headers/RefreshHeader';
+import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 import { SettingsIcon } from '@/shared/ui/icons';
 import { Space } from '@/shared/ui/primitives/Space';
 import { TabsRoute, TabsTabBar } from '@/shared/ui/primitives/Tabs';
@@ -83,7 +83,12 @@ export default function FeedNoticeScreen() {
   const { data: sites } = useFeedSites();
   const { error, isSyncing, syncEntry, syncSites } = useSyncFeed(studentId ?? '');
   const pullDistance = useSharedValue(0);
+  const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
   const [hasBootstrappedSites, setHasBootstrappedSites] = useState(sites.length > 0);
+
+  useEffect(() => {
+    refreshState.value = isSyncing ? RefreshState.Syncing : RefreshState.Idle;
+  }, [isSyncing, refreshState]);
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const visibleNoticeSites = useMemo(
     () => noticeSites.filter((site) => selectedNoticeSlugs.includes(site.slug)),
@@ -235,7 +240,7 @@ export default function FeedNoticeScreen() {
               ))}
             </CollapsibleTabs.Container>
           )}
-          <RefreshHeader isSyncing={isSyncing} pullDistance={pullDistance} />
+          <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
         </SafeContainer>
       </View>
     </>

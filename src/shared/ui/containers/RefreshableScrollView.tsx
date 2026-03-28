@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { RefreshHeader } from '@/shared/ui/headers/RefreshHeader';
+import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -33,6 +33,11 @@ export const RefreshableScrollView = ({
 }: Omit<AnimatedProps<ScrollViewProps>, 'refreshControl'> &
   RefreshControlProps & { onScroll?: ScrollHandlerProcessed }) => {
   const pullDistance = useSharedValue(0);
+  const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
+
+  useEffect(() => {
+    refreshState.value = refreshing ? RefreshState.Syncing : RefreshState.Idle;
+  }, [refreshing, refreshState]);
 
   useEffect(() => {
     if (!refreshing) {
@@ -86,7 +91,7 @@ export const RefreshableScrollView = ({
         scrollEventThrottle={16}
         {...props}
       />
-      <RefreshHeader isSyncing={refreshing} pullDistance={pullDistance} />
+      <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
     </>
   );
 };
