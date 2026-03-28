@@ -71,6 +71,13 @@
       "when": 1774325256667,
       "tag": "0009_mixed_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1774701525772,
+      "tag": "0010_chubby_punisher",
+      "breakpoints": true
     }
   ]
 }

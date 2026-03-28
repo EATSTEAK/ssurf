@@ -19,20 +19,22 @@ export const feedNotices = sqliteTable(
     id: t.text().notNull(),
     title: t.text().notNull(),
     description: t.text(),
-    content: t.text(),
     url: t.text(),
     createdAt: t.integer(),
     updatedAt: t.integer(),
     author: t.text(),
     thumbnail: t.text(),
     categoriesJson: t.text(),
-    attachmentsJson: t.text(),
     metadataJson: t.text(),
   },
   (table) => [t.primaryKey({ columns: [table.slug, table.id] })],
 );
 
 export type FeedNoticeEntity = typeof feedNotices.$inferSelect;
+export type FeedNoticeListItem = Pick<
+  FeedNoticeEntity,
+  'author' | 'createdAt' | 'description' | 'id' | 'slug' | 'title' | 'updatedAt' | 'url'
+>;
 
 export const feedCalendars = sqliteTable(
   'feed_calendars',

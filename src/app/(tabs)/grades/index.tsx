@@ -1,8 +1,9 @@
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
@@ -16,15 +17,17 @@ import { GradeSummarySection } from '@/features/grades/ui/sections/GradeSummaryS
 import { SemesterSection } from '@/features/grades/ui/sections/SemesterSection';
 import { SemestersSection } from '@/features/grades/ui/sections/SemestersSection';
 import { semesterToString } from '@/shared/lib/semester';
+import { CollapsibleTabs } from '@/shared/ui/collapsible-tabs/CollapsibleTabs';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
-import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
+import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
-import { AutoHeightFlatList } from '@/shared/ui/primitives/AutoHeightFlatList';
 import { Space } from '@/shared/ui/primitives/Space';
-import { Tabs } from '@/shared/ui/primitives/Tabs';
+import { TabsRoute, TabsTabBar } from '@/shared/ui/primitives/Tabs';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
+
+const NATIVE_TAB_BAR_HEIGHT = 49;
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -33,7 +36,6 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     position: 'relative',
   },
-
   topView: {
     width: '100%',
     display: 'flex',
@@ -69,6 +71,11 @@ const styles = StyleSheet.create((theme) => ({
     size: 16,
     color: theme.colorsHex.fgSurfaceMuted,
   },
+  sceneContent: {
+    backgroundColor: theme.colors.surface,
+    minHeight: '100%',
+    paddingBottom: theme.gap(8),
+  },
 }));
 
 const SUMMARY_LABEL = '전체 학기';
@@ -91,20 +98,48 @@ function GradesContent() {
   const [selectedTabKey, setSelectedTabKey] = useState<string>(SUMMARY_LABEL);
   const { isBlurred, toggleBlur } = useBlurGrade();
 
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
+  const insets = useSafeAreaInsets();
+  const pullDistance = useSharedValue(0);
+  const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
 
+  useEffect(() => {
+    refreshState.value =
+      isLoading || isGraduationLoading ? RefreshState.Syncing : RefreshState.Idle;
+  }, [isLoading, isGraduationLoading, refreshState]);
+
+  const gradeData = useMemo(() => data ?? [], [data]);
+  const tabs = useMemo(() => gradeData.map(getTabKey), [gradeData]);
   const tabMap = useMemo(
-    () => Object.fromEntries((data ?? []).map((item) => [getTabKey(item), item])),
-    [data],
+    () => Object.fromEntries(gradeData.map((item) => [getTabKey(item), item])),
+    [gradeData],
+  );
+  const overview = useMemo(
+    () => gradeData.find((item): item is GradeOverviewTabView => item.type === 'overview'),
+    [gradeData],
+  );
+  const semesters = useMemo(
+    () =>
+      gradeData
+        .filter((item): item is SemesterGradeTabView => item.type === 'semester')
+        .map((item) => item.data)
+        .filter((s) => s !== undefined),
+    [gradeData],
+  );
+  const selectedTab = tabMap[selectedTabKey];
+  const selectedSemesterData = selectedTab?.type === 'semester' ? selectedTab.data : undefined;
+  const displayedSummary = selectedSemesterData ??
+    overview?.certificated ?? {
+      attemptedCredits: 0,
+      earnedCredits: 0,
+      gradePointsAverage: 0,
+    };
+  const routes = useMemo<TabsRoute[]>(() => tabs.map((tab) => ({ key: tab, title: tab })), [tabs]);
+  const currentIndex = Math.max(
+    0,
+    routes.findIndex((route) => route.key === selectedTabKey),
   );
 
   const handleErrorRefresh = async () => {
-    // 로딩 중이면 리프레시하지 않음
     if (isLoading || isGraduationLoading) {
       return;
     }
@@ -112,7 +147,7 @@ function GradesContent() {
     await graduationRefresh();
   };
 
-  if (!data || !graduation) {
+  if (!data || !graduation || !overview) {
     return (
       <View style={styles.root}>
         <RefreshableScrollView
@@ -160,21 +195,6 @@ function GradesContent() {
     );
   }
 
-  const tabs = data.map(getTabKey);
-  const overview = data.find((item): item is GradeOverviewTabView => item.type === 'overview');
-  const semesters = data
-    .filter((item): item is SemesterGradeTabView => item.type === 'semester')
-    .map((item) => item.data)
-    .filter((s) => s !== undefined);
-
-  const selectedTab = tabMap[selectedTabKey];
-  const selectedSemesterData = selectedTab?.type === 'semester' ? selectedTab.data : undefined;
-  const displayedSummary = selectedSemesterData ?? overview!.certificated;
-
-  const handleTabSelect = (key: string) => {
-    setSelectedTabKey(key);
-  };
-
   const handleRefresh = async () => {
     if (selectedTab?.type === 'semester') {
       await refresh({ semester: selectedTab.semester, year: selectedTab.year });
@@ -183,85 +203,100 @@ function GradesContent() {
     }
   };
 
-  const renderItem = (item: GradeTabView) => {
-    if (item.type === 'overview') {
-      return (
-        <SemestersSection
-          certiSummary={item.certificated}
-          recordedSummary={item.recorded}
-          semesters={semesters}
-        />
-      );
+  const handleTabIndexChange = (index: number) => {
+    const route = routes[index];
+    if (!route || route.key === selectedTabKey) {
+      return;
     }
 
-    return (
-      <SemesterSection
-        certiSummary={overview?.certificated}
-        semester={item.semester}
-        semesterGrade={item.data}
-        year={item.year}
-      />
-    );
+    setSelectedTabKey(route.key);
   };
+
+  const listBottomPadding =
+    NATIVE_TAB_BAR_HEIGHT + insets.bottom + (styles.sceneContent.paddingBottom as number);
 
   return (
     <View style={styles.root}>
-      <RefreshableScrollView
-        onRefresh={handleRefresh}
-        onScroll={scrollHandler}
-        refreshing={isLoading || isGraduationLoading}
-        scrollEventThrottle={16}
-      >
-        <SafeContainer>
-          {Platform.OS === 'ios' && <Space gap={2} />}
-          <View style={styles.topView}>
-            <View style={styles.topInnerView}>
-              <Pressable onPress={toggleBlur}>
-                <Header
-                  action={
-                    isBlurred ? (
-                      <EyeOffIcon color={styles.eyeOffIcon.color} size={styles.eyeOffIcon.size} />
-                    ) : (
-                      <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
-                    )
-                  }
-                  title="성적"
+      <SafeContainer edges={['bottom', 'left', 'right']}>
+        <CollapsibleTabs.Container
+          index={currentIndex}
+          onIndexChange={handleTabIndexChange}
+          onRefresh={handleRefresh}
+          pullDistance={pullDistance}
+          refreshing={isLoading || isGraduationLoading}
+          renderHeader={() => (
+            <SafeContainer edges={['top']}>
+              {Platform.OS === 'ios' && <Space gap={2} />}
+              <View style={styles.topView}>
+                <View style={styles.topInnerView}>
+                  <Pressable onPress={toggleBlur}>
+                    <Header
+                      action={
+                        isBlurred ? (
+                          <EyeOffIcon
+                            color={styles.eyeOffIcon.color}
+                            size={styles.eyeOffIcon.size}
+                          />
+                        ) : (
+                          <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
+                        )
+                      }
+                      title="성적"
+                    />
+                  </Pressable>
+                  <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
+                  <Space gap={1} />
+                </View>
+                <GradeSummarySection
+                  graduationGeneral={graduation.general}
+                  graduationStudent={graduation.student}
+                  isSemesterSummary={!!selectedSemesterData}
+                  summary={displayedSummary}
                 />
-              </Pressable>
-              <ThemedText typography="labelMd">{selectedTabKey}</ThemedText>
-              <Space gap={1} />
-            </View>
-            <GradeSummarySection
-              graduationGeneral={graduation.general}
-              graduationStudent={graduation.student}
-              isSemesterSummary={!!selectedSemesterData}
-              summary={displayedSummary}
-            />
-            <Space gap={1} />
-            <GradeSequenceGraphSection
-              selectedSemester={selectedSemesterData?.semester}
-              selectedYear={selectedSemesterData?.year}
-              semesters={semesters}
-            />
-          </View>
-          <Tabs.Root onValueChange={handleTabSelect} value={selectedTabKey}>
-            <Tabs.List>
-              {tabs.map((tab) => (
-                <Tabs.Trigger key={tab} value={tab} />
-              ))}
-            </Tabs.List>
-          </Tabs.Root>
-          <AutoHeightFlatList
-            data={data}
-            keyExtractor={getTabKey}
-            onPageChange={handleTabSelect}
-            renderItem={renderItem}
-            selectedKey={selectedTabKey}
-          />
-          <Space gap={8} />
-        </SafeContainer>
-      </RefreshableScrollView>
-      <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
+                <Space gap={1} />
+                <GradeSequenceGraphSection
+                  selectedSemester={selectedSemesterData?.semester}
+                  selectedYear={selectedSemesterData?.year}
+                  semesters={semesters}
+                />
+              </View>
+            </SafeContainer>
+          )}
+          renderTabBar={(props) => <TabsTabBar {...props} />}
+          routes={routes}
+        >
+          {routes.map((route) => {
+            const item = tabMap[route.key];
+            return (
+              <CollapsibleTabs.Scene key={route.key} routeKey={route.key}>
+                <CollapsibleTabs.ScrollView
+                  contentContainerStyle={[
+                    styles.sceneContent,
+                    { paddingBottom: listBottomPadding },
+                  ]}
+                  refreshing={isLoading || isGraduationLoading}
+                >
+                  {item?.type === 'overview' ? (
+                    <SemestersSection
+                      certiSummary={item.certificated}
+                      recordedSummary={item.recorded}
+                      semesters={semesters}
+                    />
+                  ) : item?.type === 'semester' ? (
+                    <SemesterSection
+                      certiSummary={overview.certificated}
+                      semester={item.semester}
+                      semesterGrade={item.data}
+                      year={item.year}
+                    />
+                  ) : null}
+                </CollapsibleTabs.ScrollView>
+              </CollapsibleTabs.Scene>
+            );
+          })}
+        </CollapsibleTabs.Container>
+        <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
+      </SafeContainer>
     </View>
   );
 }

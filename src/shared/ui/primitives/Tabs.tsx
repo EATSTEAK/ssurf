@@ -1,26 +1,49 @@
-import * as TabsPrimitive from '@rn-primitives/tabs';
-import { createContext, ReactNode, useContext, useEffect, useRef } from 'react';
-import { ScrollView, StyleProp, View, ViewStyle } from 'react-native';
+import { ReactNode, useCallback, useState } from 'react';
+import { LayoutChangeEvent, Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import {
+  NavigationState,
+  Route,
+  SceneRendererProps,
+  TabBar,
+  TabBarItemProps,
+} from 'react-native-tab-view';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { propagateState } from '@/shared/lib/propagateState';
 
 import { ThemedText } from './ThemedText';
 
+export const DEFAULT_TAB_VIEW_HEIGHT = 1000;
+const DEFAULT_TAB_BAR_HEIGHT = 40;
+
 const styles = StyleSheet.create((theme) => ({
   listContainer: {
     backgroundColor: theme.colors.surface,
+    paddingBottom: theme.gap(1),
   },
-  list: {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: theme.gap(1),
+  listContent: {
     paddingHorizontal: theme.gap(3),
   },
-  trigger: (isActive: boolean, pressed: boolean) => ({
+  listGap: {
+    gap: theme.gap(1),
+  },
+  tabBar: {
+    backgroundColor: 'transparent',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  tab: {
+    width: 'auto',
+  },
+  pressable: {
+    backgroundColor: 'transparent',
+  },
+  triggerContainer: {
     paddingVertical: theme.gap(1),
     paddingHorizontal: theme.gap(2),
     borderRadius: theme.cornerRadius.md,
+  },
+  trigger: (isActive: boolean, pressed: boolean) => ({
     backgroundColor: isActive
       ? pressed
         ? theme.colors.primaryContainer
@@ -29,157 +52,145 @@ const styles = StyleSheet.create((theme) => ({
         ? theme.colors.surfaceDimmer
         : theme.colors.surfaceDim,
   }),
-  content: {
-    paddingTop: theme.gap(2),
+  triggerDisabled: {
+    opacity: 0.5,
   },
 }));
 
-// Tabs Context for sharing refs
-interface TabsContextValue {
-  scrollViewRef: React.RefObject<null | ScrollView>;
-  setTriggerRef: (key: string, layout: { width: number; x: number }) => void;
-}
-
-const TabsContext = createContext<null | TabsContextValue>(null);
-
-const useTabsContext = () => {
-  const context = useContext(TabsContext);
-  if (!context) {
-    throw new Error('Tabs components must be used within Tabs.Root');
-  }
-  return context;
-};
-
-// Root 컴포넌트에 자동 스크롤 기능 추가
-function Root({
-  children,
-  value,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>) {
-  const scrollViewRef = useRef<ScrollView>(null);
-  const triggerRefsMap = useRef(new Map<string, { width: number; x: number }>());
-
-  const setTriggerRef = (key: string, layout: { width: number; x: number }) => {
-    triggerRefsMap.current.set(key, layout);
-  };
-
-  useEffect(() => {
-    if (value && scrollViewRef.current) {
-      const tabInfo = triggerRefsMap.current.get(value);
-      if (tabInfo) {
-        scrollViewRef.current.scrollTo({
-          animated: true,
-          x: tabInfo.x - 100, // 좌측 여백 고려
-        });
-      }
-    }
-  }, [value]);
-
-  return (
-    <TabsPrimitive.Root {...props} value={value}>
-      <TabsContext.Provider
-        value={{
-          scrollViewRef,
-          setTriggerRef,
-        }}
-      >
-        {children}
-      </TabsContext.Provider>
-    </TabsPrimitive.Root>
-  );
-}
-
-function List({
-  children,
-  style,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>) {
-  const { scrollViewRef } = useTabsContext();
-
-  return (
-    <TabsPrimitive.List style={[styles.listContainer, style]} {...props} asChild>
-      <ScrollView
-        contentContainerStyle={styles.list}
-        horizontal
-        ref={scrollViewRef}
-        showsHorizontalScrollIndicator={false}
-      >
-        {children}
-      </ScrollView>
-    </TabsPrimitive.List>
-  );
-}
-
-// Trigger 컴포넌트
-type ExtendedTriggerState = {
+export type TabsTriggerState = {
   isActive: boolean;
   pressed: boolean;
 };
 
-type ExtendedTriggerStyle =
-  | ((state: ExtendedTriggerState) => StyleProp<ViewStyle>)
+export type TabsTriggerStyle =
+  | ((state: TabsTriggerState) => StyleProp<ViewStyle>)
   | StyleProp<ViewStyle>;
 
-function Trigger({
-  children,
-  style,
-  value,
-  ...props
-}: Omit<React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>, 'style'> & {
-  children?: ReactNode;
-  style?: ExtendedTriggerStyle;
-}) {
-  const rootContext = TabsPrimitive.useRootContext();
-  const { setTriggerRef } = useTabsContext();
-  const isActive = rootContext.value === value;
+export interface TabsRoute extends Route {
+  accessibilityLabel?: string;
+  accessible?: boolean;
+  disabled?: boolean;
+  onLongPress?: () => void;
+  renderLabel?: (state: { isActive: boolean }) => ReactNode;
+  testID?: string;
+  title: string;
+  triggerStyle?: TabsTriggerStyle;
+}
 
+export interface TabsTabBarProps<T extends TabsRoute> extends SceneRendererProps {
+  listStyle?: StyleProp<ViewStyle>;
+  navigationState: NavigationState<T>;
+  onLayout?: (event: LayoutChangeEvent) => void;
+}
+
+export function TabsTabBar<T extends TabsRoute>({
+  listStyle,
+  navigationState,
+  onLayout,
+  ...sceneRendererProps
+}: TabsTabBarProps<T>) {
   return (
-    <View
-      onLayout={(event) => {
-        const { width, x } = event.nativeEvent.layout;
-        setTriggerRef(value, { width, x });
-      }}
-    >
-      <TabsPrimitive.Trigger
-        {...props}
-        style={(state) => {
-          const propagatedStyle = propagateState<ExtendedTriggerState, StyleProp<ViewStyle>>(
-            { isActive, pressed: state.pressed },
-            style,
-          ) as StyleProp<ViewStyle>;
-          return [
-            styles.trigger(isActive, state.pressed),
-            propagatedStyle,
-          ].flat() as StyleProp<ViewStyle>;
+    <View onLayout={onLayout} style={[styles.listContainer, listStyle]}>
+      <TabBar<T>
+        bounces={false}
+        contentContainerStyle={styles.listContent}
+        gap={styles.listGap.gap}
+        navigationState={navigationState}
+        renderIndicator={() => null}
+        renderTabBarItem={(
+          props: TabBarItemProps<T> & {
+            key: string;
+          },
+        ) => {
+          const isActive =
+            props.navigationState.routes[props.navigationState.index]?.key === props.route.key;
+
+          return (
+            <Pressable
+              accessibilityLabel={props.route.accessibilityLabel}
+              accessibilityRole="tab"
+              accessibilityState={{ disabled: props.route.disabled, selected: isActive }}
+              accessible={props.route.accessible}
+              disabled={props.route.disabled}
+              key={props.key}
+              onLayout={props.onLayout}
+              onLongPress={props.route.onLongPress ?? props.onLongPress}
+              onPress={props.onPress}
+              style={styles.pressable}
+              testID={props.route.testID}
+            >
+              {({ pressed }) => (
+                <View
+                  style={[
+                    styles.triggerContainer,
+                    props.style,
+                    styles.trigger(isActive, pressed),
+                    props.route.disabled && styles.triggerDisabled,
+                    propagateState<TabsTriggerState, StyleProp<ViewStyle>>(
+                      { isActive, pressed },
+                      props.route.triggerStyle,
+                    ),
+                  ]}
+                >
+                  {props.route.renderLabel?.({ isActive }) ?? (
+                    <ThemedText color={isActive ? 'fgPrimary' : 'fgSurface'} typography="labelMd">
+                      {props.route.title}
+                    </ThemedText>
+                  )}
+                </View>
+              )}
+            </Pressable>
+          );
         }}
-        value={value}
-      >
-        {children || (
-          <ThemedText color={isActive ? 'fgPrimary' : 'fgSurface'} typography="labelMd">
-            {value}
-          </ThemedText>
-        )}
-      </TabsPrimitive.Trigger>
+        scrollEnabled={navigationState.routes.length > 1}
+        style={styles.tabBar}
+        tabStyle={styles.tab}
+        {...sceneRendererProps}
+      />
     </View>
   );
 }
 
-// Content 컴포넌트
-function Content({
-  children,
-  style,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>) {
-  return (
-    <TabsPrimitive.Content {...props} style={[styles.content, style]}>
-      {children}
-    </TabsPrimitive.Content>
-  );
-}
+export function useAutoHeightTabView<T extends Route>(
+  navigationState: NavigationState<T>,
+  initialSceneHeight = DEFAULT_TAB_VIEW_HEIGHT,
+) {
+  const activeRouteKey = navigationState.routes[navigationState.index]?.key;
+  const [sceneHeights, setSceneHeights] = useState<Record<string, number>>({});
+  const [tabBarHeight, setTabBarHeight] = useState(DEFAULT_TAB_BAR_HEIGHT);
+  const [fallbackSceneHeight, setFallbackSceneHeight] = useState(initialSceneHeight);
 
-export const Tabs = {
-  Content,
-  List,
-  Root,
-  Trigger,
-};
+  const handleSceneLayout = useCallback(
+    (key: string) => (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+
+      if (height <= 0) {
+        return;
+      }
+
+      setSceneHeights((prevHeights) =>
+        prevHeights[key] === height ? prevHeights : { ...prevHeights, [key]: height },
+      );
+
+      if (key === activeRouteKey) {
+        setFallbackSceneHeight((prevHeight) => (prevHeight === height ? prevHeight : height));
+      }
+    },
+    [activeRouteKey],
+  );
+
+  const handleTabBarLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+
+    setTabBarHeight((prevHeight) => (prevHeight === height ? prevHeight : height));
+  }, []);
+
+  const currentSceneHeight =
+    (activeRouteKey ? sceneHeights[activeRouteKey] : undefined) ?? fallbackSceneHeight;
+
+  return {
+    handleSceneLayout,
+    handleTabBarLayout,
+    tabViewHeight: currentSceneHeight + tabBarHeight,
+  };
+}

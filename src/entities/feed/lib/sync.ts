@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { db } from '@/db';
-import { syncFeedEntries, syncFeedSites } from '@/entities/feed/service';
+import {
+  FEED_SITES_CACHE_KEY,
+  getFeedEntriesCacheKey,
+  syncFeedEntry,
+  syncFeedSites,
+} from '@/entities/feed/service';
 import { useSyncStore } from '@/shared/stores/syncStore';
 
 export interface UseSyncFeedOptions {
@@ -12,50 +17,64 @@ export interface UseSyncFeedReturn {
   error: Error | undefined;
   isSyncing: boolean;
   sync: (selectedSlugs: string[], options?: { force?: boolean }) => Promise<void>;
+  syncEntry: (slug: string, options?: { force?: boolean }) => Promise<void>;
   syncSites: (options?: { force?: boolean }) => Promise<void>;
 }
 
 const DEFAULT_TTL_MS = 1000 * 60 * 60; // 1 hour
 
+const getUniqueSlugs = (selectedSlugs: string[]) =>
+  Array.from(new Set(selectedSlugs.filter(Boolean)));
+
 export const useSyncFeed = (studentId: string, options?: UseSyncFeedOptions): UseSyncFeedReturn => {
   const ttlMs = options?.ttlMs ?? DEFAULT_TTL_MS;
-  const {
-    isSyncing: getIsSyncing,
-    setIsSyncing: setStoreSyncing,
-    getError,
-    setError,
-  } = useSyncStore();
+  const setStoreSyncing = useSyncStore((state) => state.setIsSyncing);
+  const setError = useSyncStore((state) => state.setError);
 
-  const [lastEntriesKey, setLastEntriesKey] = useState<null | string>(null);
+  const [lastEntryKeys, setLastEntryKeys] = useState<string[]>([]);
 
-  const isSyncing = lastEntriesKey ? getIsSyncing(lastEntriesKey) : false;
-  const error = lastEntriesKey ? getError(lastEntriesKey) : undefined;
-
-  const syncSites = async (syncOptions?: { force?: boolean }) => {
-    const force = syncOptions?.force ?? false;
-    const cacheKey = 'feed.sites';
-
-    if (force) {
-      setError(cacheKey, undefined);
+  const isSyncing = useSyncStore((state) =>
+    lastEntryKeys.some((cacheKey) => state.syncingKeys.get(cacheKey) ?? false),
+  );
+  const error = useSyncStore((state) => {
+    for (const cacheKey of lastEntryKeys) {
+      const entryError = state.errors.get(cacheKey);
+      if (entryError) {
+        return entryError;
+      }
     }
 
-    const existingError = getError(cacheKey);
-    if (existingError && !force) {
-      return;
-    }
+    return undefined;
+  });
 
-    const cache = await db.query.cache.findFirst({
-      where: (c, { and, eq }) => and(eq(c.studentId, studentId), eq(c.key, cacheKey)),
-    });
+  const syncSites = useCallback(
+    async (syncOptions?: { force?: boolean }) => {
+      const force = syncOptions?.force ?? false;
+      const cacheKey = FEED_SITES_CACHE_KEY;
 
-    const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
+      if (force) {
+        setError(cacheKey, undefined);
+      }
 
-    if (!shouldRequest) {
-      return;
-    }
+      const existingError = useSyncStore.getState().errors.get(cacheKey);
+      if (existingError && !force) {
+        return;
+      }
 
-    const currentSyncing = getIsSyncing(cacheKey);
-    if (!currentSyncing) {
+      const cache = await db.query.cache.findFirst({
+        where: (c, { and, eq }) => and(eq(c.studentId, studentId), eq(c.key, cacheKey)),
+      });
+
+      const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
+      if (!shouldRequest) {
+        return;
+      }
+
+      const currentSyncing = useSyncStore.getState().syncingKeys.get(cacheKey) ?? false;
+      if (currentSyncing) {
+        return;
+      }
+
       setStoreSyncing(cacheKey, true);
       try {
         await syncFeedSites(studentId);
@@ -65,49 +84,81 @@ export const useSyncFeed = (studentId: string, options?: UseSyncFeedOptions): Us
       } finally {
         setStoreSyncing(cacheKey, false);
       }
-    }
-  };
+    },
+    [setError, setStoreSyncing, studentId, ttlMs],
+  );
 
-  const sync = async (selectedSlugs: string[], syncOptions?: { force?: boolean }) => {
-    const force = syncOptions?.force ?? false;
-    const normalizedKey = [...selectedSlugs].sort().join(',');
-    const cacheKey = `feed.entries.${normalizedKey}`;
+  const runSyncEntry = useCallback(
+    async (slug: string, syncOptions?: { force?: boolean }, track = true) => {
+      if (!slug) {
+        return;
+      }
 
-    setLastEntriesKey(cacheKey);
+      const force = syncOptions?.force ?? false;
+      const cacheKey = getFeedEntriesCacheKey(slug);
 
-    if (force) {
-      setError(cacheKey, undefined);
-    }
+      if (track) {
+        setLastEntryKeys([cacheKey]);
+      }
 
-    const existingError = getError(cacheKey);
-    if (existingError && !force) {
-      return;
-    }
+      if (force) {
+        setError(cacheKey, undefined);
+      }
 
-    const cache = await db.query.cache.findFirst({
-      where: (c, { and, eq }) => and(eq(c.studentId, studentId), eq(c.key, cacheKey)),
-    });
+      const existingError = useSyncStore.getState().errors.get(cacheKey);
+      if (existingError && !force) {
+        return;
+      }
 
-    const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
+      const cache = await db.query.cache.findFirst({
+        where: (c, { and, eq }) => and(eq(c.studentId, studentId), eq(c.key, cacheKey)),
+      });
 
-    if (!shouldRequest) {
-      return;
-    }
+      const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
+      if (!shouldRequest) {
+        return;
+      }
 
-    const currentSyncing = getIsSyncing(cacheKey);
-    if (!currentSyncing) {
+      const currentSyncing = useSyncStore.getState().syncingKeys.get(cacheKey) ?? false;
+      if (currentSyncing) {
+        return;
+      }
+
       setStoreSyncing(cacheKey, true);
       try {
-        await syncSites({ force });
-        await syncFeedEntries(studentId, selectedSlugs);
+        await syncFeedEntry(studentId, slug);
         setError(cacheKey, undefined);
       } catch (e) {
         setError(cacheKey, e instanceof Error ? e : new Error(String(e)));
       } finally {
         setStoreSyncing(cacheKey, false);
       }
-    }
-  };
+    },
+    [setError, setStoreSyncing, studentId, ttlMs],
+  );
 
-  return { error, isSyncing, sync, syncSites };
+  const syncEntry = useCallback(
+    async (slug: string, syncOptions?: { force?: boolean }) => {
+      await runSyncEntry(slug, syncOptions);
+    },
+    [runSyncEntry],
+  );
+
+  const sync = useCallback(
+    async (selectedSlugs: string[], syncOptions?: { force?: boolean }) => {
+      const uniqueSlugs = getUniqueSlugs(selectedSlugs);
+      const cacheKeys = uniqueSlugs.map(getFeedEntriesCacheKey);
+
+      setLastEntryKeys(cacheKeys);
+
+      if (uniqueSlugs.length === 0) {
+        return;
+      }
+
+      await Promise.all(uniqueSlugs.map((slug) => runSyncEntry(slug, syncOptions, false)));
+    },
+    [runSyncEntry],
+  );
+
+  return { error, isSyncing, sync, syncEntry, syncSites };
 };

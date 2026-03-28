@@ -12,22 +12,45 @@ export const useFeedSites = () => {
   return { data: data ?? [], error, updatedAt };
 };
 
-export const useFeedNotices = (studentId: string, selectedSlugs: string[]) => {
-  const { isSyncing, sync, error } = useSyncFeed(studentId);
-
+export const useFeedNoticeItems = (selectedSlugs: string[]) => {
   const { data, updatedAt } = useLiveQuery(
     selectedSlugs.length > 0
       ? db
-          .select()
+          .select({
+            author: feedNotices.author,
+            createdAt: feedNotices.createdAt,
+            description: feedNotices.description,
+            id: feedNotices.id,
+            slug: feedNotices.slug,
+            title: feedNotices.title,
+            updatedAt: feedNotices.updatedAt,
+            url: feedNotices.url,
+          })
           .from(feedNotices)
           .where(inArray(feedNotices.slug, selectedSlugs))
           .orderBy(desc(sql`coalesce(${feedNotices.updatedAt}, ${feedNotices.createdAt})`))
       : db
-          .select()
+          .select({
+            author: feedNotices.author,
+            createdAt: feedNotices.createdAt,
+            description: feedNotices.description,
+            id: feedNotices.id,
+            slug: feedNotices.slug,
+            title: feedNotices.title,
+            updatedAt: feedNotices.updatedAt,
+            url: feedNotices.url,
+          })
           .from(feedNotices)
           .where(sql`1 = 0`),
     [selectedSlugs.join(',')],
   );
+
+  return { data: data ?? [], updatedAt };
+};
+
+export const useFeedNotices = (studentId: string, selectedSlugs: string[]) => {
+  const { isSyncing, sync, error } = useSyncFeed(studentId);
+  const { data, updatedAt } = useFeedNoticeItems(selectedSlugs);
 
   useAsyncEffect(async () => {
     if (selectedSlugs.length > 0) {
@@ -35,7 +58,7 @@ export const useFeedNotices = (studentId: string, selectedSlugs: string[]) => {
     }
   }, [selectedSlugs.join(',')]);
 
-  return { data: data ?? [], error, isSyncing, updatedAt };
+  return { data, error, isSyncing, updatedAt };
 };
 
 export const useFeedCalendars = (studentId: string, selectedSlugs: string[]) => {

@@ -1,13 +1,16 @@
+import { useEffect } from 'react';
 import { RefreshControl, RefreshControlProps, ScrollView, ScrollViewProps } from 'react-native';
 import Animated, {
   AnimatedProps,
+  ScrollHandlerProcessed,
   useAnimatedScrollHandler,
+  useComposedEventHandler,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { RefreshHeader } from '@/shared/ui/headers/RefreshHeader';
+import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -27,57 +30,49 @@ export const RefreshableScrollView = ({
   contentContainerStyle,
   onScroll,
   ...props
-}: Omit<AnimatedProps<ScrollViewProps>, 'refreshControl'> & RefreshControlProps) => {
+}: Omit<AnimatedProps<ScrollViewProps>, 'refreshControl'> &
+  RefreshControlProps & { onScroll?: ScrollHandlerProcessed }) => {
   const pullDistance = useSharedValue(0);
+  const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
 
-  const scrollHandler = useAnimatedScrollHandler(
+  useEffect(() => {
+    refreshState.value = refreshing ? RefreshState.Syncing : RefreshState.Idle;
+  }, [refreshing, refreshState]);
+
+  useEffect(() => {
+    if (!refreshing) {
+      pullDistance.value = withSpring(0);
+    }
+  }, [refreshing, pullDistance]);
+
+  const refreshScrollHandler = useAnimatedScrollHandler(
     {
       onScroll: (event) => {
         if (event.contentOffset.y < 0 && !refreshing) {
+          // eslint-disable-next-line react-hooks/immutability
           pullDistance.value = Math.abs(event.contentOffset.y);
         } else if (event.contentOffset.y >= 0) {
           pullDistance.value = 0;
         }
-
-        // 부모 onScroll 처리 (함수 또는 Reanimated handler 객체일 수 있음)
-        if (onScroll) {
-          if (typeof onScroll === 'function') {
-            // @ts-expect-error - ReanimatedScrollEvent 타입 호환
-            onScroll(event);
-          } else if (typeof onScroll === 'object' && 'onScroll' in onScroll) {
-            // @ts-expect-error - ReanimatedScrollEvent 타입 호환
-            onScroll.onScroll?.(event);
-          }
+      },
+      onEndDrag: () => {
+        if (!refreshing) {
+          // eslint-disable-next-line react-hooks/immutability
+          pullDistance.value = withSpring(0);
         }
       },
-      onBeginDrag: (event) => {
-        if (onScroll && typeof onScroll === 'object' && 'onBeginDrag' in onScroll) {
-          // @ts-expect-error - ReanimatedScrollEvent 타입 호환
-          onScroll.onBeginDrag?.(event);
-        }
-      },
-      onEndDrag: (event) => {
-        pullDistance.value = withSpring(0);
-        if (onScroll && typeof onScroll === 'object' && 'onEndDrag' in onScroll) {
-          // @ts-expect-error - ReanimatedScrollEvent 타입 호환
-          onScroll.onEndDrag?.(event);
-        }
-      },
-      onMomentumBegin: (event) => {
-        if (onScroll && typeof onScroll === 'object' && 'onMomentumBegin' in onScroll) {
-          // @ts-expect-error - ReanimatedScrollEvent 타입 호환
-          onScroll.onMomentumBegin?.(event);
-        }
-      },
-      onMomentumEnd: (event) => {
-        if (onScroll && typeof onScroll === 'object' && 'onMomentumEnd' in onScroll) {
-          // @ts-expect-error - ReanimatedScrollEvent 타입 호환
-          onScroll.onMomentumEnd?.(event);
+      onMomentumEnd: () => {
+        if (!refreshing) {
+          // eslint-disable-next-line react-hooks/immutability
+          pullDistance.value = withSpring(0);
         }
       },
     },
-    [refreshing, onScroll],
+    [refreshing],
   );
+
+  const scrollHandler = useComposedEventHandler([refreshScrollHandler, onScroll ?? null]);
+
   return (
     <>
       <AnimatedScrollView
@@ -96,7 +91,7 @@ export const RefreshableScrollView = ({
         scrollEventThrottle={16}
         {...props}
       />
-      <RefreshHeader isSyncing={refreshing} pullDistance={pullDistance} />
+      <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
     </>
   );
 };

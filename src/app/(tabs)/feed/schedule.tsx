@@ -55,7 +55,7 @@ export default function FeedScheduleScreen() {
   });
 
   const { data: sites } = useFeedSites();
-  const { sync, syncSites } = useSyncFeed(studentId ?? '');
+  const { syncEntry, syncSites } = useSyncFeed(studentId ?? '');
   const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
 
   useEffect(() => {
@@ -74,8 +74,8 @@ export default function FeedScheduleScreen() {
     }
 
     void syncSites({ force: true });
-    void sync(selectedCalendarSlugs, { force: true });
-  }, [isSyncing, selectedCalendarSlugs, sync, syncSites]);
+    void Promise.all(selectedCalendarSlugs.map((slug) => syncEntry(slug, { force: true })));
+  }, [isSyncing, selectedCalendarSlugs, syncEntry, syncSites]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
