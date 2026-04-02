@@ -1,18 +1,26 @@
-import { DropdownMenu, Button as JetpackButton } from '@expo/ui/jetpack-compose';
 import {
-  Host,
+  DropdownMenu,
+  DropdownMenuItem,
+  Button as JetpackButton,
+  Host as JetpackHost,
+} from '@expo/ui/jetpack-compose';
+import { fillMaxWidth, wrapContentWidth } from '@expo/ui/jetpack-compose/modifiers';
+import {
   Button as SwiftButton,
   ContextMenu as SwiftContextMenu,
+  Host as SwiftHost,
   Picker as SwiftPicker,
   Text as SwiftText,
 } from '@expo/ui/swift-ui';
 import { tag, tint } from '@expo/ui/swift-ui/modifiers';
 import { YearSemester } from '@rusaint/react-native';
+import { useState } from 'react';
 import { Platform } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { semesterToString } from '@/shared/lib/semester';
 import { paletteHex } from '@/shared/lib/theme';
+import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 export interface SemesterSelectorProps {
   onChange: (index: number, semester: YearSemester) => void;
@@ -32,7 +40,10 @@ const styles = StyleSheet.create((theme, rt) => ({
 
 export const SemesterSelector = withUnistyles(
   ({ selectedIndex, semesters, onChange }: SemesterSelectorProps) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
     const handleSelect = (index: number) => {
+      setIsExpanded(false);
       const semester = semesters[index];
       if (semester != null) {
         onChange(index, semester);
@@ -40,7 +51,7 @@ export const SemesterSelector = withUnistyles(
     };
     return Platform.select({
       ios: (
-        <Host
+        <SwiftHost
           style={{
             width: 50,
             height: 30,
@@ -67,28 +78,41 @@ export const SemesterSelector = withUnistyles(
               </SwiftPicker>
             </SwiftContextMenu.Items>
           </SwiftContextMenu>
-        </Host>
+        </SwiftHost>
       ),
       android: (
-        <DropdownMenu>
-          <DropdownMenu.Trigger>
-            <JetpackButton colors={{ contentColor: styles.triggerColor.color }}>학기</JetpackButton>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Items>
-            {semesters.map((semester, index) => (
+        <JetpackHost matchContents>
+          <DropdownMenu expanded={isExpanded} onDismissRequest={() => setIsExpanded(false)}>
+            <DropdownMenu.Trigger>
               <JetpackButton
                 colors={{
+                  contentColor: styles.triggerColor.color,
                   containerColor: styles.jetpackItemColor.backgroundColor,
-                  contentColor: styles.jetpackItemColor.color,
                 }}
-                key={`${semester.year}-${semester.semester}`}
-                onClick={() => handleSelect(index)}
+                modifiers={[fillMaxWidth(0.2), wrapContentWidth('centerHorizontally')]}
+                onClick={() => setIsExpanded(true)}
               >
-                {semesterToString(semester)}
+                <ThemedText color="primaryInverted">학기</ThemedText>
               </JetpackButton>
-            ))}
-          </DropdownMenu.Items>
-        </DropdownMenu>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Items>
+              {semesters.map((semester, index) => (
+                <DropdownMenuItem
+                  elementColors={{
+                    textColor: styles.jetpackItemColor.color,
+                    disabledTextColor: styles.jetpackItemColor.color,
+                  }}
+                  key={`${semester.year}-${semester.semester}`}
+                  onClick={() => handleSelect(index)}
+                >
+                  <DropdownMenuItem.Text>
+                    <ThemedText>{semesterToString(semester)}</ThemedText>
+                  </DropdownMenuItem.Text>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenu.Items>
+          </DropdownMenu>
+        </JetpackHost>
       ),
     });
   },
