@@ -85,15 +85,10 @@ export default function Index() {
           <CardView>
             <View style={styles.infoView}>
               <SsurfLined height={64} width={64} />
-              <ThemedText typography="headingLg">
-                SSURF v{Constants.expoConfig?.version} (rev.{' '}
-                {Constants.expoConfig?.android?.versionCode ??
-                  Constants.expoConfig?.ios?.buildNumber}
-                )
-              </ThemedText>
+              <ThemedText typography="headingLg">SSURF v{Constants.expoConfig?.version}</ThemedText>
             </View>
             <ThemedText typography="bodyLg">
-              Copyright © 2025 EATSTEAK, fecapark and SSURF Contributors.
+              Copyright © 2026 EATSTEAK and SSURF Contributors.
             </ThemedText>
             <ThemedText typography="bodyLg">
               This Project is hosted on{' '}
@@ -112,6 +107,10 @@ export default function Index() {
                 </ThemedText>
               </Link>
               .
+            </ThemedText>
+            <ThemedText style={{ textAlign: 'right' }} typography="labelSm">
+              rev.{' '}
+              {Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber}
             </ThemedText>
           </CardView>
         </SafeContainer>
