@@ -3,7 +3,9 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "pnpm format:fix || true" }]
+        "hooks": [
+          { "type": "command", "command": "pnpm lint:fix && pnpm format:fix 2>/dev/null || true" }
+        ]
       }
     ]
   }
