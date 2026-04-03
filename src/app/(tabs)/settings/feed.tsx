@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useMemo } from 'react';
-import { FlatList, Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useFeedSites } from '@/entities/feed/lib/queries';
@@ -8,6 +9,7 @@ import { useSetting } from '@/entities/settings/lib/queries';
 import { setSettings } from '@/entities/settings/service';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -77,6 +79,7 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 export default function FeedSettingsScreen() {
+  const scrollY = useSharedValue(0);
   const { data: sites } = useFeedSites();
   const { studentId } = useRusaintApplication();
   const [selectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
@@ -118,6 +121,17 @@ export default function FeedSettingsScreen() {
     void setSelectedCalendarSlugs(nextSlugs);
   };
 
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const sections = [
+    { items: noticeSites, kind: 'notice' as const, title: '공지사항' as const },
+    { items: calendarSites, kind: 'calendar' as const, title: '일정' as const },
+  ];
+
   return (
     <>
       <Stack.Screen
@@ -129,12 +143,9 @@ export default function FeedSettingsScreen() {
         }}
       />
       <View style={styles.root}>
-        <FlatList
+        <Animated.FlatList<(typeof sections)[number]>
           contentContainerStyle={styles.content}
-          data={[
-            { items: noticeSites, kind: 'notice', title: '공지사항' as const },
-            { items: calendarSites, kind: 'calendar', title: '일정' as const },
-          ]}
+          data={sections}
           keyExtractor={(item) => item.kind}
           ListHeaderComponent={
             <SafeContainer>
@@ -147,6 +158,7 @@ export default function FeedSettingsScreen() {
               </View>
             </SafeContainer>
           }
+          onScroll={scrollHandler}
           renderItem={({ item: section }) => (
             <View style={styles.section}>
               <ThemedText color="fgSecondary" typography="labelMd">
@@ -197,7 +209,9 @@ export default function FeedSettingsScreen() {
               })}
             </View>
           )}
+          scrollEventThrottle={16}
         />
+        <FloatingHeader scrollY={scrollY} title="피드 설정" />
       </View>
     </>
   );
