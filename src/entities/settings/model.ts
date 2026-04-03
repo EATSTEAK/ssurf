@@ -15,9 +15,9 @@ export const settings = sqliteTable(
 export type SettingsEntity = typeof settings.$inferSelect;
 
 export type SettingsValueMap = {
-  selectedCalendarSlugs: string[];
   selectedNoticeSlug: string;
   selectedNoticeSlugs: string[];
+  selectedScheduleCalendarSlugs: string[];
 };
 
 export type SettingsKey = keyof SettingsValueMap;
@@ -29,10 +29,6 @@ export const settingsSchema: {
     storageKey: string;
   };
 } = {
-  selectedCalendarSlugs: {
-    defaultValue: ['calendar/ssu-academic-calendar'],
-    storageKey: 'feed.selectedCalendarSlugs',
-  },
   selectedNoticeSlug: {
     defaultValue: 'scatch.ssu.ac.kr',
     storageKey: 'feed.selectedNoticeSlug',
@@ -40,5 +36,9 @@ export const settingsSchema: {
   selectedNoticeSlugs: {
     defaultValue: ['scatch.ssu.ac.kr'],
     storageKey: 'feed.selectedNoticeSlugs',
+  },
+  selectedScheduleCalendarSlugs: {
+    defaultValue: ['calendar/ssu-academic-calendar'],
+    storageKey: 'schedule.selectedCalendarSlugs',
   },
 };
