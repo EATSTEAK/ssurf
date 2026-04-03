@@ -1,7 +1,8 @@
 import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
-import { Stack } from 'expo-router';
-import { useMemo, useState } from 'react';
+import * as Linking from 'expo-linking';
+import { Stack, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -9,8 +10,14 @@ import { StyleSheet } from 'react-native-unistyles';
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
+import { useCalendars } from '@/entities/calendar/lib/queries';
+import { useSyncCalendars } from '@/entities/calendar/lib/sync';
+import { CalendarEntity } from '@/entities/calendar/model';
 import { useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
+import { useSetting } from '@/entities/settings/lib/queries';
+import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
+import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
 import {
   constructSemesters,
   getEstimatedCurrentSemester,
@@ -26,34 +33,34 @@ import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { SemesterSelector } from '@/shared/ui/SemesterSelector';
 
 const styles = StyleSheet.create((theme) => ({
-  root: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: theme.colors.surface,
-    position: 'relative',
-  },
-  topView: {
-    width: '100%',
-    display: 'flex',
-    gap: theme.gap(1),
-    flexDirection: 'column',
-    padding: theme.gap(3),
-  },
   errorView: {
-    display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
+    display: 'flex',
     flex: 1,
     gap: 16,
+    justifyContent: 'center',
     marginBottom: 96,
   },
   gridContainer: {
     paddingHorizontal: theme.gap(1),
   },
+  root: {
+    backgroundColor: theme.colors.surface,
+    height: '100%',
+    position: 'relative',
+    width: '100%',
+  },
   stateImage: {
-    width: 150,
     height: 150,
     marginBottom: 16,
+    width: 150,
+  },
+  topView: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.gap(2),
+    padding: theme.gap(3),
+    width: '100%',
   },
 }));
 
@@ -61,7 +68,9 @@ const RUSAINT_NO_SCHEDULE =
   'RusaintError.General: Error from application: No schedule information provided';
 
 export default function Index() {
-  const { defaultScheduleSemester } = useRusaintApplication();
+  const router = useRouter();
+  const { defaultScheduleSemester, studentId } = useRusaintApplication();
+  const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
   const defaultSemester = defaultScheduleSemester ?? getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
 
@@ -79,14 +88,51 @@ export default function Index() {
     selectedSemester.year,
     selectedSemester.semester,
   );
+  const {
+    data: calendars,
+    error: calendarError,
+    isSyncing: isCalendarSyncing,
+  } = useCalendars(studentId ?? '', selectedCalendarSlugs);
+  const { sync: syncCalendars } = useSyncCalendars(studentId ?? '');
+
+  const todayCalendars = useMemo(() => {
+    const now = new Date();
+    return calendars.filter((item) => isTodayCalendar(item, now));
+  }, [calendars]);
 
   const scrollY = useSharedValue(0);
 
+  const handleOpenUrl = useCallback(async (url: null | string) => {
+    if (!url) {
+      return;
+    }
+
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (!canOpen) {
+        console.error(`Cannot open feed URL: ${url}`);
+        return;
+      }
+
+      await Linking.openURL(url);
+    } catch (openError) {
+      console.error('Failed to open feed URL:', openError);
+    }
+  }, []);
+
+  const handlePressCalendar = useCallback(
+    (item: CalendarEntity) => {
+      void handleOpenUrl(item.url);
+    },
+    [handleOpenUrl],
+  );
+
   const handleRefresh = () => {
-    if (isSyncing) {
+    if (isSyncing || isCalendarSyncing) {
       return;
     }
     sync([selectedSemester.year, selectedSemester.semester], { force: true });
+    void syncCalendars(selectedCalendarSlugs, { force: true });
   };
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -143,9 +189,6 @@ export default function Index() {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTransparent: true,
-          title: '시간표',
-          headerTitle: () => <></>,
           headerRight: () => (
             <SemesterSelector
               onChange={(index) => setSelectedSemester(semesters[index])}
@@ -157,20 +200,31 @@ export default function Index() {
               semesters={semesters}
             />
           ),
+          headerTitle: () => <></>,
+          headerTransparent: true,
+          title: '시간표',
         }}
       />
       <View style={styles.root}>
         <RefreshableScrollView
           onRefresh={handleRefresh}
-          onScroll={hasData ? scrollHandler : undefined}
-          refreshing={isSyncing}
-          scrollEventThrottle={hasData ? 16 : undefined}
+          onScroll={scrollHandler}
+          refreshing={isSyncing || isCalendarSyncing}
+          scrollEventThrottle={16}
         >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
               <Header title="시간표" />
               <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
+              <TodayScheduleSection
+                actionLabel="월간 일정 보기"
+                calendarError={calendarError ?? null}
+                onPressAction={() => router.push('/(tabs)/schedule/calendar')}
+                onPressCalendar={handlePressCalendar}
+                selectedCalendarSlugs={selectedCalendarSlugs}
+                todayCalendars={todayCalendars}
+              />
             </View>
             {hasData ? (
               <>
@@ -184,13 +238,11 @@ export default function Index() {
             )}
           </SafeContainer>
         </RefreshableScrollView>
-        {hasData && (
-          <FloatingHeader
-            label={semesterToString(selectedSemester)}
-            scrollY={scrollY}
-            title="시간표"
-          />
-        )}
+        <FloatingHeader
+          label={semesterToString(selectedSemester)}
+          scrollY={scrollY}
+          title="시간표"
+        />
       </View>
     </>
   );

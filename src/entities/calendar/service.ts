@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { parseISO } from 'date-fns';
 import { eq, inArray } from 'drizzle-orm';
 
 import { db } from '@/db';
@@ -56,13 +57,13 @@ export const syncCalendarEntry = async (studentId: string, slug: string) => {
 
     if (data.items.length > 0) {
       const values = data.items.map((item) => ({
-        slug,
-        id: item.id,
-        title: item.title,
         description: item.description ?? null,
-        startsAt: item.starts_at ? new Date(item.starts_at).getTime() : null,
-        endsAt: item.ends_at ? new Date(item.ends_at).getTime() : null,
+        endsAt: item.ends_at ? parseISO(item.ends_at).getTime() : null,
+        id: item.id,
         location: item.location ?? null,
+        slug,
+        startsAt: item.starts_at ? parseISO(item.starts_at).getTime() : null,
+        title: item.title,
         url: item.url ?? null,
       }));
 

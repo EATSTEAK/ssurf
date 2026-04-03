@@ -2,59 +2,58 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { CalendarEntity } from '@/entities/calendar/model';
-import { CalendarItem } from '@/features/calendar/ui/CalendarItem';
+import { CompactCalendarRow } from '@/features/calendar/ui/CompactCalendarRow';
 import { ArrowForwardIcon } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui/primitives/Button';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    padding: theme.gap(3),
-    gap: theme.gap(2),
-    borderRadius: theme.cornerRadius.lg,
-    backgroundColor: theme.colors.surface,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: theme.gap(2),
-  },
-  title: {
-    gap: theme.gap(0.5),
-    flex: 1,
-  },
   action: {
+    paddingVertical: 0,
     width: 'auto',
-    paddingHorizontal: theme.gap(2),
   },
   actionButton: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     gap: theme.gap(1),
   },
-  list: {
-    overflow: 'hidden',
-    borderRadius: theme.cornerRadius.md,
-    backgroundColor: theme.colors.surfaceDim,
+  container: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.cornerRadius.lg,
   },
   empty: {
-    paddingVertical: theme.gap(4),
-    paddingHorizontal: theme.gap(3),
     alignItems: 'center',
     gap: theme.gap(1),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(4),
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  list: {
+    backgroundColor: theme.colors.surfaceDim,
+    borderRadius: theme.cornerRadius.md,
+    overflow: 'hidden',
+  },
+  title: {
+    flex: 1,
+    gap: theme.gap(0.5),
   },
 }));
 
 interface TodayScheduleSectionProps {
+  actionLabel?: string;
   calendarError: Error | null;
-  onPressAction: () => void;
+  onPressAction?: () => void;
   onPressCalendar: (item: CalendarEntity) => void;
   selectedCalendarSlugs: string[];
   todayCalendars: CalendarEntity[];
 }
 
 export const TodayScheduleSection = ({
+  actionLabel,
   calendarError,
   onPressAction,
   onPressCalendar,
@@ -66,25 +65,24 @@ export const TodayScheduleSection = ({
       <View style={styles.header}>
         <View style={styles.title}>
           <ThemedText typography="headingLg">오늘의 일정</ThemedText>
-          <ThemedText color="fgSecondary" typography="bodySm">
-            오늘 포함된 피드 일정만 모아봤어요
-          </ThemedText>
         </View>
-        <Button
-          onPress={onPressAction}
-          style={styles.action}
-          textStyle={{ fontSize: 14 }}
-          variant="surface"
-        >
-          {() => (
-            <View style={styles.actionButton}>
-              <ThemedText color="fgPrimary" typography="labelMd">
-                전체 일정 보기
-              </ThemedText>
-              <ArrowForwardIcon color="white" size={16} />
-            </View>
-          )}
-        </Button>
+        {onPressAction && actionLabel ? (
+          <Button
+            onPress={onPressAction}
+            style={styles.action}
+            textStyle={{ fontSize: 14 }}
+            variant="surface"
+          >
+            {() => (
+              <View style={styles.actionButton}>
+                <ThemedText color="fgPrimary" typography="labelMd">
+                  {actionLabel}
+                </ThemedText>
+                <ArrowForwardIcon color="white" size={16} />
+              </View>
+            )}
+          </Button>
+        ) : null}
       </View>
 
       {selectedCalendarSlugs.length === 0 ? (
@@ -110,7 +108,7 @@ export const TodayScheduleSection = ({
       ) : (
         <View style={styles.list}>
           {todayCalendars.map((item, index) => (
-            <CalendarItem
+            <CompactCalendarRow
               isLast={index === todayCalendars.length - 1}
               item={item}
               key={`${item.slug}-${item.id}`}

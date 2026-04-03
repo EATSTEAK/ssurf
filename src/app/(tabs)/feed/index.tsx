@@ -5,16 +5,11 @@ import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useCalendars } from '@/entities/calendar/lib/queries';
-import { useSyncCalendars } from '@/entities/calendar/lib/sync';
-import { CalendarEntity } from '@/entities/calendar/model';
 import { useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
 import { useSyncFeed } from '@/entities/feed/lib/sync';
 import { FeedNoticeListItem } from '@/entities/feed/model';
 import { useSetting } from '@/entities/settings/lib/queries';
-import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
 import { NoticeCard } from '@/features/feed/ui/NoticeCard';
-import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
@@ -26,28 +21,28 @@ import { Space } from '@/shared/ui/primitives/Space';
 const NOTICE_PREVIEW_LIMIT = 3;
 
 const styles = StyleSheet.create((theme) => ({
-  root: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: theme.colors.surface,
-    position: 'relative',
-  },
   content: {
     paddingBottom: theme.gap(8),
-  },
-  topView: {
-    width: '100%',
-    display: 'flex',
-    gap: theme.gap(3),
-    flexDirection: 'column',
-    paddingVertical: theme.gap(3),
   },
   headerContainer: {
     paddingHorizontal: theme.gap(3),
   },
+  root: {
+    backgroundColor: theme.colors.surface,
+    height: '100%',
+    position: 'relative',
+    width: '100%',
+  },
   settingButton: {
-    padding: theme.gap(1),
     borderRadius: theme.cornerRadius.md,
+    padding: theme.gap(1),
+  },
+  topView: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.gap(3),
+    paddingVertical: theme.gap(3),
+    width: '100%',
   },
 }));
 
@@ -58,11 +53,9 @@ export default function FeedScreen() {
 
   const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
   const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
-  const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
 
   const { data: sites } = useFeedSites();
-  const { sync: syncCalendars, syncSites: syncCalendarSites } = useSyncCalendars(studentId ?? '');
-  const { syncEntry: syncNoticeEntry } = useSyncFeed(studentId ?? '');
+  const { syncEntry: syncNoticeEntry, syncSites: syncFeedSites } = useSyncFeed(studentId ?? '');
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const availableSelectedNoticeSlugs = useMemo(
@@ -89,8 +82,8 @@ export default function FeedScreen() {
   );
 
   useEffect(() => {
-    void syncCalendarSites();
-  }, [syncCalendarSites]);
+    void syncFeedSites();
+  }, [syncFeedSites]);
 
   useEffect(() => {
     if (noticeSites.length === 0) {
@@ -119,16 +112,6 @@ export default function FeedScreen() {
     error: noticeError,
     isSyncing: isNoticeSyncing,
   } = useFeedNotices(studentId ?? '', noticeSlugs);
-  const {
-    data: calendars,
-    error: calendarError,
-    isSyncing: isCalendarSyncing,
-  } = useCalendars(studentId ?? '', selectedCalendarSlugs);
-
-  const todayCalendars = useMemo(() => {
-    const now = new Date();
-    return calendars.filter((item) => isTodayCalendar(item, now));
-  }, [calendars]);
 
   const noticePreviewItemsBySlug = useMemo(() => {
     return visibleNoticeSites.reduce<Record<string, FeedNoticeListItem[]>>((acc, site) => {
@@ -142,26 +125,16 @@ export default function FeedScreen() {
   const scrollY = useSharedValue(0);
 
   const handleRefresh = useCallback(() => {
-    if (isNoticeSyncing || isCalendarSyncing) {
+    if (isNoticeSyncing) {
       return;
     }
 
-    void syncCalendarSites({ force: true });
+    void syncFeedSites({ force: true });
 
     if (currentNoticeSlug) {
       void syncNoticeEntry(currentNoticeSlug, { force: true });
     }
-
-    void syncCalendars(selectedCalendarSlugs, { force: true });
-  }, [
-    currentNoticeSlug,
-    isCalendarSyncing,
-    isNoticeSyncing,
-    selectedCalendarSlugs,
-    syncCalendarSites,
-    syncCalendars,
-    syncNoticeEntry,
-  ]);
+  }, [currentNoticeSlug, isNoticeSyncing, syncFeedSites, syncNoticeEntry]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -194,13 +167,6 @@ export default function FeedScreen() {
     [handleOpenUrl],
   );
 
-  const handlePressCalendar = useCallback(
-    (item: CalendarEntity) => {
-      void handleOpenUrl(item.url);
-    },
-    [handleOpenUrl],
-  );
-
   const handleOpenNoticePage = useCallback(() => {
     router.push('/feed/notice');
   }, [router]);
@@ -221,14 +187,14 @@ export default function FeedScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTransparent: true,
-          title: '피드',
-          headerTitle: () => <></>,
           headerRight: () => (
             <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
               <SettingsIcon color="white" size={24} />
             </Pressable>
           ),
+          headerTitle: () => <></>,
+          headerTransparent: true,
+          title: '피드',
         }}
       />
       <View style={styles.root}>
@@ -236,7 +202,7 @@ export default function FeedScreen() {
           contentContainerStyle={styles.content}
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isNoticeSyncing || isCalendarSyncing}
+          refreshing={isNoticeSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>
@@ -245,14 +211,6 @@ export default function FeedScreen() {
               <View style={styles.headerContainer}>
                 <Header title="피드" />
               </View>
-
-              <TodayScheduleSection
-                calendarError={calendarError ?? null}
-                onPressAction={() => router.push('/(tabs)/schedule/calendar')}
-                onPressCalendar={handlePressCalendar}
-                selectedCalendarSlugs={selectedCalendarSlugs}
-                todayCalendars={todayCalendars}
-              />
 
               <NoticeCard
                 actionLabel="전체 공지 보기"

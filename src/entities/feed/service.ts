@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { parseISO } from 'date-fns';
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/db';
@@ -119,17 +120,17 @@ export const syncFeedEntry = async (studentId: string, slug: string) => {
 
     if (data.items.length > 0) {
       const values = data.items.map((item) => ({
-        slug,
-        id: item.id,
-        title: item.title,
-        description: item.description ?? null,
-        url: item.url ?? null,
-        createdAt: item.created_at ? new Date(item.created_at).getTime() : null,
-        updatedAt: item.updated_at ? new Date(item.updated_at).getTime() : null,
         author: item.author ?? null,
-        thumbnail: item.thumbnail ?? null,
         categoriesJson: item.category ? JSON.stringify(item.category) : null,
+        createdAt: item.created_at ? parseISO(item.created_at).getTime() : null,
+        description: item.description ?? null,
+        id: item.id,
         metadataJson: item.metadata ? JSON.stringify(item.metadata) : null,
+        slug,
+        thumbnail: item.thumbnail ?? null,
+        title: item.title,
+        updatedAt: item.updated_at ? parseISO(item.updated_at).getTime() : null,
+        url: item.url ?? null,
       }));
 
       for (let i = 0; i < values.length; i += 50) {
