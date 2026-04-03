@@ -1,8 +1,8 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { FeedCalendarEntity } from '@/entities/feed/model';
-import { FeedCalendarItem } from '@/features/feed/ui/FeedCalendarItem';
+import { CalendarEntity } from '@/entities/calendar/model';
+import { CalendarItem } from '@/features/calendar/ui/CalendarItem';
 import { ArrowForwardIcon } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui/primitives/Button';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -49,9 +49,9 @@ const styles = StyleSheet.create((theme) => ({
 interface TodayScheduleSectionProps {
   calendarError: Error | null;
   onPressAction: () => void;
-  onPressCalendar: (item: FeedCalendarEntity) => void;
+  onPressCalendar: (item: CalendarEntity) => void;
   selectedCalendarSlugs: string[];
-  todayCalendars: FeedCalendarEntity[];
+  todayCalendars: CalendarEntity[];
 }
 
 export const TodayScheduleSection = ({
@@ -110,7 +110,7 @@ export const TodayScheduleSection = ({
       ) : (
         <View style={styles.list}>
           {todayCalendars.map((item, index) => (
-            <FeedCalendarItem
+            <CalendarItem
               isLast={index === todayCalendars.length - 1}
               item={item}
               key={`${item.slug}-${item.id}`}

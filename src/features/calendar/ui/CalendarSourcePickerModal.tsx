@@ -85,7 +85,7 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export type FeedCalendarSourcePickerModalProps = {
+export type CalendarSourcePickerModalProps = {
   description?: string;
   onClose: () => void;
   onSaveCalendarSlugs: (selectedSlugs: string[]) => void;
@@ -94,14 +94,14 @@ export type FeedCalendarSourcePickerModalProps = {
   visible: boolean;
 };
 
-export const FeedCalendarSourcePickerModal = ({
+export const CalendarSourcePickerModal = ({
   visible,
   onClose,
   onSaveCalendarSlugs,
   selectedCalendarSlugs,
   sites,
   description = '피드 일정 페이지에 표시할 일정 소스를 선택하세요',
-}: FeedCalendarSourcePickerModalProps) => {
+}: CalendarSourcePickerModalProps) => {
   const calendarSites = sites.filter((site) => site.kind === 'calendar');
 
   const handleToggleCalendar = (slug: string) => {

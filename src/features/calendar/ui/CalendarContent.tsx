@@ -6,10 +6,10 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
-import { FeedCalendarEntity } from '@/entities/feed/model';
+import { CalendarEntity } from '@/entities/calendar/model';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
-import { FeedCalendarItem } from './FeedCalendarItem';
+import { CalendarItem } from './CalendarItem';
 
 const styles = StyleSheet.create((theme) => ({
   list: {
@@ -25,22 +25,22 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-type FeedCalendarContentProps = {
+type CalendarContentProps = {
   error?: Error | null;
   hasSources: boolean;
   headerComponent?: null | ReactElement;
   isSyncing: boolean;
-  items: FeedCalendarEntity[];
-  listContentContainerStyle?: FlatListProps<FeedCalendarEntity>['contentContainerStyle'];
-  onPressItem: (item: FeedCalendarEntity) => void;
+  items: CalendarEntity[];
+  listContentContainerStyle?: FlatListProps<CalendarEntity>['contentContainerStyle'];
+  onPressItem: (item: CalendarEntity) => void;
   onRefresh?: () => void;
-  onScroll?: FlatListProps<FeedCalendarEntity>['onScroll'];
+  onScroll?: FlatListProps<CalendarEntity>['onScroll'];
   scrollEventThrottle?: number;
 };
 
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<FeedCalendarEntity>);
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<CalendarEntity>);
 
-export function FeedCalendarContent({
+export function CalendarContent({
   items,
   isSyncing,
   error,
@@ -51,7 +51,7 @@ export function FeedCalendarContent({
   onRefresh,
   onScroll,
   scrollEventThrottle = 16,
-}: FeedCalendarContentProps) {
+}: CalendarContentProps) {
   if (!hasSources) {
     return (
       <>
@@ -109,7 +109,7 @@ export function FeedCalendarContent({
       onScroll={onScroll}
       refreshing={isSyncing}
       renderItem={({ index, item }) => (
-        <FeedCalendarItem isLast={index === items.length - 1} item={item} onPress={onPressItem} />
+        <CalendarItem isLast={index === items.length - 1} item={item} onPress={onPressItem} />
       )}
       scrollEventThrottle={scrollEventThrottle}
       style={styles.list}
