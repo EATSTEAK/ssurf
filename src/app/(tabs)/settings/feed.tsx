@@ -152,8 +152,7 @@ export default function FeedSettingsScreen() {
                 {section.title}
               </ThemedText>
               {section.items.map((site) => {
-                const isSelected =
-                  selectedNoticeSlugs.includes(site.slug);
+                const isSelected = selectedNoticeSlugs.includes(site.slug);
 
                 return (
                   <Pressable

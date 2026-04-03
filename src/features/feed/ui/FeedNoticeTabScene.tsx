@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { useCallback } from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { NativeScrollEvent, NativeSyntheticEvent, StyleProp, View, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useFeedNoticeItems } from '@/entities/feed/lib/queries';
@@ -25,6 +25,7 @@ type FeedNoticeTabSceneProps = {
   error?: Error;
   isSyncing: boolean;
   listContentContainerStyle?: StyleProp<ViewStyle>;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   slug: string;
 };
 
@@ -32,6 +33,7 @@ export function FeedNoticeTabScene({
   error,
   isSyncing,
   listContentContainerStyle,
+  onScroll,
   slug,
 }: FeedNoticeTabSceneProps) {
   const { data, updatedAt } = useFeedNoticeItems(slug ? [slug] : []);
@@ -80,7 +82,9 @@ export function FeedNoticeTabScene({
   return (
     <CollapsibleTabs.ScrollView
       contentContainerStyle={listContentContainerStyle}
+      onScroll={onScroll}
       refreshing={isSyncing}
+      scrollEventThrottle={16}
     >
       <View style={styles.content}>
         {data.map((item, index) => (

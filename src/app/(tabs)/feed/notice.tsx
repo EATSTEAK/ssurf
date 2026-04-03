@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -199,12 +199,6 @@ export default function FeedNoticeScreen() {
     [currentNoticeSlug, routes, setSelectedNoticeSlug],
   );
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
-
   return (
     <>
       <Stack.Screen
@@ -292,6 +286,13 @@ export default function FeedNoticeScreen() {
                       styles.sceneListContent,
                       { paddingBottom: listBottomPadding },
                     ]}
+                    onScroll={
+                      route.key === currentNoticeSlug
+                        ? (event) => {
+                            scrollY.value = event.nativeEvent.contentOffset.y;
+                          }
+                        : undefined
+                    }
                     slug={route.key}
                   />
                 ) : null}
