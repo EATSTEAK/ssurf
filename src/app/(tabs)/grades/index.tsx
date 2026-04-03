@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useSharedValue } from 'react-native-reanimated';
+import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -20,6 +20,7 @@ import { semesterToString } from '@/shared/lib/semester';
 import { CollapsibleTabs } from '@/shared/ui/collapsible-tabs/CollapsibleTabs';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
@@ -100,6 +101,7 @@ function GradesContent() {
 
   const insets = useSafeAreaInsets();
   const pullDistance = useSharedValue(0);
+  const scrollY = useSharedValue(0);
   const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
 
   useEffect(() => {
@@ -146,6 +148,12 @@ function GradesContent() {
     await refresh(null);
     await graduationRefresh();
   };
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   if (!data || !graduation || !overview) {
     return (
@@ -274,7 +282,9 @@ function GradesContent() {
                     styles.sceneContent,
                     { paddingBottom: listBottomPadding },
                   ]}
+                  onScroll={route.key === selectedTabKey ? scrollHandler : undefined}
                   refreshing={isLoading || isGraduationLoading}
+                  scrollEventThrottle={16}
                 >
                   {item?.type === 'overview' ? (
                     <SemestersSection
@@ -295,6 +305,7 @@ function GradesContent() {
             );
           })}
         </CollapsibleTabs.Container>
+        <FloatingHeader label={selectedTabKey} scrollY={scrollY} title="성적" />
         <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
       </SafeContainer>
     </View>

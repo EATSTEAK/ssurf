@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useSharedValue } from 'react-native-reanimated';
+import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -15,6 +15,7 @@ import { FeedNoticeTabScene } from '@/features/feed/ui/FeedNoticeTabScene';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { CollapsibleTabs } from '@/shared/ui/collapsible-tabs/CollapsibleTabs';
 import { SafeContainer } from '@/shared/ui/containers/Container';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 import { SettingsIcon } from '@/shared/ui/icons';
@@ -91,6 +92,7 @@ export default function FeedNoticeScreen() {
   const { data: sites } = useFeedSites();
   const { error, isSyncing, syncEntry, syncSites } = useSyncFeed(studentId ?? '');
   const pullDistance = useSharedValue(0);
+  const scrollY = useSharedValue(0);
   const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
   const [hasBootstrappedSites, setHasBootstrappedSites] = useState(sites.length > 0);
 
@@ -197,6 +199,12 @@ export default function FeedNoticeScreen() {
     [currentNoticeSlug, routes, setSelectedNoticeSlug],
   );
 
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
   return (
     <>
       <Stack.Screen
@@ -291,6 +299,7 @@ export default function FeedNoticeScreen() {
             ))}
           </CollapsibleTabs.Container>
         )}
+        <FloatingHeader label="사이트별 전체 공지" scrollY={scrollY} title="공지사항" />
         <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
       </View>
     </>
