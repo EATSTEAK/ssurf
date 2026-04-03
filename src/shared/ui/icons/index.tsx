@@ -75,3 +75,4 @@ export const ChevronRightIcon = createIcon('ChevronRightIcon', 'chevron-right', 
 export const ArrowForwardIcon = createIcon('ArrowForwardIcon', 'arrow-right-bold', 'arrow.forward');
 export const SettingsIcon = createIcon('SettingsIcon', 'cog', 'gearshape.fill');
 export const LockIcon = createIcon('LockIcon', 'lock', 'lock');
+export const NewspaperIcon = createIcon('NewspaperIcon', 'newspaper', 'newspaper.fill');
