@@ -229,7 +229,7 @@ export default function FeedScreen() {
           title: '피드',
           headerTitle: () => <></>,
           headerRight: () => (
-            <Pressable onPress={() => router.push('/feed/settings')} style={styles.settingButton}>
+            <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
               <SettingsIcon color="white" size={24} />
             </Pressable>
           ),

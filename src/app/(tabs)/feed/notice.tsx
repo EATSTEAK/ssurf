@@ -206,7 +206,7 @@ export default function FeedNoticeScreen() {
           title: '공지사항',
           headerTitle: () => <></>,
           headerRight: () => (
-            <Pressable onPress={() => router.push('/feed/settings')} style={styles.settingButton}>
+            <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
               <SettingsIcon color="white" size={24} />
             </Pressable>
           ),

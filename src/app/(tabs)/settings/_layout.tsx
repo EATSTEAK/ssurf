@@ -4,7 +4,7 @@ export default function StackLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="notice" />
+      <Stack.Screen name="feed" />
     </Stack>
   );
 }

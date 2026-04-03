@@ -113,7 +113,7 @@ export default function ScheduleCalendarScreen() {
           title: '일정',
           headerTitle: () => <></>,
           headerRight: () => (
-            <Pressable onPress={() => router.push('/feed/settings')} style={styles.settingButton}>
+            <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
               <SettingsIcon color="white" size={24} />
             </Pressable>
           ),
