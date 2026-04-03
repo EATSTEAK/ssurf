@@ -4,15 +4,13 @@ import { FlatList, Platform, Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useFeedSites } from '@/entities/feed/lib/queries';
-import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
+import { useSetting } from '@/entities/settings/lib/queries';
+import { setSettings } from '@/entities/settings/service';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { Header } from '@/shared/ui/headers/Header';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-
-const DEFAULT_NOTICE_SLUG = 'scatch.ssu.ac.kr';
-const DEFAULT_SELECTED_NOTICE_SLUGS = [DEFAULT_NOTICE_SLUG];
-const DEFAULT_SELECTED_CALENDAR_SLUGS = ['calendar/ssu-academic-calendar'];
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -80,18 +78,10 @@ const styles = StyleSheet.create((theme) => ({
 
 export default function FeedSettingsScreen() {
   const { data: sites } = useFeedSites();
-  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedNoticeSlugs',
-    defaultValue: DEFAULT_SELECTED_NOTICE_SLUGS,
-  });
-  const [selectedNoticeSlug, setSelectedNoticeSlug] = useExpoSecureStore<string>({
-    key: 'feed.selectedNoticeSlug',
-    defaultValue: DEFAULT_NOTICE_SLUG,
-  });
-  const [selectedCalendarSlugs, setSelectedCalendarSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedCalendarSlugs',
-    defaultValue: DEFAULT_SELECTED_CALENDAR_SLUGS,
-  });
+  const { studentId } = useRusaintApplication();
+  const [selectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
+  const [selectedNoticeSlug] = useSetting('selectedNoticeSlug');
+  const [selectedCalendarSlugs, setSelectedCalendarSlugs] = useSetting('selectedCalendarSlugs');
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
@@ -101,15 +91,23 @@ export default function FeedSettingsScreen() {
       ? selectedNoticeSlugs.filter((selected) => selected !== slug)
       : [...selectedNoticeSlugs, slug];
 
-    void setSelectedNoticeSlugs(nextSlugs);
-
-    if (nextSlugs.length === 0) {
+    if (!studentId) {
       return;
     }
 
-    if (!nextSlugs.includes(selectedNoticeSlug)) {
-      void setSelectedNoticeSlug(nextSlugs[0]);
+    if (nextSlugs.length === 0) {
+      void setSettings(studentId, {
+        selectedNoticeSlugs: nextSlugs,
+      });
+      return;
     }
+
+    void setSettings(studentId, {
+      selectedNoticeSlugs: nextSlugs,
+      selectedNoticeSlug: nextSlugs.includes(selectedNoticeSlug)
+        ? selectedNoticeSlug
+        : nextSlugs[0],
+    });
   };
 
   const toggleCalendar = (slug: string) => {

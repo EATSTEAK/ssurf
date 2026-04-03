@@ -10,8 +10,8 @@ import emptyImage from '@/assets/empty.png';
 import loadingImage from '@/assets/loading.png';
 import { useFeedSites } from '@/entities/feed/lib/queries';
 import { useSyncFeed } from '@/entities/feed/lib/sync';
+import { useSetting } from '@/entities/settings/lib/queries';
 import { FeedNoticeTabScene } from '@/features/feed/ui/FeedNoticeTabScene';
-import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { CollapsibleTabs } from '@/shared/ui/collapsible-tabs/CollapsibleTabs';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -22,8 +22,6 @@ import { Space } from '@/shared/ui/primitives/Space';
 import { TabsRoute, TabsTabBar } from '@/shared/ui/primitives/Tabs';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
-const DEFAULT_NOTICE_SLUG = 'scatch.ssu.ac.kr';
-const DEFAULT_SELECTED_NOTICE_SLUGS = [DEFAULT_NOTICE_SLUG];
 const NATIVE_TAB_BAR_HEIGHT = 49;
 
 const styles = StyleSheet.create((theme) => ({
@@ -87,14 +85,8 @@ export default function FeedNoticeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { studentId } = useRusaintApplication();
-  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedNoticeSlugs',
-    defaultValue: DEFAULT_SELECTED_NOTICE_SLUGS,
-  });
-  const [selectedNoticeSlug, setSelectedNoticeSlug] = useExpoSecureStore<string>({
-    key: 'feed.selectedNoticeSlug',
-    defaultValue: DEFAULT_NOTICE_SLUG,
-  });
+  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
+  const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
 
   const { data: sites } = useFeedSites();
   const { error, isSyncing, syncEntry, syncSites } = useSyncFeed(studentId ?? '');
