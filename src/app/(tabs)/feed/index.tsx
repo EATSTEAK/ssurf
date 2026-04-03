@@ -8,22 +8,17 @@ import { StyleSheet } from 'react-native-unistyles';
 import { useFeedCalendars, useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
 import { useSyncFeed } from '@/entities/feed/lib/sync';
 import { FeedCalendarEntity, FeedNoticeListItem } from '@/entities/feed/model';
-import { FeedCalendarItem } from '@/features/feed/ui/FeedCalendarItem';
+import { useSetting } from '@/entities/settings/lib/queries';
 import { NoticeCard } from '@/features/feed/ui/NoticeCard';
-import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
+import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
-import { ArrowForwardIcon, SettingsIcon } from '@/shared/ui/icons';
-import { Button } from '@/shared/ui/primitives/Button';
+import { SettingsIcon } from '@/shared/ui/icons';
 import { Space } from '@/shared/ui/primitives/Space';
-import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
-const DEFAULT_NOTICE_SLUG = 'scatch.ssu.ac.kr';
-const DEFAULT_SELECTED_NOTICE_SLUGS = [DEFAULT_NOTICE_SLUG];
-const DEFAULT_SELECTED_CALENDAR_SLUGS = ['calendar/ssu-academic-calendar'];
 const NOTICE_PREVIEW_LIMIT = 3;
 
 const styles = StyleSheet.create((theme) => ({
@@ -45,42 +40,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   headerContainer: {
     paddingHorizontal: theme.gap(3),
-  },
-  todaySection: {
-    padding: theme.gap(3),
-    gap: theme.gap(2),
-    borderRadius: theme.cornerRadius.lg,
-    backgroundColor: theme.colors.surface,
-  },
-  todaySectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: theme.gap(2),
-  },
-  todaySectionTitle: {
-    gap: theme.gap(0.5),
-    flex: 1,
-  },
-  todaySectionAction: {
-    width: 'auto',
-    paddingHorizontal: theme.gap(2),
-  },
-  todaySectionList: {
-    overflow: 'hidden',
-    borderRadius: theme.cornerRadius.md,
-    backgroundColor: theme.colors.surfaceDim,
-  },
-  todaySectionEmpty: {
-    paddingVertical: theme.gap(4),
-    paddingHorizontal: theme.gap(3),
-    alignItems: 'center',
-    gap: theme.gap(1),
-  },
-  sectionActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.gap(1),
   },
   settingButton: {
     padding: theme.gap(1),
@@ -110,18 +69,9 @@ export default function FeedScreen() {
   const { width } = useWindowDimensions();
   const { studentId } = useRusaintApplication();
 
-  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedNoticeSlugs',
-    defaultValue: DEFAULT_SELECTED_NOTICE_SLUGS,
-  });
-  const [selectedNoticeSlug, setSelectedNoticeSlug] = useExpoSecureStore<string>({
-    key: 'feed.selectedNoticeSlug',
-    defaultValue: DEFAULT_NOTICE_SLUG,
-  });
-  const [selectedCalendarSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedCalendarSlugs',
-    defaultValue: DEFAULT_SELECTED_CALENDAR_SLUGS,
-  });
+  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
+  const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
+  const [selectedCalendarSlugs] = useSetting('selectedCalendarSlugs');
 
   const { data: sites } = useFeedSites();
   const { syncEntry, syncSites } = useSyncFeed(studentId ?? '');
@@ -300,64 +250,13 @@ export default function FeedScreen() {
                 <Header title="피드" />
               </View>
 
-              <View style={styles.todaySection}>
-                <View style={styles.todaySectionHeader}>
-                  <View style={styles.todaySectionTitle}>
-                    <ThemedText typography="headingLg">오늘의 일정</ThemedText>
-                    <ThemedText color="fgSecondary" typography="bodySm">
-                      오늘 포함된 피드 일정만 모아봤어요
-                    </ThemedText>
-                  </View>
-                  <Button
-                    onPress={() => router.push('/(tabs)/feed/schedule')}
-                    style={styles.todaySectionAction}
-                    textStyle={{ fontSize: 14 }}
-                    variant="surface"
-                  >
-                    {() => (
-                      <View style={styles.sectionActionButton}>
-                        <ThemedText color="fgPrimary" typography="labelMd">
-                          전체 일정 보기
-                        </ThemedText>
-                        <ArrowForwardIcon color="white" size={16} />
-                      </View>
-                    )}
-                  </Button>
-                </View>
-
-                {selectedCalendarSlugs.length === 0 ? (
-                  <View style={styles.todaySectionEmpty}>
-                    <ThemedText typography="bodyMd">선택된 일정 소스가 없어요</ThemedText>
-                    <ThemedText color="fgSecondary" typography="bodySm">
-                      설정에서 일정 소스를 선택해주세요
-                    </ThemedText>
-                  </View>
-                ) : calendarError ? (
-                  <View style={styles.todaySectionEmpty}>
-                    <ThemedText color="error" typography="bodyMd">
-                      오늘 일정을 불러오지 못했어요
-                    </ThemedText>
-                    <ThemedText color="fgSecondary" typography="bodySm">
-                      아래로 당겨 다시 시도해주세요
-                    </ThemedText>
-                  </View>
-                ) : todayCalendars.length === 0 ? (
-                  <View style={styles.todaySectionEmpty}>
-                    <ThemedText typography="bodyMd">오늘 등록된 일정이 없어요</ThemedText>
-                  </View>
-                ) : (
-                  <View style={styles.todaySectionList}>
-                    {todayCalendars.map((item, index) => (
-                      <FeedCalendarItem
-                        isLast={index === todayCalendars.length - 1}
-                        item={item}
-                        key={`${item.slug}-${item.id}`}
-                        onPress={handlePressCalendar}
-                      />
-                    ))}
-                  </View>
-                )}
-              </View>
+              <TodayScheduleSection
+                calendarError={calendarError ?? null}
+                onPressAction={() => router.push('/(tabs)/schedule/calendar')}
+                onPressCalendar={handlePressCalendar}
+                selectedCalendarSlugs={selectedCalendarSlugs}
+                todayCalendars={todayCalendars}
+              />
 
               <NoticeCard
                 actionLabel="전체 공지 보기"

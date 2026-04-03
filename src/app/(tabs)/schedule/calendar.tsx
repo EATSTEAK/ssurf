@@ -9,8 +9,8 @@ import { StyleSheet } from 'react-native-unistyles';
 import { useFeedCalendars, useFeedSites } from '@/entities/feed/lib/queries';
 import { useSyncFeed } from '@/entities/feed/lib/sync';
 import { FeedCalendarEntity } from '@/entities/feed/model';
+import { useSetting } from '@/entities/settings/lib/queries';
 import { FeedCalendarContent } from '@/features/feed/ui/FeedCalendarContent';
-import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
@@ -19,7 +19,6 @@ import { SettingsIcon } from '@/shared/ui/icons';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
-const DEFAULT_SELECTED_CALENDAR_SLUGS = ['calendar/ssu-academic-calendar'];
 const NATIVE_TAB_BAR_HEIGHT = 49;
 
 const styles = StyleSheet.create((theme) => ({
@@ -45,14 +44,11 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export default function FeedScheduleScreen() {
+export default function ScheduleCalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { studentId } = useRusaintApplication();
-  const [selectedCalendarSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedCalendarSlugs',
-    defaultValue: DEFAULT_SELECTED_CALENDAR_SLUGS,
-  });
+  const [selectedCalendarSlugs] = useSetting('selectedCalendarSlugs');
 
   const { data: sites } = useFeedSites();
   const { syncEntry, syncSites } = useSyncFeed(studentId ?? '');
