@@ -41,7 +41,11 @@ export const syncCalendarEntry = async (studentId: string, slug: string) => {
   const data: SsufidCalendarResponse = await response.json();
   const [site] = await db.select().from(feedSites).where(eq(feedSites.slug, slug));
 
-  if ((data.kind ?? site?.kind) !== 'calendar') {
+  if (data.kind && data.kind !== 'calendar') {
+    throw new Error(`Feed entry is not a calendar source: ${slug}`);
+  }
+
+  if (!data.kind && site?.kind && site.kind !== 'calendar') {
     throw new Error(`Feed entry is not a calendar source: ${slug}`);
   }
 

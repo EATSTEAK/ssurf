@@ -49,7 +49,7 @@ export default function ScheduleCalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { studentId } = useRusaintApplication();
-  const [selectedCalendarSlugs] = useSetting('selectedCalendarSlugs');
+  const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
 
   const { data: sites } = useFeedSites();
   const { syncEntry, syncSites } = useSyncCalendars(studentId ?? '');

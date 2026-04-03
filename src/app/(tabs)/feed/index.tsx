@@ -9,6 +9,7 @@ import { useCalendars } from '@/entities/calendar/lib/queries';
 import { useSyncCalendars } from '@/entities/calendar/lib/sync';
 import { CalendarEntity } from '@/entities/calendar/model';
 import { useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
+import { useSyncFeed } from '@/entities/feed/lib/sync';
 import { FeedNoticeListItem } from '@/entities/feed/model';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
@@ -57,10 +58,11 @@ export default function FeedScreen() {
 
   const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
   const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
-  const [selectedCalendarSlugs] = useSetting('selectedCalendarSlugs');
+  const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
 
   const { data: sites } = useFeedSites();
-  const { syncEntry, syncSites } = useSyncCalendars(studentId ?? '');
+  const { sync: syncCalendars, syncSites: syncCalendarSites } = useSyncCalendars(studentId ?? '');
+  const { syncEntry: syncNoticeEntry } = useSyncFeed(studentId ?? '');
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const availableSelectedNoticeSlugs = useMemo(
@@ -87,8 +89,8 @@ export default function FeedScreen() {
   );
 
   useEffect(() => {
-    void syncSites();
-  }, [syncSites]);
+    void syncCalendarSites();
+  }, [syncCalendarSites]);
 
   useEffect(() => {
     if (noticeSites.length === 0) {
@@ -144,14 +146,22 @@ export default function FeedScreen() {
       return;
     }
 
-    void syncSites({ force: true });
+    void syncCalendarSites({ force: true });
 
-    if (!currentNoticeSlug) {
-      return;
+    if (currentNoticeSlug) {
+      void syncNoticeEntry(currentNoticeSlug, { force: true });
     }
 
-    void syncEntry(currentNoticeSlug, { force: true });
-  }, [currentNoticeSlug, isCalendarSyncing, isNoticeSyncing, syncEntry, syncSites]);
+    void syncCalendars(selectedCalendarSlugs, { force: true });
+  }, [
+    currentNoticeSlug,
+    isCalendarSyncing,
+    isNoticeSyncing,
+    selectedCalendarSlugs,
+    syncCalendarSites,
+    syncCalendars,
+    syncNoticeEntry,
+  ]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
