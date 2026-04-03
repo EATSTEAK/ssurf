@@ -35,4 +35,3 @@ export type FeedNoticeListItem = Pick<
   FeedNoticeEntity,
   'author' | 'createdAt' | 'description' | 'id' | 'slug' | 'title' | 'updatedAt' | 'url'
 >;
-

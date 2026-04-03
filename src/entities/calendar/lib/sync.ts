@@ -14,7 +14,6 @@ export interface UseSyncCalendarsReturn {
   error: Error | undefined;
   isSyncing: boolean;
   sync: (selectedSlugs: string[], options?: { force?: boolean }) => Promise<void>;
-  syncEntry: (slug: string, options?: { force?: boolean }) => Promise<void>;
   syncSites: (options?: { force?: boolean }) => Promise<void>;
 }
 
@@ -137,13 +136,6 @@ export const useSyncCalendars = (
     [setError, setStoreSyncing, studentId, ttlMs],
   );
 
-  const syncEntry = useCallback(
-    async (slug: string, syncOptions?: { force?: boolean }) => {
-      await runSyncEntry(slug, syncOptions);
-    },
-    [runSyncEntry],
-  );
-
   const sync = useCallback(
     async (selectedSlugs: string[], syncOptions?: { force?: boolean }) => {
       const uniqueSlugs = getUniqueSlugs(selectedSlugs);
@@ -160,5 +152,5 @@ export const useSyncCalendars = (
     [runSyncEntry],
   );
 
-  return { error, isSyncing, sync, syncEntry, syncSites };
+  return { error, isSyncing, sync, syncSites };
 };

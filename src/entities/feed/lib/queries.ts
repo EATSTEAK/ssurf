@@ -60,4 +60,3 @@ export const useFeedNotices = (studentId: string, selectedSlugs: string[]) => {
 
   return { data, error, isSyncing, updatedAt };
 };
-

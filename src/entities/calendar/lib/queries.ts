@@ -12,8 +12,15 @@ export const useCalendars = (studentId: string, selectedSlugs: string[]) => {
 
   const { data, updatedAt } = useLiveQuery(
     selectedSlugs.length > 0
-      ? db.select().from(calendars).where(inArray(calendars.slug, selectedSlugs)).orderBy(calendars.startsAt)
-      : db.select().from(calendars).where(sql`1 = 0`),
+      ? db
+          .select()
+          .from(calendars)
+          .where(inArray(calendars.slug, selectedSlugs))
+          .orderBy(calendars.startsAt)
+      : db
+          .select()
+          .from(calendars)
+          .where(sql`1 = 0`),
     [selectedSlugs.join(',')],
   );
 

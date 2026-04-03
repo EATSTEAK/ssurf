@@ -52,7 +52,7 @@ export default function ScheduleCalendarScreen() {
   const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
 
   const { data: sites } = useFeedSites();
-  const { syncEntry, syncSites } = useSyncCalendars(studentId ?? '');
+  const { sync, syncSites } = useSyncCalendars(studentId ?? '');
   const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
 
   useEffect(() => {
@@ -71,8 +71,8 @@ export default function ScheduleCalendarScreen() {
     }
 
     void syncSites({ force: true });
-    void Promise.all(selectedCalendarSlugs.map((slug) => syncEntry(slug, { force: true })));
-  }, [isSyncing, selectedCalendarSlugs, syncEntry, syncSites]);
+    void sync(selectedCalendarSlugs, { force: true });
+  }, [isSyncing, selectedCalendarSlugs, sync, syncSites]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
