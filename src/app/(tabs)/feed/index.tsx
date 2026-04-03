@@ -5,10 +5,13 @@ import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useFeedCalendars, useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
-import { useSyncFeed } from '@/entities/feed/lib/sync';
-import { FeedCalendarEntity, FeedNoticeListItem } from '@/entities/feed/model';
+import { useCalendars } from '@/entities/calendar/lib/queries';
+import { useSyncCalendars } from '@/entities/calendar/lib/sync';
+import { CalendarEntity } from '@/entities/calendar/model';
+import { useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
+import { FeedNoticeListItem } from '@/entities/feed/model';
 import { useSetting } from '@/entities/settings/lib/queries';
+import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
 import { NoticeCard } from '@/features/feed/ui/NoticeCard';
 import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
@@ -47,23 +50,6 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-function isTodayCalendar(item: FeedCalendarEntity, now: Date) {
-  const start = item.startsAt ?? item.endsAt;
-  const end = item.endsAt ?? item.startsAt;
-
-  if (!start || !end) {
-    return false;
-  }
-
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const endOfDay = new Date(now);
-  endOfDay.setHours(23, 59, 59, 999);
-
-  return start <= endOfDay.getTime() && end >= startOfDay.getTime();
-}
-
 export default function FeedScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -74,7 +60,7 @@ export default function FeedScreen() {
   const [selectedCalendarSlugs] = useSetting('selectedCalendarSlugs');
 
   const { data: sites } = useFeedSites();
-  const { syncEntry, syncSites } = useSyncFeed(studentId ?? '');
+  const { syncEntry, syncSites } = useSyncCalendars(studentId ?? '');
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const availableSelectedNoticeSlugs = useMemo(
@@ -135,7 +121,7 @@ export default function FeedScreen() {
     data: calendars,
     error: calendarError,
     isSyncing: isCalendarSyncing,
-  } = useFeedCalendars(studentId ?? '', selectedCalendarSlugs);
+  } = useCalendars(studentId ?? '', selectedCalendarSlugs);
 
   const todayCalendars = useMemo(() => {
     const now = new Date();
@@ -199,7 +185,7 @@ export default function FeedScreen() {
   );
 
   const handlePressCalendar = useCallback(
-    (item: FeedCalendarEntity) => {
+    (item: CalendarEntity) => {
       void handleOpenUrl(item.url);
     },
     [handleOpenUrl],

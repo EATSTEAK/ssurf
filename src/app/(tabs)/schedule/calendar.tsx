@@ -6,11 +6,12 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useFeedCalendars, useFeedSites } from '@/entities/feed/lib/queries';
-import { useSyncFeed } from '@/entities/feed/lib/sync';
-import { FeedCalendarEntity } from '@/entities/feed/model';
+import { useCalendars } from '@/entities/calendar/lib/queries';
+import { useSyncCalendars } from '@/entities/calendar/lib/sync';
+import { CalendarEntity } from '@/entities/calendar/model';
+import { useFeedSites } from '@/entities/feed/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
-import { FeedCalendarContent } from '@/features/feed/ui/FeedCalendarContent';
+import { CalendarContent } from '@/features/calendar/ui/CalendarContent';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
@@ -51,14 +52,14 @@ export default function ScheduleCalendarScreen() {
   const [selectedCalendarSlugs] = useSetting('selectedCalendarSlugs');
 
   const { data: sites } = useFeedSites();
-  const { syncEntry, syncSites } = useSyncFeed(studentId ?? '');
+  const { syncEntry, syncSites } = useSyncCalendars(studentId ?? '');
   const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
 
   useEffect(() => {
     void syncSites();
   }, [syncSites]);
 
-  const { data, error, isSyncing } = useFeedCalendars(studentId ?? '', selectedCalendarSlugs);
+  const { data, error, isSyncing } = useCalendars(studentId ?? '', selectedCalendarSlugs);
 
   const scrollY = useSharedValue(0);
   const listBottomPadding =
@@ -98,7 +99,7 @@ export default function ScheduleCalendarScreen() {
   }, []);
 
   const handlePressCalendar = useCallback(
-    (item: FeedCalendarEntity) => {
+    (item: CalendarEntity) => {
       void handleOpenUrl(item.url);
     },
     [handleOpenUrl],
@@ -120,7 +121,7 @@ export default function ScheduleCalendarScreen() {
         }}
       />
       <View style={styles.root}>
-        <FeedCalendarContent
+        <CalendarContent
           error={error}
           hasSources={calendarSites.length > 0 && selectedCalendarSlugs.length > 0}
           headerComponent={
