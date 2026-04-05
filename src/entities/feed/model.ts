@@ -35,20 +35,3 @@ export type FeedNoticeListItem = Pick<
   FeedNoticeEntity,
   'author' | 'createdAt' | 'description' | 'id' | 'slug' | 'title' | 'updatedAt' | 'url'
 >;
-
-export const feedCalendars = sqliteTable(
-  'feed_calendars',
-  {
-    slug: t.text().notNull(),
-    id: t.text().notNull(),
-    title: t.text().notNull(),
-    description: t.text(),
-    startsAt: t.integer(),
-    endsAt: t.integer(),
-    location: t.text(),
-    url: t.text(),
-  },
-  (table) => [t.primaryKey({ columns: [table.slug, table.id] })],
-);
-
-export type FeedCalendarEntity = typeof feedCalendars.$inferSelect;

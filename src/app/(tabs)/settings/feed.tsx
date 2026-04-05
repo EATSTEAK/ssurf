@@ -1,18 +1,18 @@
 import { Stack } from 'expo-router';
 import { useMemo } from 'react';
-import { FlatList, Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useFeedSites } from '@/entities/feed/lib/queries';
-import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
+import { useSetting } from '@/entities/settings/lib/queries';
+import { setSettings } from '@/entities/settings/service';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-
-const DEFAULT_NOTICE_SLUG = 'scatch.ssu.ac.kr';
-const DEFAULT_SELECTED_NOTICE_SLUGS = [DEFAULT_NOTICE_SLUG];
-const DEFAULT_SELECTED_CALENDAR_SLUGS = ['calendar/ssu-academic-calendar'];
 
 const styles = StyleSheet.create((theme) => ({
   root: {
@@ -79,46 +79,45 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 export default function FeedSettingsScreen() {
+  const scrollY = useSharedValue(0);
   const { data: sites } = useFeedSites();
-  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedNoticeSlugs',
-    defaultValue: DEFAULT_SELECTED_NOTICE_SLUGS,
-  });
-  const [selectedNoticeSlug, setSelectedNoticeSlug] = useExpoSecureStore<string>({
-    key: 'feed.selectedNoticeSlug',
-    defaultValue: DEFAULT_NOTICE_SLUG,
-  });
-  const [selectedCalendarSlugs, setSelectedCalendarSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedCalendarSlugs',
-    defaultValue: DEFAULT_SELECTED_CALENDAR_SLUGS,
-  });
+  const { studentId } = useRusaintApplication();
+  const [selectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
+  const [selectedNoticeSlug] = useSetting('selectedNoticeSlug');
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
-  const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
 
   const toggleNotice = (slug: string) => {
     const nextSlugs = selectedNoticeSlugs.includes(slug)
       ? selectedNoticeSlugs.filter((selected) => selected !== slug)
       : [...selectedNoticeSlugs, slug];
 
-    void setSelectedNoticeSlugs(nextSlugs);
-
-    if (nextSlugs.length === 0) {
+    if (!studentId) {
       return;
     }
 
-    if (!nextSlugs.includes(selectedNoticeSlug)) {
-      void setSelectedNoticeSlug(nextSlugs[0]);
+    if (nextSlugs.length === 0) {
+      void setSettings(studentId, {
+        selectedNoticeSlugs: nextSlugs,
+      });
+      return;
     }
+
+    void setSettings(studentId, {
+      selectedNoticeSlugs: nextSlugs,
+      selectedNoticeSlug: nextSlugs.includes(selectedNoticeSlug)
+        ? selectedNoticeSlug
+        : nextSlugs[0],
+    });
   };
 
-  const toggleCalendar = (slug: string) => {
-    const nextSlugs = selectedCalendarSlugs.includes(slug)
-      ? selectedCalendarSlugs.filter((selected) => selected !== slug)
-      : [...selectedCalendarSlugs, slug];
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
-    void setSelectedCalendarSlugs(nextSlugs);
-  };
+  const sections = [{ items: noticeSites, kind: 'notice' as const, title: '공지사항' as const }];
 
   return (
     <>
@@ -131,12 +130,9 @@ export default function FeedSettingsScreen() {
         }}
       />
       <View style={styles.root}>
-        <FlatList
+        <Animated.FlatList<(typeof sections)[number]>
           contentContainerStyle={styles.content}
-          data={[
-            { items: noticeSites, kind: 'notice', title: '공지사항' as const },
-            { items: calendarSites, kind: 'calendar', title: '일정' as const },
-          ]}
+          data={sections}
           keyExtractor={(item) => item.kind}
           ListHeaderComponent={
             <SafeContainer>
@@ -144,30 +140,24 @@ export default function FeedSettingsScreen() {
               <View style={styles.topView}>
                 <Header title="피드 설정" />
                 <ThemedText color="fgSecondary" typography="labelMd">
-                  공지와 일정 소스를 선택하세요
+                  공지 소스를 선택하세요
                 </ThemedText>
               </View>
             </SafeContainer>
           }
+          onScroll={scrollHandler}
           renderItem={({ item: section }) => (
             <View style={styles.section}>
               <ThemedText color="fgSecondary" typography="labelMd">
                 {section.title}
               </ThemedText>
               {section.items.map((site) => {
-                const isSelected =
-                  section.kind === 'notice'
-                    ? selectedNoticeSlugs.includes(site.slug)
-                    : selectedCalendarSlugs.includes(site.slug);
+                const isSelected = selectedNoticeSlugs.includes(site.slug);
 
                 return (
                   <Pressable
                     key={site.slug}
-                    onPress={() =>
-                      section.kind === 'notice'
-                        ? toggleNotice(site.slug)
-                        : toggleCalendar(site.slug)
-                    }
+                    onPress={() => toggleNotice(site.slug)}
                     style={[styles.item, isSelected && styles.itemSelected]}
                   >
                     <View style={[styles.indicator, isSelected && styles.indicatorSelected]}>
@@ -179,9 +169,7 @@ export default function FeedSettingsScreen() {
                           {site.title}
                         </ThemedText>
                         <View style={styles.kindBadge}>
-                          <ThemedText typography="labelSm">
-                            {section.kind === 'notice' ? '공지' : '일정'}
-                          </ThemedText>
+                          <ThemedText typography="labelSm">공지</ThemedText>
                         </View>
                       </View>
                       {site.description ? (
@@ -199,7 +187,9 @@ export default function FeedSettingsScreen() {
               })}
             </View>
           )}
+          scrollEventThrottle={16}
         />
+        <FloatingHeader scrollY={scrollY} title="피드 설정" />
       </View>
     </>
   );

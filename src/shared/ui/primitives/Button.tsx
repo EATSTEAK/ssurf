@@ -101,11 +101,15 @@ export const Button = ({
       style={(state) => [styles.container(state), propagateState(state, style)]}
       {...props}
     >
-      {(state) => (
-        <Text style={[styles.text, propagateState(state, textStyle)]}>
-          {propagateState(state, children)}
-        </Text>
-      )}
+      {(state) => {
+        const content = propagateState(state, children);
+
+        if (React.isValidElement(content)) {
+          return content;
+        }
+
+        return <Text style={[styles.text, propagateState(state, textStyle)]}>{content}</Text>;
+      }}
     </Pressable>
   );
 };

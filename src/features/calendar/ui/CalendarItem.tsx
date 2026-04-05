@@ -1,10 +1,9 @@
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { FeedCalendarEntity } from '@/entities/feed/model';
+import { CalendarEntity } from '@/entities/calendar/model';
+import { formatFeedDate } from '@/features/feed/ui/formatFeedDate';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-
-import { formatFeedDate } from './formatFeedDate';
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -25,13 +24,13 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-type FeedCalendarItemProps = {
+type CalendarItemProps = {
   isLast: boolean;
-  item: FeedCalendarEntity;
-  onPress: (item: FeedCalendarEntity) => void;
+  item: CalendarEntity;
+  onPress: (item: CalendarEntity) => void;
 };
 
-export function FeedCalendarItem({ item, isLast, onPress }: FeedCalendarItemProps) {
+export function CalendarItem({ item, isLast, onPress }: CalendarItemProps) {
   return (
     <Pressable
       onPress={() => onPress(item)}

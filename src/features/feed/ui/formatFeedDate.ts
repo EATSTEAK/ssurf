@@ -1,8 +1,9 @@
+import { format } from 'date-fns';
+
 export const formatFeedDate = (timestamp: null | number) => {
   if (!timestamp) {
     return '';
   }
 
-  const date = new Date(timestamp);
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  return format(new Date(timestamp), 'yyyy.MM.dd');
 };

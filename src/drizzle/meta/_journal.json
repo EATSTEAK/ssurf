@@ -78,6 +78,13 @@
       "when": 1774701525772,
       "tag": "0010_chubby_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1774900000000,
+      "tag": "0011_mellow_lifeguard",
+      "breakpoints": true
     }
   ]
 }

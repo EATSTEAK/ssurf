@@ -10,11 +10,12 @@ import emptyImage from '@/assets/empty.png';
 import loadingImage from '@/assets/loading.png';
 import { useFeedSites } from '@/entities/feed/lib/queries';
 import { useSyncFeed } from '@/entities/feed/lib/sync';
+import { useSetting } from '@/entities/settings/lib/queries';
 import { FeedNoticeTabScene } from '@/features/feed/ui/FeedNoticeTabScene';
-import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { CollapsibleTabs } from '@/shared/ui/collapsible-tabs/CollapsibleTabs';
 import { SafeContainer } from '@/shared/ui/containers/Container';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 import { SettingsIcon } from '@/shared/ui/icons';
@@ -22,8 +23,6 @@ import { Space } from '@/shared/ui/primitives/Space';
 import { TabsRoute, TabsTabBar } from '@/shared/ui/primitives/Tabs';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
-const DEFAULT_NOTICE_SLUG = 'scatch.ssu.ac.kr';
-const DEFAULT_SELECTED_NOTICE_SLUGS = [DEFAULT_NOTICE_SLUG];
 const NATIVE_TAB_BAR_HEIGHT = 49;
 
 const styles = StyleSheet.create((theme) => ({
@@ -87,18 +86,13 @@ export default function FeedNoticeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { studentId } = useRusaintApplication();
-  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useExpoSecureStore<string[]>({
-    key: 'feed.selectedNoticeSlugs',
-    defaultValue: DEFAULT_SELECTED_NOTICE_SLUGS,
-  });
-  const [selectedNoticeSlug, setSelectedNoticeSlug] = useExpoSecureStore<string>({
-    key: 'feed.selectedNoticeSlug',
-    defaultValue: DEFAULT_NOTICE_SLUG,
-  });
+  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
+  const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
 
   const { data: sites } = useFeedSites();
   const { error, isSyncing, syncEntry, syncSites } = useSyncFeed(studentId ?? '');
   const pullDistance = useSharedValue(0);
+  const scrollY = useSharedValue(0);
   const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
   const [hasBootstrappedSites, setHasBootstrappedSites] = useState(sites.length > 0);
 
@@ -214,7 +208,7 @@ export default function FeedNoticeScreen() {
           title: '공지사항',
           headerTitle: () => <></>,
           headerRight: () => (
-            <Pressable onPress={() => router.push('/feed/settings')} style={styles.settingButton}>
+            <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
               <SettingsIcon color="white" size={24} />
             </Pressable>
           ),
@@ -292,6 +286,13 @@ export default function FeedNoticeScreen() {
                       styles.sceneListContent,
                       { paddingBottom: listBottomPadding },
                     ]}
+                    onScroll={
+                      route.key === currentNoticeSlug
+                        ? (event) => {
+                            scrollY.value = event.nativeEvent.contentOffset.y;
+                          }
+                        : undefined
+                    }
                     slug={route.key}
                   />
                 ) : null}
@@ -299,6 +300,7 @@ export default function FeedNoticeScreen() {
             ))}
           </CollapsibleTabs.Container>
         )}
+        <FloatingHeader label="사이트별 전체 공지" scrollY={scrollY} title="공지사항" />
         <RefreshHeader pullDistance={pullDistance} refreshState={refreshState} />
       </View>
     </>

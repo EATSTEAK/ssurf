@@ -181,14 +181,12 @@ export const NoticeCard = memo(function NoticeCard({
             textStyle={{ fontSize: 14 }}
             variant="surface"
           >
-            {() => (
-              <View style={styles.sectionActionButton}>
-                <ThemedText color="fgPrimary" typography="labelMd">
-                  {actionLabel}
-                </ThemedText>
-                <ArrowForwardIcon color="white" size={16} />
-              </View>
-            )}
+            <View style={styles.sectionActionButton}>
+              <ThemedText color="fgPrimary" typography="labelMd">
+                {actionLabel}
+              </ThemedText>
+              <ArrowForwardIcon color="white" size={16} />
+            </View>
           </Button>
         ) : null}
       </View>

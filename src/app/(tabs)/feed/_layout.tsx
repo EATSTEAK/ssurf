@@ -5,8 +5,6 @@ export default function StackLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="notice" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="schedule" />
     </Stack>
   );
 }

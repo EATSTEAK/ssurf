@@ -7,6 +7,7 @@ import * as feedSchemas from '@/entities/feed/model';
 import * as gradesSchemas from '@/entities/grades/model';
 import * as graduationRequirementsSchemas from '@/entities/graduationRequirements/model';
 import * as scholarshipsSchemas from '@/entities/scholarships/model';
+import { settings } from '@/entities/settings/model';
 import * as studentInformationSchemas from '@/entities/studentInformation/model';
 import * as cacheSchemas from '@/shared/model/schema/cache';
 
@@ -18,6 +19,7 @@ const schema = {
   ...gradesSchemas,
   ...graduationRequirementsSchemas,
   ...scholarshipsSchemas,
+  settings,
   ...studentInformationSchemas,
 };
 
