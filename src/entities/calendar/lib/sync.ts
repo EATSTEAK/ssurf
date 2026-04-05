@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { db } from '@/db';
 import { FEED_SITES_CACHE_KEY, syncFeedSites } from '@/entities/feed/service';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { useSyncStore } from '@/shared/stores/syncStore';
 
 import { getCalendarEntriesCacheKey, syncCalendarEntry } from '../service';
@@ -22,10 +23,8 @@ const DEFAULT_TTL_MS = 1000 * 60 * 60;
 const getUniqueSlugs = (selectedSlugs: string[]) =>
   Array.from(new Set(selectedSlugs.filter(Boolean)));
 
-export const useSyncCalendars = (
-  studentId: string,
-  options?: UseSyncCalendarsOptions,
-): UseSyncCalendarsReturn => {
+export const useSyncCalendars = (options?: UseSyncCalendarsOptions): UseSyncCalendarsReturn => {
+  const { studentId } = useRusaintApplication();
   const ttlMs = options?.ttlMs ?? DEFAULT_TTL_MS;
   const setStoreSyncing = useSyncStore((state) => state.setIsSyncing);
   const setError = useSyncStore((state) => state.setError);
@@ -61,7 +60,7 @@ export const useSyncCalendars = (
       }
 
       const cache = await db.query.cache.findFirst({
-        where: (c, { and, eq }) => and(eq(c.studentId, studentId), eq(c.key, cacheKey)),
+        where: (c, { and, eq }) => and(eq(c.studentId, '__global__'), eq(c.key, cacheKey)),
       });
 
       const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
@@ -71,6 +70,10 @@ export const useSyncCalendars = (
 
       const currentSyncing = useSyncStore.getState().syncingKeys.get(cacheKey) ?? false;
       if (currentSyncing) {
+        return;
+      }
+
+      if (!studentId) {
         return;
       }
 
@@ -110,7 +113,7 @@ export const useSyncCalendars = (
       }
 
       const cache = await db.query.cache.findFirst({
-        where: (c, { and, eq }) => and(eq(c.studentId, studentId), eq(c.key, cacheKey)),
+        where: (c, { and, eq }) => and(eq(c.studentId, '__global__'), eq(c.key, cacheKey)),
       });
 
       const shouldRequest = force || !cache || Date.now() - (cache.updatedAt ?? 0) > ttlMs;
@@ -125,7 +128,7 @@ export const useSyncCalendars = (
 
       setStoreSyncing(cacheKey, true);
       try {
-        await syncCalendarEntry(studentId, slug);
+        await syncCalendarEntry(slug);
         setError(cacheKey, undefined);
       } catch (e) {
         setError(cacheKey, e instanceof Error ? e : new Error(String(e)));
@@ -133,7 +136,7 @@ export const useSyncCalendars = (
         setStoreSyncing(cacheKey, false);
       }
     },
-    [setError, setStoreSyncing, studentId, ttlMs],
+    [setError, setStoreSyncing, ttlMs],
   );
 
   const sync = useCallback(

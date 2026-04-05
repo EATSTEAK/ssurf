@@ -23,7 +23,6 @@ import {
 import { CompactCalendarRow } from '@/features/calendar/ui/CompactCalendarRow';
 import { type CalendarMarking, MonthlyCalendar } from '@/features/calendar/ui/MonthlyCalendar';
 import { WeeklyCalendar } from '@/features/calendar/ui/WeeklyCalendar';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
@@ -89,7 +88,6 @@ export default function ScheduleCalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
-  const { studentId } = useRusaintApplication();
   const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
   const today = useMemo(() => new Date(), []);
   const todayKey = useMemo(() => getCalendarDateKey(today), [today]);
@@ -98,14 +96,14 @@ export default function ScheduleCalendarScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
   const { data: sites } = useFeedSites();
-  const { sync, syncSites } = useSyncCalendars(studentId ?? '');
+  const { sync, syncSites } = useSyncCalendars();
   const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
 
   useEffect(() => {
     void syncSites();
   }, [syncSites]);
 
-  const { data, error, isSyncing } = useCalendars(studentId ?? '', selectedCalendarSlugs);
+  const { data, error, isSyncing } = useCalendars(selectedCalendarSlugs);
 
   const handleSelectDate = useCallback((dateString: string) => {
     setSelectedDate(dateString);
@@ -263,6 +261,7 @@ export default function ScheduleCalendarScreen() {
                   {selectedDate.replace(/-/g, '.')}
                 </ThemedText>
               </View>
+              {/* TODO: 일정 소스가 더 늘어나면 여기서 선택 UI를 제공한다. */}
               {selectedCalendarSlugs.length === 0 ? (
                 <View style={styles.emptySection}>
                   <ThemedText typography="bodyMd">선택된 일정 소스가 없어요</ThemedText>

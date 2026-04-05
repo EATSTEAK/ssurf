@@ -69,31 +69,28 @@ const RUSAINT_NO_SCHEDULE =
 
 export default function Index() {
   const router = useRouter();
-  const { defaultScheduleSemester, studentId } = useRusaintApplication();
+  const { defaultScheduleSemester } = useRusaintApplication();
   const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
   const defaultSemester = defaultScheduleSemester ?? getEstimatedCurrentSemester(true);
+  const estimatedCurrentSemester = getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
-
-  if (
+  const effectiveSelectedSemester =
     defaultScheduleSemester &&
-    selectedSemester.year === getEstimatedCurrentSemester(true).year &&
-    selectedSemester.semester === getEstimatedCurrentSemester(true).semester &&
-    (defaultScheduleSemester.year !== selectedSemester.year ||
-      defaultScheduleSemester.semester !== selectedSemester.semester)
-  ) {
-    setSelectedSemester(defaultScheduleSemester);
-  }
+    selectedSemester.year === estimatedCurrentSemester.year &&
+    selectedSemester.semester === estimatedCurrentSemester.semester
+      ? defaultScheduleSemester
+      : selectedSemester;
 
   const { data, isSyncing, error, sync } = useCourseSchedule(
-    selectedSemester.year,
-    selectedSemester.semester,
+    effectiveSelectedSemester.year,
+    effectiveSelectedSemester.semester,
   );
   const {
     data: calendars,
     error: calendarError,
     isSyncing: isCalendarSyncing,
-  } = useCalendars(studentId ?? '', selectedCalendarSlugs);
-  const { sync: syncCalendars } = useSyncCalendars(studentId ?? '');
+  } = useCalendars(selectedCalendarSlugs);
+  const { sync: syncCalendars } = useSyncCalendars();
 
   const todayCalendars = useMemo(() => {
     const now = new Date();
@@ -131,7 +128,7 @@ export default function Index() {
     if (isSyncing || isCalendarSyncing) {
       return;
     }
-    sync([selectedSemester.year, selectedSemester.semester], { force: true });
+    sync([effectiveSelectedSemester.year, effectiveSelectedSemester.semester], { force: true });
     void syncCalendars(selectedCalendarSlugs, { force: true });
   };
 
@@ -194,8 +191,8 @@ export default function Index() {
               onChange={(index) => setSelectedSemester(semesters[index])}
               selectedIndex={semesters.findIndex(
                 (semester) =>
-                  semester.year === selectedSemester.year &&
-                  semester.semester === selectedSemester.semester,
+                  semester.year === effectiveSelectedSemester.year &&
+                  semester.semester === effectiveSelectedSemester.semester,
               )}
               semesters={semesters}
             />
@@ -216,7 +213,9 @@ export default function Index() {
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
               <Header title="시간표" />
-              <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
+              <ThemedText typography="labelMd">
+                {semesterToString(effectiveSelectedSemester)}
+              </ThemedText>
               <TodayScheduleSection
                 actionLabel="월간 일정 보기"
                 calendarError={calendarError ?? null}
@@ -239,7 +238,7 @@ export default function Index() {
           </SafeContainer>
         </RefreshableScrollView>
         <FloatingHeader
-          label={semesterToString(selectedSemester)}
+          label={semesterToString(effectiveSelectedSemester)}
           scrollY={scrollY}
           title="시간표"
         />

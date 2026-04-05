@@ -7,8 +7,8 @@ import { db } from '@/db';
 import { calendars } from '../model';
 import { useSyncCalendars } from './sync';
 
-export const useCalendars = (studentId: string, selectedSlugs: string[]) => {
-  const { isSyncing, sync, error } = useSyncCalendars(studentId);
+export const useCalendars = (selectedSlugs: string[]) => {
+  const { isSyncing, sync, error } = useSyncCalendars();
 
   const { data, updatedAt } = useLiveQuery(
     selectedSlugs.length > 0

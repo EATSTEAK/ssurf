@@ -33,7 +33,7 @@ export interface SsufidCalendarResponse {
   version: string;
 }
 
-export const syncCalendarEntry = async (studentId: string, slug: string) => {
+export const syncCalendarEntry = async (slug: string) => {
   const response = await fetch(`${SSUFID_BASE_URL}/${slug}/data.json`);
   if (!response.ok) {
     throw new Error(`Failed to fetch ${slug}: ${response.status}`);
@@ -75,7 +75,7 @@ export const syncCalendarEntry = async (studentId: string, slug: string) => {
     await tx
       .insert(cache)
       .values({
-        studentId,
+        studentId: '__global__',
         key: getCalendarEntriesCacheKey(slug),
         updatedAt,
       })
@@ -86,7 +86,7 @@ export const syncCalendarEntry = async (studentId: string, slug: string) => {
   });
 };
 
-export const syncCalendarEntries = async (studentId: string, selectedSlugs: string[]) => {
+export const syncCalendarEntries = async (selectedSlugs: string[]) => {
   const uniqueSlugs = Array.from(new Set(selectedSlugs.filter(Boolean)));
 
   if (uniqueSlugs.length === 0) {
@@ -97,7 +97,7 @@ export const syncCalendarEntries = async (studentId: string, selectedSlugs: stri
 
   for (const slug of uniqueSlugs) {
     try {
-      await syncCalendarEntry(studentId, slug);
+      await syncCalendarEntry(slug);
     } catch (error) {
       console.error(`Error syncing ${slug}:`, error);
       failedSlugs.push(slug);
