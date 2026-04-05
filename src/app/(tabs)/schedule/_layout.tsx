@@ -5,6 +5,7 @@ export default function StackLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="calendar" />
+      <Stack.Screen name="calendar-week-test" />
     </Stack>
   );
 }

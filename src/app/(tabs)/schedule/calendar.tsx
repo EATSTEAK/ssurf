@@ -2,9 +2,10 @@ import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
+import { CalendarProvider } from 'react-native-calendars';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { useCalendars } from '@/entities/calendar/lib/queries';
 import { useSyncCalendars } from '@/entities/calendar/lib/sync';
@@ -14,13 +15,16 @@ import { useSetting } from '@/entities/settings/lib/queries';
 import {
   getCalendarDateKey,
   getCalendarDateKeysInMonth,
+  getCalendarDateKeysInWeek,
   getMonthDateKey,
   isCalendarOnDate,
   parseCalendarDateKey,
 } from '@/features/calendar/lib/isTodayCalendar';
 import { CompactCalendarRow } from '@/features/calendar/ui/CompactCalendarRow';
-import { MonthlyCalendar } from '@/features/calendar/ui/MonthlyCalendar';
+import { type CalendarMarking, MonthlyCalendar } from '@/features/calendar/ui/MonthlyCalendar';
+import { WeeklyCalendar } from '@/features/calendar/ui/WeeklyCalendar';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
@@ -28,8 +32,10 @@ import { Header } from '@/shared/ui/headers/Header';
 import { SettingsIcon } from '@/shared/ui/icons';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
+import { type ViewMode, ViewModeSegmentedControl } from '@/shared/ui/ViewModeSegmentedControl';
 
 const NATIVE_TAB_BAR_HEIGHT = 49;
+const PERIOD_COLORS = ['#5B8DEF', '#2BB673', '#F59E0B', '#E85D75', '#8B5CF6', '#14B8A6'];
 
 const styles = StyleSheet.create((theme) => ({
   emptySection: {
@@ -53,7 +59,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     borderRadius: theme.cornerRadius.lg,
     gap: theme.gap(2),
-    padding: theme.gap(3),
+    paddingVertical: theme.gap(3),
   },
   settingButton: {
     borderRadius: theme.cornerRadius.md,
@@ -63,20 +69,33 @@ const styles = StyleSheet.create((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: theme.gap(3),
-    padding: theme.gap(3),
     width: '100%',
+    padding: theme.gap(3),
   },
 }));
+
+const getPeriodColor = (item: CalendarEntity) => {
+  const key = item.slug;
+  let hash = 0;
+
+  for (let index = 0; index < key.length; index += 1) {
+    hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
+  }
+
+  return PERIOD_COLORS[hash % PERIOD_COLORS.length];
+};
 
 export default function ScheduleCalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { theme } = useUnistyles();
   const { studentId } = useRusaintApplication();
   const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
   const today = useMemo(() => new Date(), []);
   const todayKey = useMemo(() => getCalendarDateKey(today), [today]);
   const [selectedDate, setSelectedDate] = useState(todayKey);
   const [visibleMonth, setVisibleMonth] = useState(getMonthDateKey(today));
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
 
   const { data: sites } = useFeedSites();
   const { sync, syncSites } = useSyncCalendars(studentId ?? '');
@@ -88,20 +107,59 @@ export default function ScheduleCalendarScreen() {
 
   const { data, error, isSyncing } = useCalendars(studentId ?? '', selectedCalendarSlugs);
 
+  const handleSelectDate = useCallback((dateString: string) => {
+    setSelectedDate(dateString);
+    setVisibleMonth(getMonthDateKey(parseCalendarDateKey(dateString)));
+  }, []);
+
   const selectedDateItems = useMemo(
     () => data.filter((item) => isCalendarOnDate(item, parseCalendarDateKey(selectedDate))),
     [data, selectedDate],
   );
-  const monthlyItems = useMemo(() => {
-    const monthDate = parseCalendarDateKey(visibleMonth);
 
-    return data.reduce<Record<string, CalendarEntity[]>>((acc, item) => {
-      for (const dateKey of getCalendarDateKeysInMonth(item, monthDate)) {
-        acc[dateKey] = [...(acc[dateKey] ?? []), item];
-      }
-      return acc;
-    }, {});
-  }, [data, visibleMonth]);
+  const buildMarkedDates = useCallback(
+    (resolveDateKeys: (item: CalendarEntity) => string[]) => {
+      const marks = data.reduce<Record<string, CalendarMarking>>((acc, item) => {
+        const dateKeys = resolveDateKeys(item);
+
+        dateKeys.forEach((dateKey, index) => {
+          const periods = acc[dateKey]?.periods ?? [];
+          periods.push({
+            color: getPeriodColor(item),
+            endingDay: index === dateKeys.length - 1,
+            startingDay: index === 0,
+          });
+          acc[dateKey] = {
+            ...acc[dateKey],
+            periods,
+          };
+        });
+
+        return acc;
+      }, {});
+
+      marks[selectedDate] = {
+        ...marks[selectedDate],
+        periods: marks[selectedDate]?.periods ?? [],
+        selected: true,
+        selectedColor: theme.colors.primary,
+        selectedTextColor: theme.colors.fgPrimary,
+      };
+
+      return marks;
+    },
+    [data, selectedDate, theme.colors.fgPrimary, theme.colors.primary],
+  );
+
+  const monthMarkedDates = useMemo(() => {
+    const monthDate = parseCalendarDateKey(visibleMonth);
+    return buildMarkedDates((item) => getCalendarDateKeysInMonth(item, monthDate));
+  }, [buildMarkedDates, visibleMonth]);
+
+  const weekMarkedDates = useMemo(() => {
+    const weekDate = parseCalendarDateKey(selectedDate);
+    return buildMarkedDates((item) => getCalendarDateKeysInWeek(item, weekDate));
+  }, [buildMarkedDates, selectedDate]);
 
   const scrollY = useSharedValue(0);
   const bottomPadding = NATIVE_TAB_BAR_HEIGHT + insets.bottom + 32;
@@ -174,56 +232,71 @@ export default function ScheduleCalendarScreen() {
             <View style={styles.topView}>
               <Header title="일정" />
               <ThemedText color="fgSecondary" typography="labelMd">
-                월간 일정
+                {viewMode === 'week' ? '주간 일정' : '월간 일정'}
               </ThemedText>
 
-              {calendarSites.length > 0 && selectedCalendarSlugs.length > 0 ? (
+              <ViewModeSegmentedControl onChange={setViewMode} value={viewMode} />
+            </View>
+
+            {calendarSites.length > 0 && selectedCalendarSlugs.length > 0 ? (
+              viewMode === 'week' ? (
+                <CalendarProvider date={selectedDate} onDateChanged={handleSelectDate}>
+                  <WeeklyCalendar
+                    currentDate={selectedDate}
+                    markedDates={weekMarkedDates}
+                    onSelectDate={handleSelectDate}
+                  />
+                </CalendarProvider>
+              ) : (
                 <MonthlyCalendar
-                  dayItems={monthlyItems}
+                  markedDates={monthMarkedDates}
                   onMonthChange={setVisibleMonth}
-                  onSelectDate={setSelectedDate}
-                  selectedDate={selectedDate}
-                  todayKey={todayKey}
+                  onSelectDate={handleSelectDate}
                   visibleMonth={visibleMonth}
                 />
-              ) : null}
-
-              <View style={styles.section}>
+              )
+            ) : null}
+            <CardView>
+              <View style={{ paddingHorizontal: 12 }}>
                 <ThemedText typography="headingLg">선택한 날짜 일정</ThemedText>
                 <ThemedText color="fgSecondary" typography="bodySm">
                   {selectedDate.replace(/-/g, '.')}
                 </ThemedText>
-                {selectedCalendarSlugs.length === 0 ? (
-                  <View style={styles.emptySection}>
-                    <ThemedText typography="bodyMd">선택된 일정 소스가 없어요</ThemedText>
-                  </View>
-                ) : error ? (
-                  <View style={styles.emptySection}>
-                    <ThemedText color="error" typography="bodyMd">
-                      일정을 불러오지 못했어요
-                    </ThemedText>
-                  </View>
-                ) : selectedDateItems.length === 0 ? (
-                  <View style={styles.emptySection}>
-                    <ThemedText typography="bodyMd">선택한 날짜의 일정이 없어요</ThemedText>
-                  </View>
-                ) : (
-                  <View style={styles.list}>
-                    {selectedDateItems.map((item, index) => (
-                      <CompactCalendarRow
-                        isLast={index === selectedDateItems.length - 1}
-                        item={item}
-                        key={`${item.slug}-${item.id}`}
-                        onPress={handlePressCalendar}
-                      />
-                    ))}
-                  </View>
-                )}
               </View>
-            </View>
+              {selectedCalendarSlugs.length === 0 ? (
+                <View style={styles.emptySection}>
+                  <ThemedText typography="bodyMd">선택된 일정 소스가 없어요</ThemedText>
+                </View>
+              ) : error ? (
+                <View style={styles.emptySection}>
+                  <ThemedText color="error" typography="bodyMd">
+                    일정을 불러오지 못했어요
+                  </ThemedText>
+                </View>
+              ) : selectedDateItems.length === 0 ? (
+                <View style={styles.emptySection}>
+                  <ThemedText typography="bodyMd">선택한 날짜의 일정이 없어요</ThemedText>
+                </View>
+              ) : (
+                <View style={styles.list}>
+                  {selectedDateItems.map((item, index) => (
+                    <CompactCalendarRow
+                      isLast={index === selectedDateItems.length - 1}
+                      item={item}
+                      key={`${item.slug}-${item.id}`}
+                      onPress={handlePressCalendar}
+                    />
+                  ))}
+                </View>
+              )}
+            </CardView>
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader label="월간 일정" scrollY={scrollY} title="일정" />
+        <FloatingHeader
+          label={viewMode === 'week' ? '주간 일정' : '월간 일정'}
+          scrollY={scrollY}
+          title="일정"
+        />
       </View>
     </>
   );
