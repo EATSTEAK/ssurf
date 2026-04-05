@@ -120,10 +120,10 @@ export function MonthlyCalendar({
         </View>
         <View style={styles.navButtons}>
           <Pressable onPress={handlePressPrevMonth} style={styles.navButton}>
-            <ChevronLeftIcon color={theme.colors.fgSurface} size={20} />
+            <ChevronLeftIcon color={theme.colorsHex.fgSurface} size={20} />
           </Pressable>
           <Pressable onPress={handlePressNextMonth} style={styles.navButton}>
-            <ChevronRightIcon color={theme.colors.fgSurface} size={20} />
+            <ChevronRightIcon color={theme.colorsHex.fgSurface} size={20} />
           </Pressable>
         </View>
       </View>
@@ -131,6 +131,7 @@ export function MonthlyCalendar({
         current={visibleMonth}
         enableSwipeMonths
         firstDay={1}
+        hideArrows={true}
         hideExtraDays={false}
         markedDates={markedDates}
         markingType="multi-period"

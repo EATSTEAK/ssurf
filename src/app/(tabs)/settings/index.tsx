@@ -90,12 +90,6 @@ export default function Index() {
                   <ThemedText typography="bodyLg">피드 설정</ThemedText>
                 </ActionListItem>
                 <ActionListItem
-                  icon={<NewspaperIcon color={styles.actionListSymbol.color} size={24} />}
-                  onPress={() => router.push('/(tabs)/schedule/calendar-week-test')}
-                >
-                  <ThemedText typography="bodyLg">WeekCalendar 테스트</ThemedText>
-                </ActionListItem>
-                <ActionListItem
                   icon={<LogoutIcon color={styles.actionListSymbol.color} size={24} />}
                   onPress={() => setIsLogoutModalVisible(true)}
                 >
