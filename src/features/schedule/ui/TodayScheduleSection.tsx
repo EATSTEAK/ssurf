@@ -11,11 +11,14 @@ const styles = StyleSheet.create((theme) => ({
   action: {
     paddingVertical: 0,
     width: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   actionButton: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.gap(1),
+    paddingHorizontal: theme.gap(1),
   },
   container: {
     backgroundColor: theme.colors.surface,
@@ -67,12 +70,7 @@ export const TodayScheduleSection = ({
           <ThemedText typography="headingLg">오늘의 일정</ThemedText>
         </View>
         {onPressAction && actionLabel ? (
-          <Button
-            onPress={onPressAction}
-            style={styles.action}
-            textStyle={{ fontSize: 14 }}
-            variant="surface"
-          >
+          <Button onPress={onPressAction} style={styles.action} variant="surface">
             {() => (
               <View style={styles.actionButton}>
                 <ThemedText color="fgPrimary" typography="labelMd">
