@@ -25,18 +25,15 @@ jobs:
 
     steps:
       - name: 디스크 공간 확보
-        run: |
-          echo "디스크 공간 확인 (정리 전):"
-          df -h
-
-          # 불필요한 소프트웨어 제거
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-
-          echo "디스크 공간 확인 (정리 후):"
-          df -h
+        uses: jlumbroso/free-disk-space@v1
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: 코드 체크아웃
         uses: actions/checkout@v6
@@ -63,7 +60,7 @@ jobs:
           fi
 
       - name: pnpm 설치
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: 의존성 설치
         run: pnpm install --frozen-lockfile
@@ -79,7 +76,7 @@ jobs:
           cache: 'gradle'
 
       - name: Gradle 캐시 설정
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -90,7 +87,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Gradle Build Cache 설정
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches/build-cache-*
           key: ${{ runner.os }}-gradle-build-cache-${{ github.sha }}
@@ -147,7 +144,7 @@ jobs:
 
       - name: 빌드 로그 업로드
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-build-logs-${{ github.run_number }}
           path: |
@@ -160,7 +157,7 @@ jobs:
 
       - name: 빌드 결과물 업로드
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-build-outputs-${{ github.run_number }}
           path: |
