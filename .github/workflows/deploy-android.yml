@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: 디스크 공간 확보
-        uses: jlumbroso/free-disk-space@v1
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: false
           android: false
@@ -121,6 +121,9 @@ jobs:
           else
             echo "lane=${{ steps.tag.outputs.lane }}" >> $GITHUB_OUTPUT
           fi
+
+      - name: Fastlane 실행 전 디스크 공간 확인
+        run: df -h
 
       - name: Fastlane으로 빌드 및 배포
         working-directory: fastlane
