@@ -44,7 +44,6 @@ const config: ExpoConfig = {
     [
       'expo-build-properties',
       {
-        buildReactNativeFromSource: true,
         useHermesV1: true,
       },
     ],
@@ -71,7 +70,6 @@ const config: ExpoConfig = {
       },
     ],
     'expo-font',
-    'expo-status-bar',
     './plugins/android-release',
     'expo-image',
     'expo-web-browser',
