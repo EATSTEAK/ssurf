@@ -22,6 +22,7 @@ jobs:
   build-and-deploy:
     name: Android 빌드 및 배포
     runs-on: ubuntu-latest
+    timeout-minutes: 180
 
     steps:
       - name: 디스크 공간 확보
@@ -133,7 +134,27 @@ jobs:
 
       - name: Fastlane으로 빌드 및 배포
         working-directory: fastlane
-        run: bundle exec fastlane android ${{ steps.lane.outputs.lane }} --verbose
+        timeout-minutes: 150
+        run: |
+          (
+            while true; do
+              sleep 300
+              echo "::group::Fastlane heartbeat"
+              echo "time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+              df -h /
+              free -h
+              echo "::endgroup::"
+            done
+          ) &
+          heartbeat_pid=$!
+
+          set +e
+          bundle exec fastlane android ${{ steps.lane.outputs.lane }} --verbose
+          fastlane_status=$?
+
+          kill "$heartbeat_pid" 2>/dev/null || true
+          wait "$heartbeat_pid" 2>/dev/null || true
+          exit "$fastlane_status"
         env:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
