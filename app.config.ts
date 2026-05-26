@@ -71,6 +71,7 @@ const config: ExpoConfig = {
       },
     ],
     'expo-font',
+    'expo-status-bar',
     './plugins/android-release',
     'expo-image',
     'expo-web-browser',
