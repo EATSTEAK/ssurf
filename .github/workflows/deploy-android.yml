@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: 디스크 공간 확보
-        uses: jlumbroso/free-disk-space@v1
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: false
           android: false
@@ -33,7 +33,13 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
+          swap-storage: false
+
+      - name: Hermes 빌드 의존성 설치
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libicu-dev
+          sudo rm -rf /var/lib/apt/lists/*
 
       - name: 코드 체크아웃
         uses: actions/checkout@v6
@@ -121,6 +127,9 @@ jobs:
           else
             echo "lane=${{ steps.tag.outputs.lane }}" >> $GITHUB_OUTPUT
           fi
+
+      - name: Fastlane 실행 전 디스크 공간 확인
+        run: df -h
 
       - name: Fastlane으로 빌드 및 배포
         working-directory: fastlane
