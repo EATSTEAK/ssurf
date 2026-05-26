@@ -34,7 +34,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
+          swap-storage: false
 
       - name: Hermes 빌드 의존성 설치
         run: |
