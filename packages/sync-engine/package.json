@@ -12,6 +12,7 @@
     }
   },
   "scripts": {
+    "test": "tsc --project tsconfig.test.json && node --test dist/index.test.js",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {

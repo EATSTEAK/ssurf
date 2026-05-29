@@ -133,7 +133,7 @@ export const revalidateSource = async <TParams, TResult, TError = Error>(
     };
   }
 
-  const promise = (async (): Promise<SyncedRevalidateResult<TResult>> => {
+  const promise = Promise.resolve().then(async (): Promise<SyncedRevalidateResult<TResult>> => {
     try {
       await adapter.setState(storeKey, {
         error: undefined,
@@ -167,7 +167,7 @@ export const revalidateSource = async <TParams, TResult, TError = Error>(
     } finally {
       inFlight.delete(storeKey);
     }
-  })();
+  });
 
   inFlight.set(storeKey, promise as Promise<SyncedRevalidateResult<unknown>>);
 
