@@ -2,8 +2,12 @@ packages:
   - .
   - packages/*
 
-ignoredBuiltDependencies:
-  - esbuild
+allowBuilds:
+  '@shopify/react-native-skia': true
+  esbuild: false
+  msgpackr-extract: false
+  react-native-nitro-modules: true
+  unrs-resolver: true
 
 nodeLinker: hoisted
 
@@ -11,8 +15,3 @@ overrides:
   'hermes-compiler': '250829098.0.4'
   # TODO: remove after upstream balanced-match CJS compatibility issue is fixed.
   'balanced-match': '1.0.2'
-
-onlyBuiltDependencies:
-  - '@shopify/react-native-skia'
-  - react-native-nitro-modules
-  - unrs-resolver
