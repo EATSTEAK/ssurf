@@ -12,10 +12,11 @@
     }
   },
   "scripts": {
-    "test": "tsc --project tsconfig.test.json && node --test dist/index.test.js",
+    "test": "tsc --project tsconfig.test.json --noEmit && vitest run --dir src",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.7"
   }
 }

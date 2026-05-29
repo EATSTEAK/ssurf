@@ -1,7 +1,6 @@
 /// <reference types="node" />
 
-import assert from 'node:assert/strict';
-import { beforeEach, test } from 'node:test';
+import { beforeEach, expect, test } from 'vitest';
 
 import {
   clearInFlightSyncs,
@@ -124,13 +123,13 @@ test('fresh cache skips sync', async () => {
     now: () => 2_000,
   });
 
-  assert.deepEqual(result, {
+  expect(result).toEqual({
     status: 'fresh',
     updatedAt: 1_500,
   });
-  assert.equal(syncCalls, 0);
-  assert.deepEqual(adapter.stateWrites, []);
-  assert.deepEqual(adapter.updatedAtWrites, []);
+  expect(syncCalls).toBe(0);
+  expect(adapter.stateWrites).toEqual([]);
+  expect(adapter.updatedAtWrites).toEqual([]);
 });
 
 test('expired cache runs sync and updates state/cache', async () => {
@@ -148,14 +147,14 @@ test('expired cache runs sync and updates state/cache', async () => {
     now: () => 3_000,
   });
 
-  assert.deepEqual(result, {
+  expect(result).toEqual({
     deduped: false,
     status: 'synced',
     updatedAt: 3_000,
     value: { synced: true },
   });
-  assert.deepEqual(syncCalls, [{ force: false }]);
-  assert.deepEqual(adapter.stateWrites, [
+  expect(syncCalls).toEqual([{ force: false }]);
+  expect(adapter.stateWrites).toEqual([
     {
       state: {
         error: undefined,
@@ -171,7 +170,7 @@ test('expired cache runs sync and updates state/cache', async () => {
       storeKey: 'student:student-1:grades',
     },
   ]);
-  assert.deepEqual(adapter.updatedAtWrites, [
+  expect(adapter.updatedAtWrites).toEqual([
     {
       cacheKey: 'grades',
       ownerKey: 'student-1',
@@ -196,13 +195,13 @@ test('force refresh ignores TTL', async () => {
     now: () => 2_000,
   });
 
-  assert.deepEqual(result, {
+  expect(result).toEqual({
     deduped: false,
     status: 'synced',
     updatedAt: 2_000,
     value: 'forced',
   });
-  assert.deepEqual(syncCalls, [{ force: true }]);
+  expect(syncCalls).toEqual([{ force: true }]);
 });
 
 test('duplicate storeKey calls share the in-flight promise', async () => {
@@ -226,25 +225,25 @@ test('duplicate storeKey calls share the in-flight promise', async () => {
 
   await waitForNextTurn();
 
-  assert.equal(syncCalls, 1);
+  expect(syncCalls).toBe(1);
 
   deferred.resolve('shared-result');
 
   const [firstResult, secondResult] = await Promise.all([first, second]);
 
-  assert.deepEqual(firstResult, {
+  expect(firstResult).toEqual({
     deduped: false,
     status: 'synced',
     updatedAt: 4_000,
     value: 'shared-result',
   });
-  assert.deepEqual(secondResult, {
+  expect(secondResult).toEqual({
     deduped: true,
     status: 'synced',
     updatedAt: 4_000,
     value: 'shared-result',
   });
-  assert.equal(syncCalls, 1);
+  expect(syncCalls).toBe(1);
 });
 
 test('success writes updatedAt', async () => {
@@ -257,7 +256,7 @@ test('success writes updatedAt', async () => {
     now: () => 7_777,
   });
 
-  assert.deepEqual(adapter.updatedAtWrites, [
+  expect(adapter.updatedAtWrites).toEqual([
     {
       cacheKey: 'grades',
       ownerKey: 'student-1',
@@ -288,18 +287,13 @@ test('failure stores mapped error', async () => {
     },
   });
 
-  let caughtError: unknown;
-
-  try {
-    await revalidateSource(source, params, adapter, {
+  await expect(
+    revalidateSource(source, params, adapter, {
       now: () => 8_000,
-    });
-  } catch (error) {
-    caughtError = error;
-  }
+    }),
+  ).rejects.toEqual(mappedError);
 
-  assert.deepEqual(caughtError, mappedError);
-  assert.deepEqual(adapter.stateWrites, [
+  expect(adapter.stateWrites).toEqual([
     {
       state: {
         error: undefined,
@@ -336,26 +330,26 @@ test('adapter failure before sync does not leave stale inFlight', async () => {
     setUpdatedAt: () => undefined,
   };
 
-  await assert.rejects(() =>
+  await expect(
     revalidateSource(source, params, failingAdapter, {
       now: () => 9_000,
     }),
-  );
+  ).rejects.toBe(adapterError);
 
-  assert.equal(syncCalls, 0);
+  expect(syncCalls).toBe(0);
 
   const recoveringAdapter = createAdapter<Error>(null);
   const result = await revalidateSource(source, params, recoveringAdapter, {
     now: () => 9_001,
   });
 
-  assert.deepEqual(result, {
+  expect(result).toEqual({
     deduped: false,
     status: 'synced',
     updatedAt: 9_001,
     value: 'recovered',
   });
-  assert.equal(syncCalls, 1);
+  expect(syncCalls).toBe(1);
 });
 
 test('TResult is type-preserved', async () => {
@@ -385,7 +379,7 @@ test('TResult is type-preserved', async () => {
     },
   );
 
-  assert.equal(result.status, 'synced');
+  expect(result.status).toBe('synced');
 
   if (result.status !== 'synced') {
     throw new Error('expected synced result');
@@ -393,7 +387,7 @@ test('TResult is type-preserved', async () => {
 
   const value: ResultPayload = result.value;
 
-  assert.deepEqual(value, {
+  expect(value).toEqual({
     count: 3,
     label: 'typed',
   });

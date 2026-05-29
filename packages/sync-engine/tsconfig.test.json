@@ -2,9 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "declaration": false,
-    "noEmit": false,
-    "outDir": "dist",
-    "types": ["node"]
+    "types": ["node", "vitest"]
   },
   "exclude": [],
   "include": ["src/**/*.ts"]
