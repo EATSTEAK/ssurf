@@ -1,24 +1,25 @@
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { useSyncGraduationRequirements } from '@/entities/graduationRequirements/lib/sync';
+import { graduationRequirementsSync } from '@/entities/graduationRequirements/lib/sync';
 import {
   GraduationRequirementEntity,
   GraduationRequirementsGeneralEntity,
 } from '@/entities/graduationRequirements/model';
+import { useSync } from '@/shared/lib/useSync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 export interface UseGraduationRequirementsReturn {
   data: GraduationRequirementEntity[] | null;
   error: Error | undefined;
   isSyncing: boolean;
+  refresh: () => Promise<unknown>;
   updatedAt: Date | undefined;
 }
 
 export const useGraduationRequirements = (): UseGraduationRequirementsReturn => {
-  const { isSyncing, sync } = useSyncGraduationRequirements();
   const { studentId } = useRusaintApplication();
+  const sync = useSync(graduationRequirementsSync(studentId ?? ''));
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.graduationRequirements.findMany({
@@ -28,11 +29,13 @@ export const useGraduationRequirements = (): UseGraduationRequirementsReturn => 
     [studentId],
   );
 
-  useAsyncEffect(async () => {
-    await sync([], { force: false });
-  }, []);
-
-  return { data, isSyncing, error, updatedAt };
+  return {
+    data,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };
 
 export interface UseGraduationRequirementsGeneralReturn {
@@ -43,8 +46,8 @@ export interface UseGraduationRequirementsGeneralReturn {
 }
 
 export const useGraduationRequirementsGeneral = (): UseGraduationRequirementsGeneralReturn => {
-  const { isSyncing, sync } = useSyncGraduationRequirements();
   const { studentId } = useRusaintApplication();
+  const sync = useSync(graduationRequirementsSync(studentId ?? ''));
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.graduationRequirementsGeneral.findFirst({
@@ -54,16 +57,17 @@ export const useGraduationRequirementsGeneral = (): UseGraduationRequirementsGen
     [studentId],
   );
 
-  useAsyncEffect(async () => {
-    await sync([], { force: false });
-  }, []);
-
-  return { data: data ?? null, isSyncing, error, updatedAt };
+  return {
+    data: data ?? null,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    updatedAt,
+  };
 };
 
 export const useGraduationStudent = () => {
-  const { isSyncing, sync } = useSyncGraduationRequirements();
   const { studentId } = useRusaintApplication();
+  const sync = useSync(graduationRequirementsSync(studentId ?? ''));
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.graduationStudent.findFirst({
@@ -72,9 +76,10 @@ export const useGraduationStudent = () => {
     [studentId],
   );
 
-  useAsyncEffect(async () => {
-    await sync([], { force: false });
-  }, []);
-
-  return { data: data ?? null, isSyncing, error, updatedAt };
+  return {
+    data: data ?? null,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    updatedAt,
+  };
 };

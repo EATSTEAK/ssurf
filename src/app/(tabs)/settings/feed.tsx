@@ -80,7 +80,7 @@ const styles = StyleSheet.create((theme) => ({
 
 export default function FeedSettingsScreen() {
   const scrollY = useSharedValue(0);
-  const { data: sites } = useFeedSites();
+  const { data: sites, error: siteError, refresh: refreshSites } = useFeedSites();
   const { studentId } = useRusaintApplication();
   const [selectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
   const [selectedNoticeSlug] = useSetting('selectedNoticeSlug');
@@ -151,6 +151,13 @@ export default function FeedSettingsScreen() {
               <ThemedText color="fgSecondary" typography="labelMd">
                 {section.title}
               </ThemedText>
+              {siteError ? (
+                <Pressable onPress={() => void refreshSites()} style={styles.item}>
+                  <ThemedText color="error" typography="bodyMd">
+                    목록을 불러오지 못했어요. 눌러서 다시 시도해주세요.
+                  </ThemedText>
+                </Pressable>
+              ) : null}
               {section.items.map((site) => {
                 const isSelected = selectedNoticeSlugs.includes(site.slug);
 

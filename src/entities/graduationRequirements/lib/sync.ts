@@ -1,15 +1,15 @@
 import { syncGraduationRequirementsInformation } from '@/entities/graduationRequirements/service';
-import { SyncOptions, useSyncData } from '@/shared/lib/sync';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+import { applications } from '@/shared/lib/applications';
+import { SyncRequest } from '@/shared/lib/syncEngine';
 
-export const useSyncGraduationRequirements = (options?: SyncOptions) => {
-  const { graduationRequirementsClient, studentId } = useRusaintApplication();
+export const graduationRequirementsSync = (studentId: string, withReload = false): SyncRequest => {
+  const generation = applications.getGeneration();
 
-  return useSyncData({
-    client: graduationRequirementsClient,
-    studentId,
-    cacheKey: 'graduation.requirements',
-    syncFn: syncGraduationRequirementsInformation,
-    options,
-  });
+  return {
+    key: [studentId, 'graduation.requirements'],
+    run: async () => {
+      const client = await applications.get('graduationRequirements', studentId, generation);
+      await syncGraduationRequirementsInformation(client, studentId, withReload);
+    },
+  };
 };

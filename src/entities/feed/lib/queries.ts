@@ -1,19 +1,28 @@
 import { desc, inArray, sql } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { useSyncFeed } from '@/entities/feed/lib/sync';
+import { feedEntrySync, feedSitesSync } from '@/entities/feed/lib/sync';
 import { feedNotices, feedSites } from '@/entities/feed/model';
+import { useSync, useSyncRequests } from '@/shared/lib/useSync';
+
+const getUniqueSlugs = (slugs: string[]) => Array.from(new Set(slugs.filter(Boolean)));
 
 export const useFeedSites = () => {
+  const sync = useSync(feedSitesSync());
   const { data, error, updatedAt } = useLiveQuery(db.select().from(feedSites));
 
-  return { data: data ?? [], error, updatedAt };
+  return {
+    data: data ?? [],
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };
 
 export const useFeedNoticeItems = (selectedSlugs: string[]) => {
-  const { data, updatedAt } = useLiveQuery(
+  const { data, error, updatedAt } = useLiveQuery(
     selectedSlugs.length > 0
       ? db
           .select({
@@ -45,18 +54,19 @@ export const useFeedNoticeItems = (selectedSlugs: string[]) => {
     [selectedSlugs.join(',')],
   );
 
-  return { data: data ?? [], updatedAt };
+  return { data: data ?? [], error, updatedAt };
 };
 
-export const useFeedNotices = (studentId: string, selectedSlugs: string[]) => {
-  const { isSyncing, sync, error } = useSyncFeed(studentId);
-  const { data, updatedAt } = useFeedNoticeItems(selectedSlugs);
+export const useFeedNotices = (selectedSlugs: string[]) => {
+  const slugs = getUniqueSlugs(selectedSlugs);
+  const sync = useSyncRequests(slugs.map(feedEntrySync));
+  const { data, error, updatedAt } = useFeedNoticeItems(slugs);
 
-  useAsyncEffect(async () => {
-    if (selectedSlugs.length > 0) {
-      await sync(selectedSlugs);
-    }
-  }, [selectedSlugs.join(',')]);
-
-  return { data, error, isSyncing, updatedAt };
+  return {
+    data,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };

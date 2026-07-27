@@ -1,14 +1,14 @@
 import { SemesterType } from '@rusaint/react-native';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { useSyncCourseSchedule } from '@/entities/courseSchedule/lib/sync';
+import { courseScheduleSync } from '@/entities/courseSchedule/lib/sync';
+import { useSync } from '@/shared/lib/useSync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 export const useCourseSchedule = (year: number, semester: SemesterType) => {
-  const { error: syncError, isSyncing, sync } = useSyncCourseSchedule();
   const { studentId } = useRusaintApplication();
+  const sync = useSync(courseScheduleSync(studentId ?? '', year, semester));
 
   const {
     data,
@@ -26,9 +26,11 @@ export const useCourseSchedule = (year: number, semester: SemesterType) => {
     [studentId, year, semester],
   );
 
-  useAsyncEffect(async () => {
-    await sync([year, semester], { force: false });
-  }, [year, semester]);
-
-  return { data: data ?? [], error: syncError ?? queryError, isSyncing, sync, updatedAt };
+  return {
+    data: data ?? [],
+    error: sync.error ?? queryError,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };

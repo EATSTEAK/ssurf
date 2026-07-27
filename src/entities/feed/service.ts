@@ -52,7 +52,7 @@ export interface SsufidNoticeResponse {
   version: string;
 }
 
-export const syncFeedSites = async (studentId: string) => {
+export const syncFeedSites = async () => {
   const response = await fetch(`${SSUFID_BASE_URL}/sites.json`);
   if (!response.ok) {
     throw new Error(`Failed to fetch sites: ${response.status}`);
@@ -89,7 +89,7 @@ export const syncFeedSites = async (studentId: string) => {
     await tx
       .insert(cache)
       .values({
-        studentId,
+        studentId: '__global__',
         key: FEED_SITES_CACHE_KEY,
         updatedAt: Date.now(),
       })
@@ -100,7 +100,7 @@ export const syncFeedSites = async (studentId: string) => {
   });
 };
 
-export const syncFeedEntry = async (studentId: string, slug: string) => {
+export const syncFeedEntry = async (slug: string) => {
   const response = await fetch(`${SSUFID_BASE_URL}/${slug}/data.json`);
   if (!response.ok) {
     throw new Error(`Failed to fetch ${slug}: ${response.status}`);
@@ -141,7 +141,7 @@ export const syncFeedEntry = async (studentId: string, slug: string) => {
     await tx
       .insert(cache)
       .values({
-        studentId,
+        studentId: '__global__',
         key: getFeedEntriesCacheKey(slug),
         updatedAt,
       })
@@ -152,7 +152,7 @@ export const syncFeedEntry = async (studentId: string, slug: string) => {
   });
 };
 
-export const syncFeedEntries = async (studentId: string, selectedSlugs: string[]) => {
+export const syncFeedEntries = async (selectedSlugs: string[]) => {
   const uniqueSlugs = Array.from(new Set(selectedSlugs.filter(Boolean)));
 
   if (uniqueSlugs.length === 0) {
@@ -163,7 +163,7 @@ export const syncFeedEntries = async (studentId: string, selectedSlugs: string[]
 
   for (const slug of uniqueSlugs) {
     try {
-      await syncFeedEntry(studentId, slug);
+      await syncFeedEntry(slug);
     } catch (error) {
       console.error(`Error syncing ${slug}:`, error);
       failedSlugs.push(slug);

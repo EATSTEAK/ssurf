@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { createContext, useCallback, useContext, useRef, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
+import { applications } from '@/shared/lib/applications';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
@@ -55,6 +56,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
       return false;
     }
 
+    applications.start(session, id);
     sessionCreatedAtRef.current = new Date();
     setSession(session);
     return true;
@@ -77,6 +79,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   }, [userInfo.id, userInfo.password]);
 
   const logout = async () => {
+    applications.reset();
     try {
       await setUserInfo({ id: null, password: null });
       setSession(null);

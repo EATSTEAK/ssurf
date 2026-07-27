@@ -1,17 +1,15 @@
 import { CourseType } from '@rusaint/react-native';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   useCheckRecentAttendedSemesters,
   useGradeSummary,
   useSemesterGrades,
 } from '@/entities/grades/lib/queries';
-import {
-  useSyncClassGrades,
-  useSyncGradeSummary,
-  useSyncSemesterGrades,
-} from '@/entities/grades/lib/sync';
+import { classGradesSync, gradeSummarySync, semesterGradesSync } from '@/entities/grades/lib/sync';
 import { GradeOverviewTabView, GradeTabView, SemesterGradeTabView } from '@/features/grades/model';
+import { refresh as refreshSync } from '@/shared/lib/syncEngine';
+import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 interface UseGradeTabViewResult {
   data: GradeTabView[] | null;
@@ -20,31 +18,29 @@ interface UseGradeTabViewResult {
   refresh: (selectedTab?: null | { semester: number; year: number }) => Promise<void>;
 }
 
-/**
- * 성적 탭 뷰 데이터를 관리하는 훅
- * @returns data - GradeTabView[] 형태의 탭 데이터
- * @returns refresh - 데이터 새로고침 함수
- * @returns isLoading - 로딩 상태
- * @returns error - 에러 상태
- */
 export function useGradeTabView(): UseGradeTabViewResult {
-  const { sync: syncGradeSummary, isSyncing, error: summaryError } = useSyncGradeSummary();
+  const { studentId } = useRusaintApplication();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const {
-    sync: syncSemesterGrades,
-    isSyncing: isSemesterSyncing,
+    data: certiSummary,
+    error: summaryError,
+    isSyncing: isSummarySyncing,
+  } = useGradeSummary('certificated');
+  const { data: recordedSummary, error: recordedSummaryError } = useGradeSummary('recorded');
+  const {
+    data: semesters,
     error: semesterError,
-  } = useSyncSemesterGrades();
-  const { sync: syncClassGrades, isSyncing: isClassSyncing } = useSyncClassGrades();
+    isSyncing: isSemesterSyncing,
+  } = useSemesterGrades();
+  const {
+    checkedSemesters: checkedRecentSemesters,
+    error: recentSemesterError,
+    isChecking,
+  } = useCheckRecentAttendedSemesters();
 
-  const { data: certiSummary } = useGradeSummary('certificated');
-  const { data: recordedSummary } = useGradeSummary('recorded');
-  const { data: semesters } = useSemesterGrades();
-  const { checkedSemesters: checkedRecentSemesters, isChecking } =
-    useCheckRecentAttendedSemesters();
-
-  const isLoading = isSyncing || isSemesterSyncing || isClassSyncing || isChecking;
-
-  const error = summaryError || semesterError || null;
+  const isLoading = isSummarySyncing || isSemesterSyncing || isChecking || isRefreshing;
+  const error =
+    summaryError ?? recordedSummaryError ?? semesterError ?? recentSemesterError ?? null;
 
   const data = useMemo<GradeTabView[] | null>(() => {
     if (!certiSummary || !recordedSummary || !semesters) {
@@ -60,12 +56,13 @@ export function useGradeTabView(): UseGradeTabViewResult {
     ];
 
     return summary.concat(
-      // 수강중이거나 성적 처리가 되지 않은 학기 추가 (최근 학기가 앞쪽)
       checkedRecentSemesters
         .filter(
           (recent) =>
             recent.attended &&
-            !semesters.some((s) => s.year === recent.year && s.semester === recent.semester),
+            !semesters.some(
+              (semester) => semester.year === recent.year && semester.semester === recent.semester,
+            ),
         )
         .map(
           (attended) =>
@@ -76,15 +73,14 @@ export function useGradeTabView(): UseGradeTabViewResult {
             }) satisfies SemesterGradeTabView,
         )
         .sort((a, b) => (a.year !== b.year ? b.year - a.year : b.semester - a.semester)),
-      // 기존 학기 (최근 학기가 앞쪽)
       semesters
         .map(
-          (s) =>
+          (semester) =>
             ({
-              data: s,
-              semester: s.semester,
+              data: semester,
+              semester: semester.semester,
               type: 'semester',
-              year: s.year,
+              year: semester.year,
             }) satisfies SemesterGradeTabView,
         )
         .sort((a, b) => (a.year !== b.year ? b.year - a.year : b.semester - a.semester)),
@@ -92,30 +88,37 @@ export function useGradeTabView(): UseGradeTabViewResult {
   }, [certiSummary, recordedSummary, semesters, checkedRecentSemesters]);
 
   const refresh = async (selectedTab?: null | { semester: number; year: number }) => {
-    // Reload once
-    await syncGradeSummary([CourseType.Bachelor, true], { force: true });
-    await syncSemesterGrades([CourseType.Bachelor], { force: true });
-    if (selectedTab) {
-      await syncClassGrades([CourseType.Bachelor, selectedTab.year, selectedTab.semester], {
-        force: true,
-      });
-    } else {
+    if (!studentId) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await refreshSync(gradeSummarySync(studentId, CourseType.Bachelor, true));
+      await refreshSync(semesterGradesSync(studentId, CourseType.Bachelor));
+      if (selectedTab) {
+        await refreshSync(
+          classGradesSync(studentId, CourseType.Bachelor, selectedTab.year, selectedTab.semester),
+        );
+        return;
+      }
+
       for (const recentSemester of checkedRecentSemesters) {
-        // Check recently updated semesters that isn't in the list.
         if (!recentSemester.attended) {
-          await syncClassGrades(
-            [CourseType.Bachelor, recentSemester.year, recentSemester.semester],
-            { force: true },
+          await refreshSync(
+            classGradesSync(
+              studentId,
+              CourseType.Bachelor,
+              recentSemester.year,
+              recentSemester.semester,
+            ),
           );
         }
       }
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
-  return {
-    data,
-    error,
-    isLoading,
-    refresh,
-  };
+  return { data, error, isLoading, refresh };
 }

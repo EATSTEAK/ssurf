@@ -1,32 +1,29 @@
 import { CourseType } from '@rusaint/react-native';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { useMemo, useState } from 'react';
-import { useAsyncEffect } from 'react-simplikit';
+import { useMemo } from 'react';
 
 import { db } from '@/db';
-import {
-  useSyncClassGrades,
-  useSyncGradeSummary,
-  useSyncSemesterGrades,
-} from '@/entities/grades/lib/sync';
+import { classGradesSync, gradeSummarySync, semesterGradesSync } from '@/entities/grades/lib/sync';
 import { ClassGradeEntity, GradeSummaryEntity, SemesterGradeEntity } from '@/entities/grades/model';
 import { getEstimatedCurrentSemester, getRecentSemesters } from '@/shared/lib/semester';
+import { SyncResult } from '@/shared/lib/syncEngine';
+import { useSync, useSyncRequests } from '@/shared/lib/useSync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
-export interface UseGradeSummaryReturn {
-  data: GradeSummaryEntity | null;
+interface SyncQueryResult {
   error: Error | undefined;
   isSyncing: boolean;
+  refresh: () => Promise<SyncResult | undefined>;
   updatedAt: Date | undefined;
 }
 
-/**
- * 성적 요약 정보를 조회하는 훅
- * @param type 'certificated' (증명) 또는 'recorded' (학적부)
- */
+export interface UseGradeSummaryReturn extends SyncQueryResult {
+  data: GradeSummaryEntity | null;
+}
+
 export const useGradeSummary = (type: 'certificated' | 'recorded'): UseGradeSummaryReturn => {
-  const { isSyncing, sync } = useSyncGradeSummary();
   const { studentId } = useRusaintApplication();
+  const sync = useSync(gradeSummarySync(studentId ?? '', CourseType.Bachelor));
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.gradeSummary.findFirst({
@@ -36,28 +33,24 @@ export const useGradeSummary = (type: 'certificated' | 'recorded'): UseGradeSumm
     [studentId, type],
   );
 
-  useAsyncEffect(async () => {
-    await sync([CourseType.Bachelor], { force: false });
-  }, [type]);
-
-  return { data: data ?? null, isSyncing, error, updatedAt };
+  return {
+    data: data ?? null,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };
 
-export interface UseSemesterGradesReturn {
+export interface UseSemesterGradesReturn extends SyncQueryResult {
   data: SemesterGradeEntity[];
-  error: Error | undefined;
-  isSyncing: boolean;
-  updatedAt: Date | undefined;
 }
 
-/**
- * 모든 학기의 성적 정보를 조회하는 훅
- * @param courseType 과정 유형
- * @returns SemesterGradeEntity[]
- */
-export const useSemesterGrades = (courseType: CourseType = CourseType.Bachelor) => {
-  const { isSyncing, sync } = useSyncSemesterGrades();
+export const useSemesterGrades = (
+  courseType: CourseType = CourseType.Bachelor,
+): UseSemesterGradesReturn => {
   const { studentId } = useRusaintApplication();
+  const sync = useSync(semesterGradesSync(studentId ?? '', courseType));
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.semesterGrades.findMany({
@@ -66,33 +59,26 @@ export const useSemesterGrades = (courseType: CourseType = CourseType.Bachelor) 
     [studentId, courseType],
   );
 
-  useAsyncEffect(async () => {
-    await sync([courseType], { force: false });
-  }, [courseType]);
-
-  return { data, isSyncing, error, updatedAt };
+  return {
+    data,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };
 
-export interface UseSemesterGradeReturn {
+export interface UseSemesterGradeReturn extends SyncQueryResult {
   data: null | SemesterGradeEntity;
-  error: Error | undefined;
-  isSyncing: boolean;
-  updatedAt: Date | undefined;
 }
 
-/**
- * 특정 학기의 성적 정보를 조회하는 훅
- * @param year 학년도
- * @param semester 학기
- * @param courseType 과정 유형
- */
 export const useSemesterGrade = (
   year: number,
   semester: number,
   courseType: CourseType = CourseType.Bachelor,
 ): UseSemesterGradeReturn => {
-  const { isSyncing, sync } = useSyncSemesterGrades();
   const { studentId } = useRusaintApplication();
+  const sync = useSync(semesterGradesSync(studentId ?? '', courseType));
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.semesterGrades.findFirst({
@@ -106,33 +92,26 @@ export const useSemesterGrade = (
     [studentId, year, semester, courseType],
   );
 
-  useAsyncEffect(async () => {
-    await sync([courseType], { force: false });
-  }, [courseType]);
-
-  return { data: data ?? null, isSyncing, error, updatedAt };
+  return {
+    data: data ?? null,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };
 
-export interface UseClassGradesReturn {
+export interface UseClassGradesReturn extends SyncQueryResult {
   data: ClassGradeEntity[];
-  error: Error | undefined;
-  isSyncing: boolean;
-  updatedAt: Date | undefined;
 }
 
-/**
- * 특정 학기의 과목별 성적 목록을 조회하는 훅
- * @param year 학년도
- * @param semester 학기
- * @param courseType 과정 유형
- */
 export const useClassGrades = (
   year: number,
   semester: number,
   courseType: CourseType = CourseType.Bachelor,
 ): UseClassGradesReturn => {
-  const { isSyncing, sync } = useSyncClassGrades();
   const { studentId } = useRusaintApplication();
+  const sync = useSync(classGradesSync(studentId ?? '', courseType, year, semester));
 
   const { data, error, updatedAt } = useLiveQuery(
     db.query.classGrades.findMany({
@@ -146,11 +125,13 @@ export const useClassGrades = (
     [studentId, year, semester, courseType],
   );
 
-  useAsyncEffect(async () => {
-    await sync([courseType, year, semester], { force: false });
-  }, [courseType, year, semester]);
-
-  return { data, isSyncing, error, updatedAt };
+  return {
+    data,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };
 
 export interface UseCheckRecentAttendedSemestersReturn {
@@ -160,19 +141,20 @@ export interface UseCheckRecentAttendedSemestersReturn {
   updatedAt: Date | undefined;
 }
 
-/**
- * 최근 2개 학기 중 과목이 하나라도 있는 학기 이름 반환
- * @returns 과목이 있는 학기들의 YearSemester 배열
- */
 export const useCheckRecentAttendedSemesters = (): UseCheckRecentAttendedSemestersReturn => {
-  const { sync } = useSyncClassGrades();
-  const [isChecking, setIsChecking] = useState(false);
   const { defaultGradesSemester, studentId } = useRusaintApplication();
   const defaultSemester = defaultGradesSemester ?? getEstimatedCurrentSemester();
   const recentTwoSemesters = useMemo(
     () => getRecentSemesters(defaultSemester, 2),
     [defaultSemester],
   );
+  const sync = useSyncRequests(
+    recentTwoSemesters.map((semester) =>
+      classGradesSync(studentId ?? '', CourseType.Bachelor, semester.year, semester.semester),
+    ),
+    { sequential: true },
+  );
+
   const {
     data: recentClasses,
     error,
@@ -183,8 +165,8 @@ export const useCheckRecentAttendedSemesters = (): UseCheckRecentAttendedSemeste
         and(
           eq(classGrades.studentId, studentId ?? ''),
           or(
-            ...recentTwoSemesters.map((sem) =>
-              and(eq(classGrades.year, sem.year), eq(classGrades.semester, sem.semester)),
+            ...recentTwoSemesters.map((semester) =>
+              and(eq(classGrades.year, semester.year), eq(classGrades.semester, semester.semester)),
             ),
           ),
         ),
@@ -192,27 +174,23 @@ export const useCheckRecentAttendedSemesters = (): UseCheckRecentAttendedSemeste
     [studentId, recentTwoSemesters],
   );
 
-  const checkedSemesters: { attended: boolean; semester: number; year: number }[] = useMemo(
+  const checkedSemesters = useMemo(
     () =>
-      recentTwoSemesters.map((sem) => {
-        const attended =
-          recentClasses?.some((cls) => cls.year === sem.year && cls.semester === sem.semester) ??
-          false;
-        return {
-          ...sem,
-          attended,
-        };
-      }),
+      recentTwoSemesters.map((semester) => ({
+        ...semester,
+        attended:
+          recentClasses?.some(
+            (classGrade) =>
+              classGrade.year === semester.year && classGrade.semester === semester.semester,
+          ) ?? false,
+      })),
     [recentClasses, recentTwoSemesters],
   );
 
-  useAsyncEffect(async () => {
-    setIsChecking(true);
-    for (const sem of recentTwoSemesters) {
-      await sync([CourseType.Bachelor, sem.year, sem.semester], { force: false });
-    }
-    setIsChecking(false);
-  }, [recentTwoSemesters, sync]);
-
-  return { checkedSemesters, isChecking, error, updatedAt };
+  return {
+    checkedSemesters,
+    error: sync.error ?? error,
+    isChecking: sync.isSyncing,
+    updatedAt,
+  };
 };

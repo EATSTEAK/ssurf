@@ -7,18 +7,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
+import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import { useFeedSites } from '@/entities/feed/lib/queries';
-import { useSyncFeed } from '@/entities/feed/lib/sync';
+import { useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { FeedNoticeTabScene } from '@/features/feed/ui/FeedNoticeTabScene';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { CollapsibleTabs } from '@/shared/ui/collapsible-tabs/CollapsibleTabs';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 import { SettingsIcon } from '@/shared/ui/icons';
+import { Button } from '@/shared/ui/primitives/Button';
 import { Space } from '@/shared/ui/primitives/Space';
 import { TabsRoute, TabsTabBar } from '@/shared/ui/primitives/Tabs';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -85,40 +85,24 @@ const styles = StyleSheet.create((theme) => ({
 export default function FeedNoticeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { studentId } = useRusaintApplication();
   const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
   const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
-
-  const { data: sites } = useFeedSites();
-  const { error, isSyncing, syncEntry, syncSites } = useSyncFeed(studentId ?? '');
   const pullDistance = useSharedValue(0);
   const scrollY = useSharedValue(0);
   const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);
-  const [hasBootstrappedSites, setHasBootstrappedSites] = useState(sites.length > 0);
 
-  useEffect(() => {
-    refreshState.value = isSyncing ? RefreshState.Syncing : RefreshState.Idle;
-  }, [isSyncing, refreshState]);
+  const {
+    data: sites,
+    error: siteError,
+    isSyncing: isSiteSyncing,
+    refresh: refreshSites,
+    updatedAt: sitesUpdatedAt,
+  } = useFeedSites();
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const visibleNoticeSites = useMemo(
     () => noticeSites.filter((site) => selectedNoticeSlugs.includes(site.slug)),
     [noticeSites, selectedNoticeSlugs],
   );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      await syncSites();
-      if (isMounted) {
-        setHasBootstrappedSites(true);
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [syncSites]);
 
   useEffect(() => {
     if (noticeSites.length === 0) {
@@ -146,6 +130,18 @@ export default function FeedNoticeScreen() {
     visibleNoticeSites.find((site) => site.slug === selectedNoticeSlug)?.slug ??
     visibleNoticeSites[0]?.slug ??
     '';
+  const {
+    error: noticeError,
+    isSyncing: isNoticeSyncing,
+    refresh: refreshNotices,
+  } = useFeedNotices(currentNoticeSlug ? [currentNoticeSlug] : []);
+  const error = siteError ?? noticeError;
+  const isSyncing = isSiteSyncing || isNoticeSyncing;
+
+  useEffect(() => {
+    refreshState.value = isSyncing ? RefreshState.Syncing : RefreshState.Idle;
+  }, [isSyncing, refreshState]);
+
   const routes = useMemo<TabsRoute[]>(
     () =>
       visibleNoticeSites.map((site) => ({
@@ -171,16 +167,15 @@ export default function FeedNoticeScreen() {
 
   const listBottomPadding =
     NATIVE_TAB_BAR_HEIGHT + insets.bottom + styles.sceneListContent.paddingBottom;
-  const isLoadingSites = !hasBootstrappedSites && sites.length === 0;
+  const isLoadingSites = sites.length === 0 && (isSiteSyncing || sitesUpdatedAt === undefined);
 
   const handleRefresh = useCallback(() => {
     if (isSyncing || !currentNoticeSlug) {
       return;
     }
 
-    void syncSites({ force: true });
-    void syncEntry(currentNoticeSlug, { force: true });
-  }, [currentNoticeSlug, isSyncing, syncEntry, syncSites]);
+    void Promise.all([refreshSites(), refreshNotices()]);
+  }, [currentNoticeSlug, isSyncing, refreshNotices, refreshSites]);
 
   const handleNoticeIndexChange = useCallback(
     (index: number) => {
@@ -232,6 +227,27 @@ export default function FeedNoticeScreen() {
               <ThemedText color="fgSecondary" typography="bodyLg">
                 잠시만 기다려주세요.
               </ThemedText>
+            </View>
+          </SafeContainer>
+        ) : siteError && routes.length === 0 ? (
+          <SafeContainer>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.topView}>
+              <View style={styles.topInnerView}>
+                <Header title="공지사항" />
+                <ThemedText color="fgSecondary" typography="labelMd">
+                  사이트별 전체 공지
+                </ThemedText>
+              </View>
+            </View>
+            <View style={styles.statusView}>
+              <Image contentFit="contain" source={errorImage} style={styles.imageView} />
+              <ThemedText color="error" typography="headingLg">
+                공지 목록을 불러오지 못했어요.
+              </ThemedText>
+              <Button onPress={() => void refreshSites()} variant="primary">
+                다시 시도
+              </Button>
             </View>
           </SafeContainer>
         ) : routes.length === 0 ? (
