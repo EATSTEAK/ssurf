@@ -14,31 +14,32 @@ export const settings = sqliteTable(
 
 export type SettingsEntity = typeof settings.$inferSelect;
 
-export type SettingsValueMap = {
-  selectedNoticeSlug: string;
-  selectedNoticeSlugs: string[];
-  selectedScheduleCalendarSlugs: string[];
-};
-
-export type SettingsKey = keyof SettingsValueMap;
-export type SettingsValue<K extends SettingsKey> = SettingsValueMap[K];
-
-export const settingsSchema: {
-  [K in SettingsKey]: {
-    defaultValue: SettingsValue<K>;
-    storageKey: string;
-  };
-} = {
-  selectedNoticeSlug: {
+export const settingsSchema = {
+  'feed.selectedNoticeSlug': {
     defaultValue: 'scatch.ssu.ac.kr',
-    storageKey: 'feed.selectedNoticeSlug',
   },
-  selectedNoticeSlugs: {
+  'feed.selectedNoticeSlugs': {
     defaultValue: ['scatch.ssu.ac.kr'],
-    storageKey: 'feed.selectedNoticeSlugs',
   },
-  selectedScheduleCalendarSlugs: {
+  'notifications.chapel.enabled': {
+    defaultValue: true,
+  },
+  'notifications.courseGrade.enabled': {
+    defaultValue: true,
+  },
+  'notifications.notice.enabled': {
+    defaultValue: true,
+  },
+  'notifications.semesterGrade.enabled': {
+    defaultValue: true,
+  },
+  'schedule.selectedCalendarSlugs': {
     defaultValue: ['calendar/ssu-academic-calendar'],
-    storageKey: 'schedule.selectedCalendarSlugs',
   },
 };
+
+export type SettingsKey = keyof typeof settingsSchema;
+export type SettingsValueMap = {
+  [K in SettingsKey]: (typeof settingsSchema)[K]['defaultValue'];
+};
+export type SettingsValue<K extends SettingsKey> = SettingsValueMap[K];

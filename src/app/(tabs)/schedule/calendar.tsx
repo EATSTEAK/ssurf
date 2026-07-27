@@ -87,7 +87,7 @@ export default function ScheduleCalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
-  const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
+  const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
   const today = useMemo(() => new Date(), []);
   const todayKey = useMemo(() => getCalendarDateKey(today), [today]);
   const [selectedDate, setSelectedDate] = useState(todayKey);

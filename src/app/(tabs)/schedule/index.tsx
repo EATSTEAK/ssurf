@@ -69,7 +69,7 @@ const RUSAINT_NO_SCHEDULE =
 export default function Index() {
   const router = useRouter();
   const { defaultScheduleSemester } = useRusaintApplication();
-  const [selectedCalendarSlugs] = useSetting('selectedScheduleCalendarSlugs');
+  const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
   const defaultSemester = defaultScheduleSemester ?? getEstimatedCurrentSemester(true);
   const estimatedCurrentSemester = getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);

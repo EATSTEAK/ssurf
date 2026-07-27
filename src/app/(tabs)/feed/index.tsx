@@ -48,8 +48,8 @@ export default function FeedScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
-  const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
+  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('feed.selectedNoticeSlugs');
+  const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('feed.selectedNoticeSlug');
 
   const {
     data: sites,

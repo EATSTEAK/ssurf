@@ -26,7 +26,7 @@ export const getSettingSnapshot = async <K extends SettingsKey>(
   });
 
   if (!row) {
-    return settingsSchema[key].defaultValue;
+    return settingsSchema[key].defaultValue as SettingsValue<K>;
   }
 
   return parseSettingValue(key, row.valueJson);

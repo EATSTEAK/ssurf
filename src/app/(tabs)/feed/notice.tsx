@@ -85,8 +85,8 @@ const styles = StyleSheet.create((theme) => ({
 export default function FeedNoticeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
-  const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
+  const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('feed.selectedNoticeSlugs');
+  const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('feed.selectedNoticeSlug');
   const pullDistance = useSharedValue(0);
   const scrollY = useSharedValue(0);
   const refreshState = useSharedValue<RefreshState>(RefreshState.Idle);

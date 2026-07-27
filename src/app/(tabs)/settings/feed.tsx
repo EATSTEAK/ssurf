@@ -82,8 +82,8 @@ export default function FeedSettingsScreen() {
   const scrollY = useSharedValue(0);
   const { data: sites, error: siteError, refresh: refreshSites } = useFeedSites();
   const { studentId } = useRusaintApplication();
-  const [selectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
-  const [selectedNoticeSlug] = useSetting('selectedNoticeSlug');
+  const [selectedNoticeSlugs] = useSetting('feed.selectedNoticeSlugs');
+  const [selectedNoticeSlug] = useSetting('feed.selectedNoticeSlug');
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
 
@@ -98,14 +98,14 @@ export default function FeedSettingsScreen() {
 
     if (nextSlugs.length === 0) {
       void setSettings(studentId, {
-        selectedNoticeSlugs: nextSlugs,
+        'feed.selectedNoticeSlugs': nextSlugs,
       });
       return;
     }
 
     void setSettings(studentId, {
-      selectedNoticeSlugs: nextSlugs,
-      selectedNoticeSlug: nextSlugs.includes(selectedNoticeSlug)
+      'feed.selectedNoticeSlugs': nextSlugs,
+      'feed.selectedNoticeSlug': nextSlugs.includes(selectedNoticeSlug)
         ? selectedNoticeSlug
         : nextSlugs[0],
     });
