@@ -1,15 +1,15 @@
 import { syncStudentInformation } from '@/entities/studentInformation/service';
-import { SyncOptions, useSyncData } from '@/shared/lib/sync';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+import { applications } from '@/shared/lib/applications';
+import { SyncRequest } from '@/shared/lib/syncEngine';
 
-export const useSyncStudentInformation = (options?: SyncOptions) => {
-  const { studentInformationClient, studentId } = useRusaintApplication();
+export const studentInformationSync = (studentId: string): SyncRequest => {
+  const generation = applications.getGeneration();
 
-  return useSyncData({
-    client: studentInformationClient,
-    studentId,
-    cacheKey: () => `student-information.general`,
-    syncFn: syncStudentInformation,
-    options,
-  });
+  return {
+    key: [studentId, 'student-information.general'],
+    run: async () => {
+      const client = await applications.get('studentInformation', studentId, generation);
+      await syncStudentInformation(client);
+    },
+  };
 };

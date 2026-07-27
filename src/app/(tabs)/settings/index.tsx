@@ -6,7 +6,6 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useStudentInformation } from '@/entities/studentInformation/lib/queries';
-import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import { UserProfile } from '@/features/settings/ui/UserProfile';
 import { paletteHex } from '@/shared/lib/theme';
@@ -43,8 +42,7 @@ const styles = StyleSheet.create((theme, rt) => ({
 
 export default function Index() {
   const { logout } = useRusaintSession();
-  const { sync, isSyncing } = useSyncStudentInformation();
-  const { data: info } = useStudentInformation();
+  const { data: info, isSyncing, refresh } = useStudentInformation();
   const scrollY = useSharedValue(0);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
 
@@ -55,7 +53,7 @@ export default function Index() {
   });
 
   const onRefresh = async () => {
-    await sync([], { force: true });
+    await refresh();
   };
   return (
     <>

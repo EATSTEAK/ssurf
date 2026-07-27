@@ -11,7 +11,6 @@ import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useCalendars } from '@/entities/calendar/lib/queries';
-import { useSyncCalendars } from '@/entities/calendar/lib/sync';
 import { CalendarEntity } from '@/entities/calendar/model';
 import { useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
@@ -81,16 +80,18 @@ export default function Index() {
       ? defaultScheduleSemester
       : selectedSemester;
 
-  const { data, isSyncing, error, sync } = useCourseSchedule(
-    effectiveSelectedSemester.year,
-    effectiveSelectedSemester.semester,
-  );
+  const {
+    data,
+    isSyncing,
+    error,
+    refresh: refreshSchedule,
+  } = useCourseSchedule(effectiveSelectedSemester.year, effectiveSelectedSemester.semester);
   const {
     data: calendars,
     error: calendarError,
     isSyncing: isCalendarSyncing,
+    refresh: refreshCalendars,
   } = useCalendars(selectedCalendarSlugs);
-  const { sync: syncCalendars } = useSyncCalendars();
 
   const todayCalendars = useMemo(() => {
     const now = new Date();
@@ -128,8 +129,8 @@ export default function Index() {
     if (isSyncing || isCalendarSyncing) {
       return;
     }
-    sync([effectiveSelectedSemester.year, effectiveSelectedSemester.semester], { force: true });
-    void syncCalendars(selectedCalendarSlugs, { force: true });
+    void refreshSchedule();
+    void refreshCalendars();
   };
 
   const scrollHandler = useAnimatedScrollHandler({

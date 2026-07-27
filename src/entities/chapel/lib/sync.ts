@@ -1,18 +1,21 @@
 import { SemesterType } from '@rusaint/react-native';
 
 import { syncChapelInformation } from '@/entities/chapel/service';
-import { SyncOptions, useSyncData } from '@/shared/lib/sync';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+import { applications } from '@/shared/lib/applications';
+import { SyncRequest } from '@/shared/lib/syncEngine';
 
-export const useSyncChapel = (options?: SyncOptions) => {
-  const { chapelClient, studentId } = useRusaintApplication();
+export const chapelSync = (
+  studentId: string,
+  year: number,
+  semester: SemesterType,
+): SyncRequest => {
+  const generation = applications.getGeneration();
 
-  return useSyncData({
-    client: chapelClient,
-    studentId,
-    cacheKey: ([year, semester]: [number, SemesterType]) =>
-      `chapel.information.${year}-${semester}`,
-    syncFn: syncChapelInformation,
-    options,
-  });
+  return {
+    key: [studentId, `chapel.information.${year}-${semester}`],
+    run: async () => {
+      const { client } = await applications.get('chapel', studentId, generation);
+      await syncChapelInformation(client, studentId, year, semester);
+    },
+  };
 };

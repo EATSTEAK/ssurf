@@ -1,7 +1,7 @@
 import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -11,7 +11,6 @@ import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { calculateRequiredAttendances } from '@/entities/chapel/lib/attendanceCriteria';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/entities/chapel/lib/queries';
-import { useSyncChapel } from '@/entities/chapel/lib/sync';
 import { Attendance } from '@/features/chapel/ui/Attendance';
 import { ChapelProgress } from '@/features/chapel/ui/ChapelProgress';
 import { ChapelSeatmapView } from '@/features/chapel/ui/ChapelSeatmapView';
@@ -92,11 +91,12 @@ export default function Index() {
   const defaultSemester = defaultChapelSemester ?? getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
 
-  const { sync: syncChapel, isSyncing, error } = useSyncChapel();
-  const { data: general } = useGeneralChapelInformation(
-    selectedSemester.year,
-    selectedSemester.semester,
-  );
+  const {
+    data: general,
+    error,
+    isSyncing,
+    refresh,
+  } = useGeneralChapelInformation(selectedSemester.year, selectedSemester.semester);
   const { data: attendances } = useChapelAttendances(
     selectedSemester.year,
     selectedSemester.semester,
@@ -122,14 +122,8 @@ export default function Index() {
     if (isSyncing) {
       return;
     }
-    syncChapel([selectedSemester.year, selectedSemester.semester], { force: true });
+    void refresh();
   };
-
-  useEffect(() => {
-    if (selectedSemester) {
-      syncChapel([selectedSemester.year, selectedSemester.semester]);
-    }
-  }, [selectedSemester, syncChapel]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {

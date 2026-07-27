@@ -6,11 +6,9 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
-import { useSyncFeed } from '@/entities/feed/lib/sync';
 import { FeedNoticeListItem } from '@/entities/feed/model';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { NoticeCard } from '@/features/feed/ui/NoticeCard';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
@@ -49,13 +47,16 @@ const styles = StyleSheet.create((theme) => ({
 export default function FeedScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { studentId } = useRusaintApplication();
 
   const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('selectedNoticeSlugs');
   const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('selectedNoticeSlug');
 
-  const { data: sites } = useFeedSites();
-  const { syncEntry: syncNoticeEntry, syncSites: syncFeedSites } = useSyncFeed(studentId ?? '');
+  const {
+    data: sites,
+    error: siteError,
+    isSyncing: isSiteSyncing,
+    refresh: refreshSites,
+  } = useFeedSites();
 
   const noticeSites = useMemo(() => sites.filter((site) => site.kind === 'notice'), [sites]);
   const availableSelectedNoticeSlugs = useMemo(
@@ -80,10 +81,6 @@ export default function FeedScreen() {
           : [],
     [currentNoticeSlug, visibleNoticeSites],
   );
-
-  useEffect(() => {
-    void syncFeedSites();
-  }, [syncFeedSites]);
 
   useEffect(() => {
     if (noticeSites.length === 0) {
@@ -111,7 +108,8 @@ export default function FeedScreen() {
     data: notices,
     error: noticeError,
     isSyncing: isNoticeSyncing,
-  } = useFeedNotices(studentId ?? '', noticeSlugs);
+    refresh: refreshNotices,
+  } = useFeedNotices(noticeSlugs);
 
   const noticePreviewItemsBySlug = useMemo(() => {
     return visibleNoticeSites.reduce<Record<string, FeedNoticeListItem[]>>((acc, site) => {
@@ -125,16 +123,12 @@ export default function FeedScreen() {
   const scrollY = useSharedValue(0);
 
   const handleRefresh = useCallback(() => {
-    if (isNoticeSyncing) {
+    if (isNoticeSyncing || isSiteSyncing) {
       return;
     }
 
-    void syncFeedSites({ force: true });
-
-    if (currentNoticeSlug) {
-      void syncNoticeEntry(currentNoticeSlug, { force: true });
-    }
-  }, [currentNoticeSlug, isNoticeSyncing, syncFeedSites, syncNoticeEntry]);
+    void Promise.all([refreshSites(), refreshNotices()]);
+  }, [isNoticeSyncing, isSiteSyncing, refreshNotices, refreshSites]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -202,7 +196,7 @@ export default function FeedScreen() {
           contentContainerStyle={styles.content}
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isNoticeSyncing}
+          refreshing={isNoticeSyncing || isSiteSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>
@@ -215,7 +209,7 @@ export default function FeedScreen() {
               <NoticeCard
                 actionLabel="전체 공지 보기"
                 currentNoticeSlug={currentNoticeSlug}
-                error={noticeError}
+                error={siteError ?? noticeError}
                 itemsBySlug={noticePreviewItemsBySlug}
                 limit={NOTICE_PREVIEW_LIMIT}
                 onPressAction={handleOpenNoticePage}

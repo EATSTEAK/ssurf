@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { CalendarProvider } from 'react-native-calendars';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { useCalendars } from '@/entities/calendar/lib/queries';
-import { useSyncCalendars } from '@/entities/calendar/lib/sync';
 import { CalendarEntity } from '@/entities/calendar/model';
 import { useFeedSites } from '@/entities/feed/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
@@ -95,15 +94,15 @@ export default function ScheduleCalendarScreen() {
   const [visibleMonth, setVisibleMonth] = useState(getMonthDateKey(today));
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
-  const { data: sites } = useFeedSites();
-  const { sync, syncSites } = useSyncCalendars();
+  const {
+    data: sites,
+    error: siteError,
+    isSyncing: isSyncingSites,
+    refresh: refreshSites,
+  } = useFeedSites();
   const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
-
-  useEffect(() => {
-    void syncSites();
-  }, [syncSites]);
-
-  const { data, error, isSyncing } = useCalendars(selectedCalendarSlugs);
+  const { data, error, isSyncing, refresh } = useCalendars(selectedCalendarSlugs);
+  const syncError = siteError ?? error;
 
   const handleSelectDate = useCallback((dateString: string) => {
     setSelectedDate(dateString);
@@ -163,13 +162,12 @@ export default function ScheduleCalendarScreen() {
   const bottomPadding = NATIVE_TAB_BAR_HEIGHT + insets.bottom + 32;
 
   const handleRefresh = useCallback(() => {
-    if (isSyncing) {
+    if (isSyncing || isSyncingSites) {
       return;
     }
 
-    void syncSites({ force: true });
-    void sync(selectedCalendarSlugs, { force: true });
-  }, [isSyncing, selectedCalendarSlugs, sync, syncSites]);
+    void Promise.all([refreshSites(), refresh()]);
+  }, [isSyncing, isSyncingSites, refresh, refreshSites]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -222,7 +220,7 @@ export default function ScheduleCalendarScreen() {
           contentContainerStyle={{ paddingBottom: bottomPadding }}
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isSyncing}
+          refreshing={isSyncing || isSyncingSites}
           scrollEventThrottle={16}
         >
           <SafeContainer>
@@ -262,15 +260,15 @@ export default function ScheduleCalendarScreen() {
                 </ThemedText>
               </View>
               {/* TODO: 일정 소스가 더 늘어나면 여기서 선택 UI를 제공한다. */}
-              {selectedCalendarSlugs.length === 0 ? (
-                <View style={styles.emptySection}>
-                  <ThemedText typography="bodyMd">선택된 일정 소스가 없어요</ThemedText>
-                </View>
-              ) : error ? (
+              {syncError ? (
                 <View style={styles.emptySection}>
                   <ThemedText color="error" typography="bodyMd">
                     일정을 불러오지 못했어요
                   </ThemedText>
+                </View>
+              ) : selectedCalendarSlugs.length === 0 ? (
+                <View style={styles.emptySection}>
+                  <ThemedText typography="bodyMd">선택된 일정 소스가 없어요</ThemedText>
                 </View>
               ) : selectedDateItems.length === 0 ? (
                 <View style={styles.emptySection}>

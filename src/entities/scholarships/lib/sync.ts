@@ -1,15 +1,15 @@
 import { syncScholarships } from '@/entities/scholarships/service';
-import { SyncOptions, useSyncData } from '@/shared/lib/sync';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
+import { applications } from '@/shared/lib/applications';
+import { SyncRequest } from '@/shared/lib/syncEngine';
 
-export const useSyncScholarships = (options?: SyncOptions) => {
-  const { scholarshipsClient, studentId } = useRusaintApplication();
+export const scholarshipsSync = (studentId: string): SyncRequest => {
+  const generation = applications.getGeneration();
 
-  return useSyncData({
-    client: scholarshipsClient,
-    studentId,
-    cacheKey: () => 'scholarships',
-    syncFn: syncScholarships,
-    options,
-  });
+  return {
+    key: [studentId, 'scholarships'],
+    run: async () => {
+      const client = await applications.get('scholarships', studentId, generation);
+      await syncScholarships(client, studentId);
+    },
+  };
 };

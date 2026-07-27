@@ -1,14 +1,13 @@
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { useAsyncEffect } from 'react-simplikit';
 
 import { db } from '@/db';
-import { useSyncStudentInformation } from '@/entities/studentInformation/lib/sync';
+import { studentInformationSync } from '@/entities/studentInformation/lib/sync';
+import { useSync } from '@/shared/lib/useSync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
 export const useStudentInformation = () => {
-  const { isSyncing, sync } = useSyncStudentInformation();
   const { studentId } = useRusaintApplication();
-
+  const sync = useSync(studentInformationSync(studentId ?? ''));
   const studentNumber = parseInt(studentId ?? '0', 10);
 
   const { data, error, updatedAt } = useLiveQuery(
@@ -18,9 +17,11 @@ export const useStudentInformation = () => {
     [studentNumber],
   );
 
-  useAsyncEffect(async () => {
-    await sync([], { force: false });
-  }, []);
-
-  return { data: data ?? null, isSyncing, error, updatedAt };
+  return {
+    data: data ?? null,
+    error: sync.error ?? error,
+    isSyncing: sync.isSyncing,
+    refresh: sync.refresh,
+    updatedAt,
+  };
 };

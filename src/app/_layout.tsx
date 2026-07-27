@@ -10,6 +10,9 @@ import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
+import { feedSitesSync } from '@/entities/feed/lib/sync';
+import { studentInformationSync } from '@/entities/studentInformation/lib/sync';
+import { ensure } from '@/shared/lib/syncEngine';
 import { RusaintApplicationProvider } from '@/shared/providers/RusaintApplicationProvider';
 import {
   RusaintSessionProvider,
@@ -31,7 +34,14 @@ SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
   const { theme } = useUnistyles();
-  const { hasCredential, isLoading, error } = useRusaintSession();
+  const { hasCredential, isLoading, error, session, studentId } = useRusaintSession();
+
+  useEffect(() => {
+    if (session && studentId) {
+      void ensure(feedSitesSync());
+      void ensure(studentInformationSync(studentId));
+    }
+  }, [session, studentId]);
 
   useEffect(() => {
     if (!isLoading && hasCredential !== null) {
