@@ -15,7 +15,7 @@ import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
-import { LogoutIcon, NewspaperIcon } from '@/shared/ui/icons';
+import { BellIcon, LogoutIcon, NewspaperIcon } from '@/shared/ui/icons';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
@@ -86,6 +86,12 @@ export default function Index() {
                   onPress={() => router.push('/(tabs)/settings/feed')}
                 >
                   <ThemedText typography="bodyLg">피드 설정</ThemedText>
+                </ActionListItem>
+                <ActionListItem
+                  icon={<BellIcon color={styles.actionListSymbol.color} size={24} />}
+                  onPress={() => router.push('./notifications', { relativeToDirectory: true })}
+                >
+                  <ThemedText typography="bodyLg">알림 설정</ThemedText>
                 </ActionListItem>
                 <ActionListItem
                   icon={<LogoutIcon color={styles.actionListSymbol.color} size={24} />}

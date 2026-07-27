@@ -17,7 +17,7 @@ const parseSettingValue = <K extends SettingsKey>(key: K, valueJson: string): Se
 
 export const useSetting = <K extends SettingsKey>(key: K) => {
   const { studentId } = useRusaintApplication();
-  const defaultValue = settingsSchema[key].defaultValue;
+  const defaultValue = settingsSchema[key].defaultValue as SettingsValue<K>;
 
   const { data, updatedAt } = useLiveQuery(
     studentId
