@@ -88,9 +88,25 @@ function RootLayoutNav() {
   }, [studentId]);
 
   useEffect(() => {
-    if (session && notificationResponse?.notification.request.content.data?.category === 'notice') {
-      Notifications.clearLastNotificationResponse();
-      router.push('/(tabs)/feed/notice');
+    if (!session) {
+      return;
+    }
+
+    const category = notificationResponse?.notification.request.content.data?.category;
+    switch (category) {
+      case 'chapel':
+        Notifications.clearLastNotificationResponse();
+        router.push('/(tabs)/chapel');
+        break;
+      case 'courseGrade':
+      case 'semesterGrade':
+        Notifications.clearLastNotificationResponse();
+        router.push('/(tabs)/grades');
+        break;
+      case 'notice':
+        Notifications.clearLastNotificationResponse();
+        router.push('/(tabs)/feed/notice');
+        break;
     }
   }, [notificationResponse, router, session]);
 

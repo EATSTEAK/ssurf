@@ -32,7 +32,7 @@ export type RusaintPipelineDefinition<K extends RusaintClientKind, TValue, TTarg
   fingerprint: (value: TValue) => string;
   id: string;
   observe: (context: { client: RusaintClientMap[K]; studentId: string }) => Promise<TValue>;
-  readApplied: (context: { studentId: string }) => Promise<null | TValue>;
+  readApplied: (context: { studentId: string; value: TValue }) => Promise<null | TValue>;
   settingKey: string;
   target: (value: TValue) => TTarget;
 };
@@ -53,7 +53,7 @@ export const defineRusaintPipeline = <K extends RusaintClientKind, TValue, TTarg
       client: await runtime.getClient(client),
       studentId: runtime.studentId,
     });
-    const applied = await readApplied({ studentId: runtime.studentId });
+    const applied = await readApplied({ studentId: runtime.studentId, value: remote });
 
     return {
       appliedFingerprint: applied === null ? null : fingerprint(applied),
@@ -86,6 +86,7 @@ type PipelineTarget<TPipeline> = TPipeline extends RusaintPipeline<infer TTarget
 export type DetectionRun<TTarget = unknown> = {
   acknowledge: (changes: readonly DetectionChange<TTarget>[]) => Promise<void>;
   changes: readonly DetectionChange<TTarget>[];
+  checked: number;
   errors: readonly DetectionError[];
 };
 
@@ -107,6 +108,7 @@ export const runRusaintPipelines = async <const TPipelines extends readonly Rusa
   const nextState = { ...state };
   const changes: DetectionChange<PipelineTarget<TPipelines[number]>>[] = [];
   const errors: DetectionError[] = [];
+  let checked = 0;
 
   for (const pipeline of pipelines) {
     try {
@@ -115,6 +117,7 @@ export const runRusaintPipelines = async <const TPipelines extends readonly Rusa
       }
 
       const observation = await pipeline.detect(dependencies);
+      checked += 1;
       const previousFingerprint = state[pipeline.id];
 
       if (
@@ -144,6 +147,7 @@ export const runRusaintPipelines = async <const TPipelines extends readonly Rusa
 
   return {
     changes,
+    checked,
     errors,
     acknowledge: async (accepted) => {
       const updates = accepted.filter(
@@ -153,7 +157,7 @@ export const runRusaintPipelines = async <const TPipelines extends readonly Rusa
         return;
       }
 
-      const latestState = await dependencies.readState();
+      const latestState = { ...(await dependencies.readState()) };
       for (const change of updates) {
         latestState[change.pipelineId] = change.fingerprint;
       }

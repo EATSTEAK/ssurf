@@ -1,13 +1,18 @@
 import type { StoredCredentials } from '@/shared/lib/credentials';
 
+import { CourseType } from '@rusaint/react-native';
 import * as BackgroundTask from 'expo-background-task';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
 
+import { chapelSync } from '@/entities/chapel/lib/sync';
 import { detectNoticeUpdates, NoticeDetectionChange } from '@/entities/feed/lib/noticeDetection';
 import { feedEntrySync } from '@/entities/feed/lib/sync';
+import { classGradesSync, semesterGradesSync } from '@/entities/grades/lib/sync';
 import { getStoredCredentials } from '@/shared/lib/credentials';
+import { detectRusaintUpdates, RusaintDetectionChange } from '@/shared/lib/rusaintDetection';
+import { semesterToString } from '@/shared/lib/semester';
 import { refresh } from '@/shared/lib/syncEngine';
 
 export const UPDATE_BACKGROUND_TASK = 'ssurf-update-detection';
@@ -34,6 +39,36 @@ const notifyNoticeUpdates = async (changes: readonly NoticeDetectionChange[]) =>
   });
 };
 
+const notifyRusaintUpdate = async ({ target }: RusaintDetectionChange) => {
+  const content = (() => {
+    switch (target.category) {
+      case 'chapel':
+        return {
+          body: `${semesterToString(target)} 채플 출석 정보를 확인해보세요.`,
+          data: { category: target.category },
+          title: '채플 출석 정보가 변경됐어요',
+        };
+      case 'courseGrade':
+        return {
+          body: `${semesterToString(target)} 과목별 성적을 확인해보세요.`,
+          data: { category: target.category },
+          title: '과목별 성적이 변경됐어요',
+        };
+      case 'semesterGrade':
+        return {
+          body: '최신 학기별 성적을 확인해보세요.',
+          data: { category: target.category },
+          title: '학기별 성적이 업데이트됐어요',
+        };
+    }
+  })();
+
+  await Notifications.scheduleNotificationAsync({
+    content,
+    trigger: Platform.OS === 'android' ? { channelId: UPDATE_CHANNEL_ID } : null,
+  });
+};
+
 const syncNoticeUpdates = async (changes: readonly NoticeDetectionChange[]) => {
   const results = await Promise.all(
     changes.map(async (change) => ({
@@ -44,33 +79,67 @@ const syncNoticeUpdates = async (changes: readonly NoticeDetectionChange[]) => {
   return results.filter(({ result }) => result !== 'failed').map(({ change }) => change);
 };
 
+const syncRusaintUpdate = (studentId: string, { target }: RusaintDetectionChange) => {
+  switch (target.category) {
+    case 'chapel':
+      return refresh(chapelSync(studentId, target.year, target.semester));
+    case 'courseGrade':
+      return refresh(classGradesSync(studentId, CourseType.Bachelor, target.year, target.semester));
+    case 'semesterGrade':
+      return refresh(semesterGradesSync(studentId, CourseType.Bachelor));
+  }
+};
+
 const executeUpdateDetection = async (
   credentials: StoredCredentials,
   mode: UpdateDetectionMode,
 ) => {
-  const noticeRun = await detectNoticeUpdates(credentials.id);
+  const [noticeRun, rusaintRun] = await Promise.all([
+    detectNoticeUpdates(credentials.id),
+    detectRusaintUpdates(credentials),
+  ]);
   const currentCredentials = await getStoredCredentials();
   if (currentCredentials?.id !== credentials.id) {
     return { failed: false };
   }
 
   if (mode === 'background') {
-    const changes = noticeRun.changes.filter((change) => change.shouldNotify);
-    if (changes.length > 0) {
-      await notifyNoticeUpdates(changes);
-      await noticeRun.acknowledge(changes);
+    const noticeChanges = noticeRun.changes.filter((change) => change.shouldNotify);
+    if (noticeChanges.length > 0) {
+      await notifyNoticeUpdates(noticeChanges);
+      await noticeRun.acknowledge(noticeChanges);
     }
-  } else if (noticeRun.changes.length > 0) {
-    const synced = await syncNoticeUpdates(noticeRun.changes);
-    await noticeRun.acknowledge(synced);
+
+    for (const change of rusaintRun.changes.filter((change) => change.shouldNotify)) {
+      await notifyRusaintUpdate(change);
+      await rusaintRun.acknowledge([change]);
+    }
+  } else {
+    if (noticeRun.changes.length > 0) {
+      const synced = await syncNoticeUpdates(noticeRun.changes);
+      await noticeRun.acknowledge(synced);
+    }
+
+    const synced: RusaintDetectionChange[] = [];
+    for (const change of rusaintRun.changes) {
+      if ((await syncRusaintUpdate(credentials.id, change)) !== 'failed') {
+        synced.push(change);
+      }
+    }
+    await rusaintRun.acknowledge(synced);
   }
 
   for (const failure of noticeRun.errors) {
     console.error(`Failed to detect notice updates for ${failure.slug}:`, failure.error);
   }
+  for (const failure of rusaintRun.errors) {
+    console.error(`Failed to detect ${failure.pipelineId} updates:`, failure.error);
+  }
 
   return {
-    failed: noticeRun.checked === 0 && noticeRun.errors.length > 0,
+    failed:
+      noticeRun.checked + rusaintRun.checked === 0 &&
+      noticeRun.errors.length + rusaintRun.errors.length > 0,
   };
 };
 
