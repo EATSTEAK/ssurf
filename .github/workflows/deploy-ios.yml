@@ -67,6 +67,13 @@ jobs:
       - name: Expo Prebuild (iOS)
         run: pnpm expo prebuild -p ios --clean
 
+      - name: Push entitlement 제거
+        run: |
+          while IFS= read -r -d '' file; do
+            /usr/libexec/PlistBuddy -c "Delete :aps-environment" "$file" || true
+            echo "updated $file"
+          done < <(find ios -name "*.entitlements" -print0)
+
       - name: Ruby 설정 (Fastlane용)
         uses: ruby/setup-ruby@v1
         with:
