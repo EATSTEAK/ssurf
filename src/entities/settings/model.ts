@@ -14,6 +14,8 @@ export const settings = sqliteTable(
 
 export type SettingsEntity = typeof settings.$inferSelect;
 
+export type NotificationDetectorState = Record<string, string>;
+
 export const settingsSchema = {
   'feed.selectedNoticeSlug': {
     defaultValue: 'scatch.ssu.ac.kr',
@@ -27,8 +29,14 @@ export const settingsSchema = {
   'notifications.courseGrade.enabled': {
     defaultValue: true,
   },
+  'notifications.notice.detectorState': {
+    defaultValue: {} as NotificationDetectorState,
+  },
   'notifications.notice.enabled': {
     defaultValue: true,
+  },
+  'notifications.rusaint.detectorState': {
+    defaultValue: {} as NotificationDetectorState,
   },
   'notifications.semesterGrade.enabled': {
     defaultValue: true,

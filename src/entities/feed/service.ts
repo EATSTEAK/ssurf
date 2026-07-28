@@ -100,13 +100,34 @@ export const syncFeedSites = async () => {
   });
 };
 
-export const syncFeedEntry = async (slug: string) => {
+export const fetchFeedEntry = async (slug: string): Promise<SsufidNoticeResponse> => {
   const response = await fetch(`${SSUFID_BASE_URL}/${slug}/data.json`);
   if (!response.ok) {
     throw new Error(`Failed to fetch ${slug}: ${response.status}`);
   }
 
-  const data: SsufidNoticeResponse = await response.json();
+  const data: unknown = await response.json();
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    !('items' in data) ||
+    !Array.isArray(data.items) ||
+    !data.items.every(
+      (item) =>
+        typeof item === 'object' &&
+        item !== null &&
+        'id' in item &&
+        typeof item.id === 'string' &&
+        item.id.length > 0,
+    )
+  ) {
+    throw new Error(`Invalid feed response for ${slug}`);
+  }
+  return data as SsufidNoticeResponse;
+};
+
+export const syncFeedEntry = async (slug: string) => {
+  const data = await fetchFeedEntry(slug);
   const [site] = await db.select().from(feedSites).where(eq(feedSites.slug, slug));
 
   if ((data.kind ?? site?.kind) !== 'notice') {
