@@ -1,20 +1,33 @@
 import type {
+  DetectionChange,
   DetectionRun,
   RusaintClientKind,
   RusaintClientMap,
   RusaintPipeline,
 } from './rusaintDetectionCore';
 import type { StoredCredentials } from '@/shared/lib/credentials';
+import type { SemesterType } from '@rusaint/react-native';
 
 import {
   ChapelApplicationBuilder,
   CourseGradesApplicationBuilder,
+  CourseType,
   USaintSessionBuilder,
 } from '@rusaint/react-native';
 
+import { db } from '@/db';
 import { getSettingSnapshot, setSetting } from '@/entities/settings/service';
 
-import { runRusaintPipelines } from './rusaintDetectionCore';
+import { defineRusaintPipeline, runRusaintPipelines } from './rusaintDetectionCore';
+import {
+  createRemoteChapelSnapshot,
+  createRemoteCourseGradeSnapshot,
+  createRemoteSemesterGradeSnapshot,
+  createStoredChapelSnapshot,
+  createStoredCourseGradeSnapshot,
+  createStoredSemesterGradeSnapshot,
+  fingerprintSnapshot,
+} from './rusaintNotificationSnapshots';
 
 export { defineRusaintPipeline } from './rusaintDetectionCore';
 export type {
@@ -34,7 +47,137 @@ const RUSAINT_NOTIFICATION_SETTINGS = {
 type RusaintNotificationSetting =
   (typeof RUSAINT_NOTIFICATION_SETTINGS)[keyof typeof RUSAINT_NOTIFICATION_SETTINGS];
 
-export const RUSAINT_PIPELINES: readonly RusaintPipeline[] = [];
+export type RusaintUpdateTarget =
+  | { category: 'chapel'; semester: SemesterType; year: number }
+  | { category: 'courseGrade'; semester: SemesterType; year: number }
+  | { category: 'semesterGrade' };
+
+export type RusaintDetectionChange = DetectionChange<RusaintUpdateTarget>;
+type RusaintDetectionRun = DetectionRun<RusaintUpdateTarget>;
+
+const courseGradePipeline = defineRusaintPipeline({
+  client: 'grades',
+  fingerprint: fingerprintSnapshot,
+  id: 'courseGrade',
+  observe: async ({ client }) => {
+    const selectedSemester = await client.getSelectedSemester();
+    await client.lookup();
+    const grades = await client.classes(
+      CourseType.Bachelor,
+      selectedSemester.year,
+      selectedSemester.semester,
+      true,
+    );
+    return createRemoteCourseGradeSnapshot(selectedSemester, grades);
+  },
+  readApplied: async ({ studentId, value }) => {
+    const selectedSemester = {
+      semester: value.semester as SemesterType,
+      year: value.year,
+    };
+    const cacheKey = `grades.classes.${CourseType.Bachelor}.${value.year}.${value.semester}`;
+    const [cacheEntry, grades] = await Promise.all([
+      db.query.cache.findFirst({
+        where: (cache, { and, eq }) => and(eq(cache.studentId, studentId), eq(cache.key, cacheKey)),
+      }),
+      db.query.classGrades.findMany({
+        where: (classGrades, { and, eq }) =>
+          and(
+            eq(classGrades.studentId, studentId),
+            eq(classGrades.year, value.year),
+            eq(classGrades.semester, value.semester),
+          ),
+      }),
+    ]);
+    return cacheEntry ? createStoredCourseGradeSnapshot(selectedSemester, grades) : null;
+  },
+  settingKey: RUSAINT_NOTIFICATION_SETTINGS.courseGrade,
+  target: (value): RusaintUpdateTarget => ({
+    category: 'courseGrade',
+    semester: value.semester as SemesterType,
+    year: value.year,
+  }),
+});
+
+const semesterGradePipeline = defineRusaintPipeline({
+  client: 'grades',
+  fingerprint: fingerprintSnapshot,
+  id: 'semesterGrade',
+  observe: async ({ client }) => {
+    await client.reload();
+    return createRemoteSemesterGradeSnapshot(await client.semesters(CourseType.Bachelor));
+  },
+  readApplied: async ({ studentId }) => {
+    const cacheKey = `grades.semester.${CourseType.Bachelor}`;
+    const [cacheEntry, grades] = await Promise.all([
+      db.query.cache.findFirst({
+        where: (cache, { and, eq }) => and(eq(cache.studentId, studentId), eq(cache.key, cacheKey)),
+      }),
+      db.query.semesterGrades.findMany({
+        where: (semesterGrades, { eq }) => eq(semesterGrades.studentId, studentId),
+      }),
+    ]);
+    return cacheEntry ? createStoredSemesterGradeSnapshot(grades) : null;
+  },
+  settingKey: RUSAINT_NOTIFICATION_SETTINGS.semesterGrade,
+  target: (): RusaintUpdateTarget => ({ category: 'semesterGrade' }),
+});
+
+const chapelPipeline = defineRusaintPipeline({
+  client: 'chapel',
+  fingerprint: fingerprintSnapshot,
+  id: 'chapel',
+  observe: async ({ client }) => {
+    const selectedSemester = await client.getSelectedSemester();
+    await client.lookup();
+    return createRemoteChapelSnapshot(
+      await client.information(selectedSemester.year, selectedSemester.semester),
+    );
+  },
+  readApplied: async ({ studentId, value }) => {
+    const selectedSemester = {
+      semester: value.semester as SemesterType,
+      year: value.year,
+    };
+    const cacheKey = `chapel.information.${value.year}-${value.semester}`;
+    const [cacheEntry, general, attendances] = await Promise.all([
+      db.query.cache.findFirst({
+        where: (cache, { and, eq }) => and(eq(cache.studentId, studentId), eq(cache.key, cacheKey)),
+      }),
+      db.query.chapelGeneral.findFirst({
+        where: (chapelGeneral, { and, eq }) =>
+          and(
+            eq(chapelGeneral.studentId, studentId),
+            eq(chapelGeneral.year, value.year),
+            eq(chapelGeneral.semester, value.semester),
+          ),
+      }),
+      db.query.chapelAttendances.findMany({
+        where: (chapelAttendances, { and, eq }) =>
+          and(
+            eq(chapelAttendances.studentId, studentId),
+            eq(chapelAttendances.year, value.year),
+            eq(chapelAttendances.semester, value.semester),
+          ),
+      }),
+    ]);
+    return cacheEntry
+      ? createStoredChapelSnapshot(selectedSemester, general ?? null, attendances)
+      : null;
+  },
+  settingKey: RUSAINT_NOTIFICATION_SETTINGS.chapel,
+  target: (value): RusaintUpdateTarget => ({
+    category: 'chapel',
+    semester: value.semester as SemesterType,
+    year: value.year,
+  }),
+});
+
+export const RUSAINT_PIPELINES: readonly RusaintPipeline<RusaintUpdateTarget>[] = [
+  courseGradePipeline,
+  semesterGradePipeline,
+  chapelPipeline,
+];
 
 const createClientGetter = ({ id, password }: StoredCredentials) => {
   let session: null | ReturnType<USaintSessionBuilder['withPassword']> = null;
@@ -60,9 +203,11 @@ const createClientGetter = ({ id, password }: StoredCredentials) => {
 const isNotificationSetting = (key: string): key is RusaintNotificationSetting =>
   Object.values(RUSAINT_NOTIFICATION_SETTINGS).includes(key as RusaintNotificationSetting);
 
-const inFlight = new Map<string, Promise<DetectionRun>>();
+const inFlight = new Map<string, Promise<RusaintDetectionRun>>();
 
-export const detectRusaintUpdates = (credentials: StoredCredentials): Promise<DetectionRun> => {
+export const detectRusaintUpdates = (
+  credentials: StoredCredentials,
+): Promise<RusaintDetectionRun> => {
   const running = inFlight.get(credentials.id);
   if (running) {
     return running;
