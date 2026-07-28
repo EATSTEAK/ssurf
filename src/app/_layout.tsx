@@ -1,8 +1,10 @@
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Image } from 'expo-image';
-import { Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
@@ -12,6 +14,11 @@ import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
 import { feedSitesSync } from '@/entities/feed/lib/sync';
 import { studentInformationSync } from '@/entities/studentInformation/lib/sync';
+import {
+  disableBackgroundUpdates,
+  enableBackgroundUpdates,
+  runUpdateDetection,
+} from '@/shared/lib/backgroundUpdates';
 import { ensure } from '@/shared/lib/syncEngine';
 import { RusaintApplicationProvider } from '@/shared/providers/RusaintApplicationProvider';
 import {
@@ -34,14 +41,58 @@ SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
   const { theme } = useUnistyles();
+  const router = useRouter();
+  const notificationResponse = Notifications.useLastNotificationResponse();
+  const previousAppState = useRef(AppState.currentState);
   const { hasCredential, isLoading, error, session, studentId } = useRusaintSession();
 
   useEffect(() => {
     if (session && studentId) {
       void ensure(feedSitesSync());
       void ensure(studentInformationSync(studentId));
+      void enableBackgroundUpdates(studentId).catch((error) =>
+        console.error('Failed to enable background updates:', error),
+      );
+      void runUpdateDetection('foreground').catch((error) =>
+        console.error('Initial update detection failed:', error),
+      );
+    } else if (hasCredential === false) {
+      void disableBackgroundUpdates().catch((error) =>
+        console.error('Failed to disable background updates:', error),
+      );
     }
-  }, [session, studentId]);
+  }, [hasCredential, session, studentId]);
+
+  useEffect(() => {
+    if (!studentId) {
+      return;
+    }
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const shouldCheck =
+        nextState === 'active' &&
+        (previousAppState.current === 'background' || previousAppState.current === 'inactive');
+      previousAppState.current = nextState;
+
+      if (shouldCheck) {
+        void enableBackgroundUpdates(studentId).catch((error) =>
+          console.error('Failed to refresh background update registration:', error),
+        );
+        void runUpdateDetection('foreground').catch((error) =>
+          console.error('Foreground update detection failed:', error),
+        );
+      }
+    });
+
+    return () => subscription.remove();
+  }, [studentId]);
+
+  useEffect(() => {
+    if (session && notificationResponse?.notification.request.content.data?.category === 'notice') {
+      Notifications.clearLastNotificationResponse();
+      router.push('/(tabs)/feed/notice');
+    }
+  }, [notificationResponse, router, session]);
 
   useEffect(() => {
     if (!isLoading && hasCredential !== null) {

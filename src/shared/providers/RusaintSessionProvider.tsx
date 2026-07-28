@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useRef, useState } from 'react'
 import { useAsyncEffect } from 'react-simplikit';
 
 import { applications } from '@/shared/lib/applications';
+import { EMPTY_USER_INFO, USER_INFO_KEY } from '@/shared/lib/credentials';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
@@ -32,15 +33,9 @@ const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unknown>) => {
   const { navigate } = useRouter();
-  const [userInfo, setUserInfo] = useExpoSecureStore<{
-    id: null | string;
-    password: null | string;
-  }>({
-    defaultValue: {
-      id: null,
-      password: null,
-    },
-    key: 'user-info',
+  const [userInfo, setUserInfo] = useExpoSecureStore({
+    defaultValue: EMPTY_USER_INFO,
+    key: USER_INFO_KEY,
   });
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
   const [isLoading, setIsLoading] = useState(true);
