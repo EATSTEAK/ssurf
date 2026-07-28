@@ -98,7 +98,9 @@ const runNoticeDetection = async (studentId: string): Promise<NoticeDetectionRun
         return;
       }
 
-      const latest = await getSettingSnapshot(studentId, 'notifications.notice.detectorState');
+      const latest = {
+        ...(await getSettingSnapshot(studentId, 'notifications.notice.detectorState')),
+      };
       for (const change of updates) {
         latest[change.slug] = encodeIds(change.currentIds);
       }
