@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Svg, { ClipPath, Defs, G, Mask, Path, Rect, SvgProps, Use } from 'react-native-svg';
 import { useUnistyles } from 'react-native-unistyles';
 
@@ -10,7 +9,7 @@ export const ChapelSeatmap1F = ({ seat, ...props }: ChapelSeatmap1FProps) => {
   const { theme } = useUnistyles();
   return (
     <Svg fill="none" viewBox="0 0 915 594" {...props}>
-      <G id="csm-1f-1F">
+      <G id="csm-1f-1F" opacity={seat ? 0.55 : 1}>
         <G id="csm-1f-bg">
           <Path
             d="M130 55H97L0 196v39h37v-38l93-142Z"
@@ -6955,7 +6954,7 @@ export const ChapelSeatmap1F = ({ seat, ...props }: ChapelSeatmap1FProps) => {
       <Defs>
         {seat && (
           <Mask id="csm-1f-selected-seat" maskType="alpha">
-            <Use height={594} href={`#csm-1f-${seat}`} strokeWidth={8} width={915} />
+            <Use height={594} href={`#csm-1f-${seat}`} strokeWidth={10} width={915} />
           </Mask>
         )}
         <ClipPath id="csm-1f-clip0_206_4496">

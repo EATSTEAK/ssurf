@@ -1,4 +1,4 @@
-const SEAT_PATTERN = /^([A-J])-(\d+)-(\d+)$/;
+const SEAT_PATTERN = /^([A-J])\s*-\s*(\d+)\s*-\s*(\d+)$/;
 
 const parseChapelSeat = (seat: null | string | undefined) => {
   const match = seat?.trim().toUpperCase().match(SEAT_PATTERN);
