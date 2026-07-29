@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Check tests with Vitest
+        run: pnpm test
+
       - name: Check lint with eslint
         run: pnpm lint
 

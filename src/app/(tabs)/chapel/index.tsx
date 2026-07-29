@@ -10,6 +10,7 @@ import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { calculateRequiredAttendances } from '@/entities/chapel/lib/attendanceCriteria';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/entities/chapel/lib/queries';
+import { getChapelDoorDirection } from '@/entities/chapel/lib/seat';
 import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
 import { Attendance } from '@/features/chapel/ui/Attendance';
 import { ChapelProgress } from '@/features/chapel/ui/ChapelProgress';
@@ -49,35 +50,6 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 96,
   },
 }));
-
-const doorDirection = (seat: string) => {
-  switch (seat.charAt(0)) {
-    case 'A':
-    case 'B':
-      return '정면 좌측 문';
-    case 'C':
-      if (seat.charAt(4) < '6') {
-        return '정면 좌측 문';
-      }
-      return '정면 우측 문';
-    case 'D':
-    case 'E':
-      return '정면 우측 문';
-    case 'F':
-    case 'G':
-      return '좌측 문';
-    case 'H':
-      if (seat.charAt(4) < '5') {
-        return '좌측 문';
-      }
-      return '우측 문';
-    case 'I':
-    case 'J':
-      return '우측 문';
-    default:
-      return '';
-  }
-};
 
 const RUSAINT_NO_CHAPEL =
   'RusaintError.General: Error from application: No chapel information provided';
@@ -128,6 +100,7 @@ export default function Index() {
   const hasMetAttendanceRequirement = attendanceLeft <= 0;
   const canStillMeetAttendanceRequirement = totalAttendances - absentCount >= requiredAttendances;
   const finalResult = general?.result?.trim() ?? '';
+  const entrance = getChapelDoorDirection(general?.seat);
 
   const handleRefresh = () => {
     // 로딩 중이면 리프레시하지 않음
@@ -306,20 +279,17 @@ export default function Index() {
               <ThemedText typography="heading3xl">
                 {general.floor}F / {general.seat}
               </ThemedText>
-              {general.floor && general.seat && doorDirection(general.seat) && (
+              {general.floor && general.seat && entrance && (
                 <ThemedText typography="headingMd">
                   {general.floor}층{' '}
                   <ThemedText color="primaryInverted" typography="bodyLg">
-                    {doorDirection(general.seat)}
+                    {entrance}
                   </ThemedText>
                   으로 들어가세요.
                 </ThemedText>
               )}
 
-              <ChapelSeatmapView
-                floor={(general.floor ?? 1) as 1 | 2 | 3}
-                seat={general.seat as `${string}-${number}-${number}`}
-              />
+              <ChapelSeatmapView floor={(general.floor ?? 1) as 1 | 2 | 3} seat={general.seat} />
             </CardView>
             <CardView>
               <ThemedText typography="headingLg">출석 정보</ThemedText>
