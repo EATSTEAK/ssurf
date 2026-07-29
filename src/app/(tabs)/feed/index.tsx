@@ -1,5 +1,5 @@
-import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useMemo } from 'react';
 import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
@@ -146,13 +146,7 @@ export default function FeedScreen() {
     }
 
     try {
-      const canOpen = await Linking.canOpenURL(url);
-      if (!canOpen) {
-        console.error(`Cannot open feed URL: ${url}`);
-        return;
-      }
-
-      await Linking.openURL(url);
+      await WebBrowser.openBrowserAsync(url);
     } catch (error) {
       console.error('Failed to open feed URL:', error);
     }

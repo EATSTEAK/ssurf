@@ -1,4 +1,4 @@
-import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { useCallback } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, StyleProp, View, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
@@ -44,13 +44,7 @@ export function FeedNoticeTabScene({
     }
 
     try {
-      const canOpen = await Linking.canOpenURL(url);
-      if (!canOpen) {
-        console.error(`Cannot open feed URL: ${url}`);
-        return;
-      }
-
-      await Linking.openURL(url);
+      await WebBrowser.openBrowserAsync(url);
     } catch (openError) {
       console.error('Failed to open feed URL:', openError);
     }

@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
@@ -120,13 +120,7 @@ export default function Index() {
     }
 
     try {
-      const canOpen = await Linking.canOpenURL(url);
-      if (!canOpen) {
-        console.error(`Cannot open feed URL: ${url}`);
-        return;
-      }
-
-      await Linking.openURL(url);
+      await WebBrowser.openBrowserAsync(url);
     } catch (openError) {
       console.error('Failed to open feed URL:', openError);
     }
