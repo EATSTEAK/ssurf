@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { Link, router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
@@ -14,7 +14,7 @@ import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
-import { BellIcon, LogoutIcon, NewspaperIcon } from '@/shared/ui/icons';
+import { BellIcon, LogoutIcon, NewspaperIcon, SettingsIcon } from '@/shared/ui/icons';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
@@ -45,12 +45,16 @@ const ThemedLogoutIcon = withUnistyles(LogoutIcon, (theme) => ({
 const ThemedNewspaperIcon = withUnistyles(NewspaperIcon, (theme) => ({
   color: theme.colorsHex.fgSurfaceDimmer,
 }));
+const ThemedSettingsIcon = withUnistyles(SettingsIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
+}));
 
 export default function Index() {
   const { logout } = useRusaintSession();
   const { data: info, isSyncing, refresh } = useStudentInformation();
   const scrollY = useSharedValue(0);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
+  const [revisionPressCount, setRevisionPressCount] = useState(0);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -99,6 +103,14 @@ export default function Index() {
                 >
                   <ThemedText typography="bodyLg">알림 설정</ThemedText>
                 </ActionListItem>
+                {revisionPressCount >= 5 && (
+                  <ActionListItem
+                    icon={<ThemedSettingsIcon size={24} />}
+                    onPress={() => router.push('./developer', { relativeToDirectory: true })}
+                  >
+                    <ThemedText typography="bodyLg">개발자 메뉴</ThemedText>
+                  </ActionListItem>
+                )}
                 <ActionListItem
                   icon={<ThemedLogoutIcon size={24} />}
                   onPress={() => setIsLogoutModalVisible(true)}
@@ -135,11 +147,17 @@ export default function Index() {
                 </Link>
                 .
               </ThemedText>
-              <ThemedText style={{ textAlign: 'right' }} typography="labelSm">
-                rev.{' '}
-                {Constants.expoConfig?.android?.versionCode ??
-                  Constants.expoConfig?.ios?.buildNumber}
-              </ThemedText>
+              <Pressable
+                accessibilityLabel="리비전"
+                accessibilityRole="button"
+                onPress={() => setRevisionPressCount((count) => Math.min(count + 1, 5))}
+              >
+                <ThemedText style={{ textAlign: 'right' }} typography="labelSm">
+                  rev.{' '}
+                  {Constants.expoConfig?.android?.versionCode ??
+                    Constants.expoConfig?.ios?.buildNumber}
+                </ThemedText>
+              </Pressable>
             </CardView>
           </SafeContainer>
         </RefreshableScrollView>

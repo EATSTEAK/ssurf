@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { SetStateAction, useCallback, useRef, useSyncExternalStore } from 'react';
+import { SetStateAction, useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
 type Props<T> = {
@@ -21,6 +21,7 @@ const emitListeners = (key: string) => {
 };
 
 export const useExpoSecureStore = <T>({ defaultValue, key }: Props<StorageInsertable<T>>) => {
+  const [isLoading, setIsLoading] = useState(true);
   const cache = useRef<{
     data: null | string;
     parsed: StorageInsertable<T>;
@@ -64,17 +65,22 @@ export const useExpoSecureStore = <T>({ defaultValue, key }: Props<StorageInsert
   );
 
   useAsyncEffect(async () => {
-    const data = await SecureStore.getItemAsync(key);
-    if (data !== cache.current.data) {
-      try {
-        cache.current.parsed = data != null ? JSON.parse(data) : defaultValue;
-      } catch {
-        cache.current.parsed = defaultValue;
+    setIsLoading(true);
+    try {
+      const data = await SecureStore.getItemAsync(key);
+      if (data !== cache.current.data) {
+        try {
+          cache.current.parsed = data != null ? JSON.parse(data) : defaultValue;
+        } catch {
+          cache.current.parsed = defaultValue;
+        }
+        cache.current.data = data;
+        emitListeners(key);
       }
-      cache.current.data = data;
-      emitListeners(key);
+    } finally {
+      setIsLoading(false);
     }
   }, [key, defaultValue]);
 
-  return [storageState, setStorageState] as const;
+  return [storageState, setStorageState, isLoading] as const;
 };

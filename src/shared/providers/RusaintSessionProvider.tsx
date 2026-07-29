@@ -5,38 +5,56 @@ import { useAsyncEffect } from 'react-simplikit';
 
 import { applications } from '@/shared/lib/applications';
 import { EMPTY_USER_INFO, USER_INFO_KEY } from '@/shared/lib/credentials';
+import {
+  completeOnboardingFor,
+  EMPTY_ONBOARDING_COMPLETIONS,
+  hasCompletedOnboarding,
+  ONBOARDING_COMPLETIONS_KEY,
+  resetOnboardingFor,
+} from '@/shared/lib/onboardingCompletion';
 import { useExpoSecureStore } from '@/shared/lib/useExpoSecureStore';
 
 type RusaintSessionContextProps = {
+  completeOnboarding: () => Promise<void>;
   error: Error | null;
+  hasCompletedOnboarding: boolean;
   hasCredential: boolean | null;
   isLoading: boolean;
   login: (id: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
+  resetOnboarding: () => Promise<void>;
   session: null | USaintSessionInterface;
   studentId: null | string;
 };
 
 const RusaintSessionContext = createContext<RusaintSessionContextProps>({
-  session: null,
+  completeOnboarding: async () => {},
+  error: null,
+  hasCompletedOnboarding: false,
   hasCredential: null,
   isLoading: true,
-  studentId: null,
   login: async () => false,
   logout: async () => {},
   refreshSession: async () => {},
-  error: null,
+  resetOnboarding: async () => {},
+  session: null,
+  studentId: null,
 });
 
 const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unknown>) => {
   const { navigate } = useRouter();
-  const [userInfo, setUserInfo] = useExpoSecureStore({
+  const [userInfo, setUserInfo, isUserInfoLoading] = useExpoSecureStore({
     defaultValue: EMPTY_USER_INFO,
     key: USER_INFO_KEY,
   });
+  const [onboardingCompletions, setOnboardingCompletions, isOnboardingCompletionsLoading] =
+    useExpoSecureStore({
+      defaultValue: EMPTY_ONBOARDING_COMPLETIONS,
+      key: ONBOARDING_COMPLETIONS_KEY,
+    });
   const [session, setSession] = useState<null | USaintSessionInterface>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -55,6 +73,22 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     await connectNewSession(id, password);
     await setUserInfo({ id, password });
     return true;
+  };
+
+  const completeOnboarding = async () => {
+    const studentId = userInfo.id;
+    if (!studentId) {
+      throw new Error('온보딩을 완료할 학생 정보가 없어요.');
+    }
+    await setOnboardingCompletions((completions) => completeOnboardingFor(completions, studentId));
+  };
+
+  const resetOnboarding = async () => {
+    const studentId = userInfo.id;
+    if (!studentId) {
+      throw new Error('온보딩을 초기화할 학생 정보가 없어요.');
+    }
+    await setOnboardingCompletions((completions) => resetOnboardingFor(completions, studentId));
   };
 
   const refreshSession = useCallback(async () => {
@@ -82,6 +116,11 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   };
 
   const hasCredential = userInfo.id != null && userInfo.password != null;
+  const isProviderLoading =
+    isLoading ||
+    isUserInfoLoading ||
+    isOnboardingCompletionsLoading ||
+    (hasCredential && !session && !error);
 
   /*
     세션 만료와는 상관 없이 앱이 시작될 때 저장된 아이디/비밀번호로 자동 로그인 시도
@@ -105,13 +144,16 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   return (
     <RusaintSessionContext.Provider
       value={{
-        session,
+        completeOnboarding,
+        error,
+        hasCompletedOnboarding: hasCompletedOnboarding(onboardingCompletions, userInfo.id),
         hasCredential,
-        isLoading,
+        isLoading: isProviderLoading,
         login,
         logout,
         refreshSession,
-        error,
+        resetOnboarding,
+        session,
         studentId: userInfo.id,
       }}
     >

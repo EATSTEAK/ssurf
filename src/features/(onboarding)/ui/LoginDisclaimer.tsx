@@ -8,8 +8,6 @@ import { Wave } from '@/shared/ui/Wave';
 
 const styles = StyleSheet.create((theme) => ({
   root: {
-    position: 'relative',
-    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
@@ -18,16 +16,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   waveContainer: {
     position: 'absolute',
-    top: -20,
+    top: -10,
     left: 0,
     width: '100%',
-    height: 20,
+    height: 10,
     backgroundColor: theme.colors.primary,
     transform: [{ rotate: '180deg' }],
-  },
-  wave: {
-    height: 20,
-    width: '100%',
   },
 }));
 
@@ -40,7 +34,7 @@ export const LoginDisclaimer = () => {
   return (
     <UnistylesSafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
       <View style={styles.waveContainer}>
-        <Wave color="surface" style={styles.wave} />
+        <Wave color="surface" height={10} width="100%" />
       </View>
       <ThemedLockIcon />
       <ThemedText typography="headingMd">로그인 정보는 기기에만 저장돼요.</ThemedText>
