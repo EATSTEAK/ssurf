@@ -31,3 +31,21 @@ export const studentInformation = sqliteTable('student_information', {
 });
 
 export type StudentInformationEntity = typeof studentInformation.$inferSelect;
+
+export const studentAcademicRecords = sqliteTable(
+  'student_academic_records',
+  {
+    studentId: t.text().notNull(),
+    sequence: t.integer().notNull(),
+    startDate: t.text().notNull(),
+    endDate: t.text().notNull(),
+    year: t.text().notNull(),
+    term: t.text().notNull(),
+    category: t.text().notNull(),
+    reason: t.text().notNull(),
+    processDate: t.text().notNull(),
+  },
+  (table) => [t.primaryKey({ columns: [table.studentId, table.sequence] })],
+);
+
+export type StudentAcademicRecordEntity = typeof studentAcademicRecords.$inferSelect;
