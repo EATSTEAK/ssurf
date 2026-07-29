@@ -11,6 +11,7 @@ export type StoredCredentials = {
 };
 
 export const USER_INFO_KEY = 'user-info';
+export const CANVAS_ACCESS_TOKEN_KEY = 'canvas-access-token';
 export const EMPTY_USER_INFO: StoredUserInfo = { id: null, password: null };
 
 const isNullableString = (value: unknown): value is null | string =>
@@ -45,3 +46,10 @@ export const getStoredCredentials = async (): Promise<null | StoredCredentials> 
   const value = await getStoredUserInfo();
   return value.id && value.password ? { id: value.id, password: value.password } : null;
 };
+
+export const getCanvasAccessToken = () => SecureStore.getItemAsync(CANVAS_ACCESS_TOKEN_KEY);
+
+export const saveCanvasAccessToken = (token: string) =>
+  SecureStore.setItemAsync(CANVAS_ACCESS_TOKEN_KEY, token);
+
+export const deleteCanvasAccessToken = () => SecureStore.deleteItemAsync(CANVAS_ACCESS_TOKEN_KEY);

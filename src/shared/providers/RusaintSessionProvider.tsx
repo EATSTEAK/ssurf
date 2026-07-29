@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useRef, useState } from 'react'
 import { useAsyncEffect } from 'react-simplikit';
 
 import { applications } from '@/shared/lib/applications';
-import { EMPTY_USER_INFO, USER_INFO_KEY } from '@/shared/lib/credentials';
+import { deleteCanvasAccessToken, EMPTY_USER_INFO, USER_INFO_KEY } from '@/shared/lib/credentials';
 import {
   completeOnboardingFor,
   EMPTY_ONBOARDING_COMPLETIONS,
@@ -60,18 +60,16 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   const [error, setError] = useState<Error | null>(null);
   const sessionCreatedAtRef = useRef<Date | null>(null);
 
-  const connectNewSession = async (id: string, password: string) => {
-    const session = await new USaintSessionBuilder().withPassword(id, password);
-
-    applications.start(session, id);
-    sessionCreatedAtRef.current = new Date();
-    setSession(session);
-  };
-
   const login = async (id: string, password: string) => {
     // TODO: handle session refresh
-    await connectNewSession(id, password);
+    const nextSession = await new USaintSessionBuilder().withPassword(id, password);
+    if (userInfo.id !== id) {
+      await deleteCanvasAccessToken();
+    }
     await setUserInfo({ id, password });
+    applications.start(nextSession, id);
+    sessionCreatedAtRef.current = new Date();
+    setSession(nextSession);
     return true;
   };
 
@@ -95,24 +93,32 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     if (!userInfo.id || !userInfo.password) {
       return;
     }
-    await connectNewSession(userInfo.id, userInfo.password);
+    const nextSession = await new USaintSessionBuilder().withPassword(
+      userInfo.id,
+      userInfo.password,
+    );
+    applications.start(nextSession, userInfo.id);
+    sessionCreatedAtRef.current = new Date();
+    setSession(nextSession);
   }, [userInfo.id, userInfo.password]);
 
   const logout = async () => {
     applications.reset();
-    try {
-      await setUserInfo({ id: null, password: null });
-      setSession(null);
-      sessionCreatedAtRef.current = null;
+    const results = await Promise.allSettled([
+      setUserInfo({ id: null, password: null }),
+      deleteCanvasAccessToken(),
+    ]);
+    setSession(null);
+    sessionCreatedAtRef.current = null;
 
-      navigate('/');
-    } catch (error) {
+    const failure = results.find((result) => result.status === 'rejected');
+    if (failure?.status === 'rejected') {
+      const error =
+        failure.reason instanceof Error ? failure.reason : new Error(String(failure.reason));
       console.error('로그아웃 중 오류 발생:', error);
-      await setUserInfo({ id: null, password: null });
-      setSession(null);
-      sessionCreatedAtRef.current = null;
-      setError(error as Error);
+      setError(error);
     }
+    navigate('/');
   };
 
   const hasCredential = userInfo.id != null && userInfo.password != null;
