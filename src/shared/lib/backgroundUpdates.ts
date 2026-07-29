@@ -187,7 +187,7 @@ const enqueueRegistration = <T>(operation: () => Promise<T>): Promise<T> => {
   return result;
 };
 
-export const enableBackgroundUpdates = (studentId: string) =>
+export const enableBackgroundUpdates = (studentId: string, requestPermission = false) =>
   enqueueRegistration(async () => {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync(UPDATE_CHANNEL_ID, {
@@ -197,7 +197,7 @@ export const enableBackgroundUpdates = (studentId: string) =>
     }
 
     let permission = await Notifications.getPermissionsAsync();
-    if (!permission.granted && permission.canAskAgain) {
+    if (requestPermission && !permission.granted && permission.canAskAgain) {
       permission = await Notifications.requestPermissionsAsync();
     }
 

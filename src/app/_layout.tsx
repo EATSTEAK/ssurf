@@ -46,7 +46,8 @@ function RootLayoutNav() {
   const router = useRouter();
   const notificationResponse = Notifications.useLastNotificationResponse();
   const previousAppState = useRef(AppState.currentState);
-  const { hasCredential, isLoading, error, session, studentId } = useRusaintSession();
+  const { error, hasCompletedOnboarding, hasCredential, isLoading, session, studentId } =
+    useRusaintSession();
 
   useEffect(() => {
     if (session && studentId) {
@@ -165,10 +166,10 @@ function RootLayoutNav() {
         },
       }}
     >
-      <Stack.Protected guard={!hasCredential}>
+      <Stack.Protected guard={!hasCredential || !hasCompletedOnboarding}>
         <Stack.Screen name="(onboarding)/index" />
       </Stack.Protected>
-      <Stack.Protected guard={!!hasCredential}>
+      <Stack.Protected guard={!!hasCredential && hasCompletedOnboarding}>
         <Stack.Screen name="(tabs)" />
       </Stack.Protected>
     </Stack>

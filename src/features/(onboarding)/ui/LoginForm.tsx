@@ -1,6 +1,5 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 import { useLoading } from 'react-simplikit';
@@ -21,22 +20,15 @@ const normalizeLoginErrorMessage = (message: string) =>
 const styles = StyleSheet.create((theme) => ({
   view: {
     flex: 1,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
     gap: theme.gap(2),
-    width: '100%',
-    paddingHorizontal: theme.gap(4),
-    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: theme.gap(3),
   },
   header: {
-    display: 'flex',
-    flexDirection: 'column',
     gap: theme.gap(1),
   },
-  passwordField: {
-    position: 'relative',
-    width: '100%',
+  input: {
+    borderRadius: theme.cornerRadius.md,
   },
   passwordInput: {
     paddingRight: 48,
@@ -49,6 +41,12 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  button: {
+    height: 44,
+  },
+  buttonText: {
+    ...theme.typography.heading.md,
+  },
 }));
 
 const ThemedEyeIcon = withUnistyles(EyeIcon, (theme) => ({
@@ -58,18 +56,17 @@ const ThemedEyeOffIcon = withUnistyles(EyeOffIcon, (theme) => ({
   color: theme.colorsHex.fgPrimaryContainer,
 }));
 
-export const LoginForm = () => {
+export const LoginForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const { login } = useRusaintSession();
   const [isLoading, startLoading] = useLoading();
-
-  const [id, setId] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [id, setId] = useState('');
+  const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const onPressLoginButton = async () => {
     try {
       await startLoading(login(id, password));
-      router.replace('/(tabs)/chapel');
+      onSuccess();
     } catch (error) {
       Alert.alert(
         '로그인 실패',
@@ -81,19 +78,30 @@ export const LoginForm = () => {
   };
 
   return (
-    <SafeAreaView edges={{ top: 'additive' }} style={styles.view}>
+    <SafeAreaView edges={['top']} style={styles.view}>
       <View style={styles.header}>
         <SsurfLined color="surface" height={48} width={48} />
-        <ThemedText typography="heading2xl">로그인</ThemedText>
-        <ThemedText>숭실대학교 계정으로 로그인 할 수 있어요.</ThemedText>
+        <ThemedText color="fgPrimary" typography="heading2xl">
+          로그인
+        </ThemedText>
       </View>
-      <TextField onChangeText={setId} placeholder="학번" value={id} />
-      <View style={styles.passwordField}>
+      <ThemedText color="fgPrimary" typography="bodyLg">
+        숭실대학교 계정으로 로그인 할 수 있어요
+      </ThemedText>
+      <TextField
+        autoCapitalize="none"
+        autoCorrect={false}
+        onChangeText={setId}
+        placeholder="학번"
+        style={styles.input}
+        value={id}
+      />
+      <View>
         <TextField
           onChangeText={setPassword}
-          placeholder="비밀번호"
+          placeholder="U-SAINT 비밀번호"
           secureTextEntry={!isPasswordVisible}
-          style={styles.passwordInput}
+          style={[styles.input, styles.passwordInput]}
           value={password}
         />
         <Pressable
@@ -108,10 +116,11 @@ export const LoginForm = () => {
       <Button
         disabled={isLoading || !id || !password}
         onPress={onPressLoginButton}
-        style={{ width: '100%' }}
+        style={styles.button}
+        textStyle={styles.buttonText}
         variant="surface"
       >
-        <Text>{isLoading ? '로그인 중...' : '로그인'}</Text>
+        {isLoading ? '로그인 중...' : '로그인'}
       </Button>
     </SafeAreaView>
   );
