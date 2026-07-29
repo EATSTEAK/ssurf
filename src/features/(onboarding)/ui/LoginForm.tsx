@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 import { useLoading } from 'react-simplikit';
 
 import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
+import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { Button } from '@/shared/ui/primitives/Button';
 import { TextField } from '@/shared/ui/primitives/TextField';
@@ -33,6 +34,28 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'column',
     gap: theme.gap(1),
   },
+  passwordField: {
+    position: 'relative',
+    width: '100%',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 0,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+}));
+
+const ThemedEyeIcon = withUnistyles(EyeIcon, (theme) => ({
+  color: theme.colorsHex.fgPrimaryContainer,
+}));
+const ThemedEyeOffIcon = withUnistyles(EyeOffIcon, (theme) => ({
+  color: theme.colorsHex.fgPrimaryContainer,
 }));
 
 export const LoginForm = () => {
@@ -41,6 +64,7 @@ export const LoginForm = () => {
 
   const [id, setId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const onPressLoginButton = async () => {
     try {
@@ -64,12 +88,23 @@ export const LoginForm = () => {
         <ThemedText>숭실대학교 계정으로 로그인 할 수 있어요.</ThemedText>
       </View>
       <TextField onChangeText={setId} placeholder="학번" value={id} />
-      <TextField
-        onChangeText={setPassword}
-        placeholder="비밀번호"
-        secureTextEntry
-        value={password}
-      />
+      <View style={styles.passwordField}>
+        <TextField
+          onChangeText={setPassword}
+          placeholder="비밀번호"
+          secureTextEntry={!isPasswordVisible}
+          style={styles.passwordInput}
+          value={password}
+        />
+        <Pressable
+          accessibilityLabel={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
+          accessibilityRole="button"
+          onPress={() => setIsPasswordVisible((visible) => !visible)}
+          style={styles.passwordToggle}
+        >
+          {isPasswordVisible ? <ThemedEyeOffIcon /> : <ThemedEyeIcon />}
+        </Pressable>
+      </View>
       <Button
         disabled={isLoading || !id || !password}
         onPress={onPressLoginButton}
