@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles, withUnistyles } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
@@ -36,6 +36,8 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
   },
 }));
+
+const UnistylesSafeAreaView = withUnistyles(SafeAreaView);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -125,7 +127,7 @@ function RootLayoutNav() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.root}>
+      <UnistylesSafeAreaView style={styles.root}>
         <Image
           contentFit="contain"
           source={loadingImage}
@@ -133,13 +135,13 @@ function RootLayoutNav() {
         />
         <ThemedText typography="headingLg">로그인 정보를 불러오는 중이에요.</ThemedText>
         <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
-      </SafeAreaView>
+      </UnistylesSafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.root}>
+      <UnistylesSafeAreaView style={styles.root}>
         <Image
           contentFit="contain"
           source={errorImage}
@@ -150,7 +152,7 @@ function RootLayoutNav() {
         </ThemedText>
         <ThemedText color="errorInverted">{error.message}</ThemedText>
         <ThemedText color="errorInverted">앱을 다시 시작해주세요.</ThemedText>
-      </SafeAreaView>
+      </UnistylesSafeAreaView>
     );
   }
 
@@ -178,7 +180,7 @@ export default function RootLayout() {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.root}>
+      <UnistylesSafeAreaView style={styles.root}>
         <Image
           contentFit="contain"
           source={errorImage}
@@ -188,13 +190,13 @@ export default function RootLayout() {
           정보를 가져오는 중 오류가 발생했어요.
         </ThemedText>
         <ThemedText color="errorInverted">{error.message}</ThemedText>
-      </SafeAreaView>
+      </UnistylesSafeAreaView>
     );
   }
 
   if (!success) {
     return (
-      <SafeAreaView style={styles.root}>
+      <UnistylesSafeAreaView style={styles.root}>
         <Image
           contentFit="contain"
           source={loadingImage}
@@ -202,7 +204,7 @@ export default function RootLayout() {
         />
         <ThemedText typography="headingLg">데이터베이스를 업데이트하는 중이에요.</ThemedText>
         <ThemedText typography="bodyLg">잠시만 기다려주세요.</ThemedText>
-      </SafeAreaView>
+      </UnistylesSafeAreaView>
     );
   }
 

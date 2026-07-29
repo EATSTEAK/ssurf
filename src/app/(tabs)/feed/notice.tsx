@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
@@ -83,6 +83,7 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 export default function FeedNoticeScreen() {
+  const { theme } = useUnistyles();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('feed.selectedNoticeSlugs');
@@ -204,7 +205,7 @@ export default function FeedNoticeScreen() {
           headerTitle: () => <></>,
           headerRight: () => (
             <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
-              <SettingsIcon color="white" size={24} />
+              <SettingsIcon color={theme.colorsHex.fgSurface} size={24} />
             </Pressable>
           ),
         }}

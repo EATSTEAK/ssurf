@@ -8,11 +8,11 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { RefreshHeader, RefreshState } from '@/shared/ui/headers/RefreshHeader';
 
-const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+const AnimatedScrollView = withUnistyles(Animated.createAnimatedComponent(ScrollView));
 
 const styles = StyleSheet.create((theme) => ({
   scrollView: {

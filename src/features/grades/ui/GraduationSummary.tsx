@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import {
   GraduationRequirementsGeneralEntity,
@@ -13,9 +13,6 @@ import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 const styles = StyleSheet.create((theme) => ({
   container: {
     gap: theme.gap(1),
-  },
-  icon: {
-    color: theme.colorsHex.fgSurface,
   },
   buttonStyle: ({ pressed }) => ({
     backgroundColor: pressed ? theme.colors.surfaceDimmer : theme.colors.surfaceDim,
@@ -41,6 +38,7 @@ export const GraduationSummary = ({
   general,
   showDetailsButton = true,
 }: GraduationSummaryProps) => {
+  const { theme } = useUnistyles();
   const { navigate } = useRouter();
   return (
     <View style={styles.container}>
@@ -73,7 +71,7 @@ export const GraduationSummary = ({
           variant="ghost"
         >
           <View style={styles.buttonContent}>
-            <ArrowForwardIcon color={styles.icon.color} size={16} />
+            <ArrowForwardIcon color={theme.colorsHex.fgSurface} size={16} />
             <ThemedText>상세 보기</ThemedText>
           </View>
         </Button>

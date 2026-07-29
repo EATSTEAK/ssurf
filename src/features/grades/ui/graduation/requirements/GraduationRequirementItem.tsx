@@ -51,10 +51,6 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     gap: theme.gap(0.25),
   },
-  toggleIcon: {
-    color: theme.colorsHex.fgSurfaceMuted,
-    size: 12,
-  },
   lectureList: {
     display: 'flex',
     flexDirection: 'row',
@@ -130,11 +126,7 @@ export function GraduationRequirementItem({
           </View>
           {hasLectures ? (
             <View style={styles.lectureSummary}>
-              <ChevronRightToggleIcon
-                color={styles.toggleIcon.color}
-                expanded={isLecturesExpanded}
-                size={styles.toggleIcon.size}
-              />
+              <ChevronRightToggleIcon expanded={isLecturesExpanded} />
               <ThemedText color="fgSurfaceMuted" typography="bodySm">
                 {lectureList.length}개 과목 {isLecturesExpanded ? '숨기기' : '보기'}
               </ThemedText>

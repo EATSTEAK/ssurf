@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { GestureResponderEvent, Pressable, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { ClassGradeEntity } from '@/entities/grades/model';
 import { rankToRating } from '@/features/grades/lib/utils';
@@ -55,10 +55,6 @@ const styles = StyleSheet.create((theme) => ({
     flexShrink: 0,
     opacity: hasDetails ? 1 : 0,
   }),
-  detailsIcon: {
-    size: 12,
-    color: theme.colorsHex.fgSurfaceMuted,
-  },
   rank: (rank: string, isBlurred: boolean) => ({
     color:
       rank === NOT_AVAILABLE
@@ -86,6 +82,7 @@ export function ClassGradeItem({
   rank,
   scoreValue,
 }: ClassGradeEntity) {
+  const { theme } = useUnistyles();
   const { isBlurred } = useBlurGrade();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -133,7 +130,7 @@ export function ClassGradeItem({
           </View>
           {/* consistent spacing for chevron */}
           <View style={styles.detailsView(hasDetails)}>
-            <ChevronRightIcon color={styles.detailsIcon.color} size={styles.detailsIcon.size} />
+            <ChevronRightIcon color={theme.colorsHex.fgSurfaceMuted} size={12} />
           </View>
         </View>
       </Pressable>

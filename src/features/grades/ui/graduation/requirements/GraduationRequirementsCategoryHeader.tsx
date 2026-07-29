@@ -28,13 +28,7 @@ export const GraduationRequirementsCategoryHeader = ({
   const content = (
     <View style={styles.headerRow}>
       <View style={styles.headerTitleRow}>
-        {isCollapsible ? (
-          <ChevronRightToggleIcon
-            color={styles.toggleIcon.color}
-            expanded={isExpanded}
-            size={styles.toggleIcon.size}
-          />
-        ) : null}
+        {isCollapsible ? <ChevronRightToggleIcon expanded={isExpanded} /> : null}
         <ThemedText typography="headingLg">{category}</ThemedText>
       </View>
       <ThemedText color={summaryColor} typography="bodyMd">
