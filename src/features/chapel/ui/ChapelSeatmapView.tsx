@@ -3,10 +3,10 @@ import { type LayoutChangeEvent, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { getChapelSeatId } from '@/entities/chapel/lib/seat';
-import { chapelSeatBounds } from '@/features/chapel/ui/seatmap/chapel-seat-bounds';
-import { ChapelSeatRipple } from '@/features/chapel/ui/seatmap/chapel-seat-ripple';
+import { chapelSeatBounds } from '@/features/chapel/ui/seatmap/chapelSeatBounds';
 import { ChapelSeatmap1F } from '@/features/chapel/ui/seatmap/ChapelSeatmap1F';
 import { ChapelSeatmap2F3F } from '@/features/chapel/ui/seatmap/ChapelSeatmap2F3F';
+import { ChapelSeatRipple } from '@/features/chapel/ui/seatmap/ChapelSeatRipple';
 
 interface ChapelSeatmapViewProps {
   floor: 1 | 2 | 3;
