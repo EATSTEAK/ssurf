@@ -186,7 +186,10 @@ export default function FeedScreen() {
         options={{
           headerShown: true,
           headerRight: () => (
-            <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
+            <Pressable
+              onPress={() => router.push('/more/settings/feed')}
+              style={styles.settingButton}
+            >
               <ThemedSettingsIcon size={24} />
             </Pressable>
           ),

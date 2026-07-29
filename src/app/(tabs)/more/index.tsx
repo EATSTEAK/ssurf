@@ -67,7 +67,7 @@ export default function Index() {
         options={{
           headerShown: true,
           headerTransparent: true,
-          title: '설정',
+          title: '더보기',
           headerTitle: () => <></>,
         }}
       />
@@ -81,7 +81,7 @@ export default function Index() {
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
-              <Header title="설정" />
+              <Header title="더보기" />
               {info && <UserProfile info={info} />}
             </View>
             <CardView>
@@ -89,13 +89,13 @@ export default function Index() {
               <ActionList>
                 <ActionListItem
                   icon={<ThemedNewspaperIcon size={24} />}
-                  onPress={() => router.push('/(tabs)/settings/feed')}
+                  onPress={() => router.push('/more/settings/feed')}
                 >
                   <ThemedText typography="bodyLg">피드 설정</ThemedText>
                 </ActionListItem>
                 <ActionListItem
                   icon={<ThemedBellIcon size={24} />}
-                  onPress={() => router.push('./notifications', { relativeToDirectory: true })}
+                  onPress={() => router.push('/more/settings/notifications')}
                 >
                   <ThemedText typography="bodyLg">알림 설정</ThemedText>
                 </ActionListItem>
@@ -143,7 +143,7 @@ export default function Index() {
             </CardView>
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader scrollY={scrollY} title="설정" />
+        <FloatingHeader scrollY={scrollY} title="더보기" />
         <LogoutModal
           onClose={() => setIsLogoutModalVisible(false)}
           onLogout={logout}

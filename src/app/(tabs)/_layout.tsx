@@ -21,9 +21,9 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>성적</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon md="school" sf="graduationcap.fill" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="settings">
-        <NativeTabs.Trigger.Label>설정</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon md="settings" sf="gearshape.fill" />
+      <NativeTabs.Trigger name="more">
+        <NativeTabs.Trigger.Label>더보기</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon md="more_horiz" sf="ellipsis" />
       </NativeTabs.Trigger>
     </NativeTabs>
   );

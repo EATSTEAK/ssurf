@@ -206,7 +206,10 @@ export default function ScheduleCalendarScreen() {
         options={{
           headerShown: true,
           headerRight: () => (
-            <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
+            <Pressable
+              onPress={() => router.push('/more/settings/feed')}
+              style={styles.settingButton}
+            >
               <SettingsIcon color={theme.colorsHex.fgSurface} size={24} />
             </Pressable>
           ),
