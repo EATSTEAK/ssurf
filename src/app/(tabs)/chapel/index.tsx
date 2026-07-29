@@ -1,4 +1,3 @@
-import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
@@ -11,14 +10,11 @@ import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { calculateRequiredAttendances } from '@/entities/chapel/lib/attendanceCriteria';
 import { useChapelAttendances, useGeneralChapelInformation } from '@/entities/chapel/lib/queries';
+import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
 import { Attendance } from '@/features/chapel/ui/Attendance';
 import { ChapelProgress } from '@/features/chapel/ui/ChapelProgress';
 import { ChapelSeatmapView } from '@/features/chapel/ui/ChapelSeatmapView';
-import {
-  constructSemesters,
-  getEstimatedCurrentSemester,
-  semesterToString,
-} from '@/shared/lib/semester';
+import { getEstimatedCurrentSemester, semesterToString } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -54,7 +50,7 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-const doorDirection = (floor: number, seat: string) => {
+const doorDirection = (seat: string) => {
   switch (seat.charAt(0)) {
     case 'A':
     case 'B':
@@ -88,18 +84,34 @@ const RUSAINT_NO_CHAPEL =
 
 export default function Index() {
   const { defaultChapelSemester } = useRusaintApplication();
+  const {
+    data: enrollmentSemesters,
+    isSyncing: isEnrollmentSyncing,
+    refresh: refreshEnrollmentSemesters,
+  } = useEnrollmentSemesters();
   const defaultSemester = defaultChapelSemester ?? getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
+  const semesters = enrollmentSemesters.length > 0 ? enrollmentSemesters : [defaultSemester];
+  const effectiveSelectedSemester =
+    semesters.find(
+      (semester) =>
+        semester.year === selectedSemester.year && semester.semester === selectedSemester.semester,
+    ) ??
+    semesters[0] ??
+    defaultSemester;
 
   const {
     data: general,
     error,
     isSyncing,
     refresh,
-  } = useGeneralChapelInformation(selectedSemester.year, selectedSemester.semester);
+  } = useGeneralChapelInformation(
+    effectiveSelectedSemester.year,
+    effectiveSelectedSemester.semester,
+  );
   const { data: attendances } = useChapelAttendances(
-    selectedSemester.year,
-    selectedSemester.semester,
+    effectiveSelectedSemester.year,
+    effectiveSelectedSemester.semester,
   );
 
   const scrollY = useSharedValue(0);
@@ -107,8 +119,8 @@ export default function Index() {
   const totalAttendances = attendances?.length ?? 0;
   const requiredAttendances = calculateRequiredAttendances(
     totalAttendances,
-    selectedSemester.year,
-    selectedSemester.semester,
+    effectiveSelectedSemester.year,
+    effectiveSelectedSemester.semester,
   );
   const attendedCount = attendances?.filter((a) => a.attendance === '출석').length ?? 0;
   const absentCount = attendances?.filter((a) => a.attendance === '결석').length ?? 0;
@@ -119,10 +131,11 @@ export default function Index() {
 
   const handleRefresh = () => {
     // 로딩 중이면 리프레시하지 않음
-    if (isSyncing) {
+    if (isSyncing || isEnrollmentSyncing) {
       return;
     }
     void refresh();
+    void refreshEnrollmentSemesters();
   };
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -130,11 +143,6 @@ export default function Index() {
       scrollY.value = event.contentOffset.y;
     },
   });
-
-  const semesters = constructSemesters(defaultSemester.year - 4, defaultSemester.year, [
-    SemesterType.Two,
-    SemesterType.One,
-  ]);
 
   if (!general) {
     return (
@@ -147,11 +155,11 @@ export default function Index() {
             headerTitle: () => <></>,
             headerRight: () => (
               <SemesterSelector
-                onChange={(index) => setSelectedSemester(semesters[index])}
+                onChange={(_, semester) => setSelectedSemester(semester)}
                 selectedIndex={semesters.findIndex(
                   (semester) =>
-                    semester.year === selectedSemester.year &&
-                    semester.semester === selectedSemester.semester,
+                    semester.year === effectiveSelectedSemester.year &&
+                    semester.semester === effectiveSelectedSemester.semester,
                 )}
                 semesters={semesters}
               />
@@ -159,12 +167,17 @@ export default function Index() {
           }}
         />
         <View style={styles.root}>
-          <RefreshableScrollView onRefresh={handleRefresh} refreshing={isSyncing}>
+          <RefreshableScrollView
+            onRefresh={handleRefresh}
+            refreshing={isSyncing || isEnrollmentSyncing}
+          >
             <SafeContainer>
               {Platform.OS === 'ios' && <Space gap={2} />}
               <View style={styles.topView}>
                 <Header title="채플" />
-                <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
+                <ThemedText typography="labelMd">
+                  {semesterToString(effectiveSelectedSemester)}
+                </ThemedText>
               </View>
               <Space gap={1} />
               <View style={styles.errorView}>
@@ -224,11 +237,11 @@ export default function Index() {
           headerTitle: () => <></>,
           headerRight: () => (
             <SemesterSelector
-              onChange={(index) => setSelectedSemester(semesters[index])}
+              onChange={(_, semester) => setSelectedSemester(semester)}
               selectedIndex={semesters.findIndex(
                 (semester) =>
-                  semester.year === selectedSemester.year &&
-                  semester.semester === selectedSemester.semester,
+                  semester.year === effectiveSelectedSemester.year &&
+                  semester.semester === effectiveSelectedSemester.semester,
               )}
               semesters={semesters}
             />
@@ -239,14 +252,16 @@ export default function Index() {
         <RefreshableScrollView
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isSyncing}
+          refreshing={isSyncing || isEnrollmentSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
               <Header title="채플" />
-              <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
+              <ThemedText typography="labelMd">
+                {semesterToString(effectiveSelectedSemester)}
+              </ThemedText>
               <Space gap={1} />
               <View>
                 {finalResult ? (
@@ -291,11 +306,11 @@ export default function Index() {
               <ThemedText typography="heading3xl">
                 {general.floor}F / {general.seat}
               </ThemedText>
-              {general.floor && general.seat && doorDirection(general.floor, general.seat) && (
+              {general.floor && general.seat && doorDirection(general.seat) && (
                 <ThemedText typography="headingMd">
                   {general.floor}층{' '}
                   <ThemedText color="primaryInverted" typography="bodyLg">
-                    {doorDirection(general.floor, general.seat)}
+                    {doorDirection(general.seat)}
                   </ThemedText>
                   으로 들어가세요.
                 </ThemedText>
@@ -317,7 +332,11 @@ export default function Index() {
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader label={semesterToString(selectedSemester)} scrollY={scrollY} title="채플" />
+        <FloatingHeader
+          label={semesterToString(effectiveSelectedSemester)}
+          scrollY={scrollY}
+          title="채플"
+        />
       </View>
     </>
   );
