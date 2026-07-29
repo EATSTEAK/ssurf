@@ -1,5 +1,5 @@
-import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { CalendarProvider } from 'react-native-calendars';
@@ -181,13 +181,7 @@ export default function ScheduleCalendarScreen() {
     }
 
     try {
-      const canOpen = await Linking.canOpenURL(url);
-      if (!canOpen) {
-        console.error(`Cannot open feed URL: ${url}`);
-        return;
-      }
-
-      await Linking.openURL(url);
+      await WebBrowser.openBrowserAsync(url);
     } catch (openError) {
       console.error('Failed to open feed URL:', openError);
     }
