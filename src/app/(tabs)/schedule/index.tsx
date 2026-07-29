@@ -15,6 +15,7 @@ import { useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
 import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
+import { includeSeasonalSemesters } from '@/features/schedule/lib/utils';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
 import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
 import { getEstimatedCurrentSemester, semesterToString } from '@/shared/lib/semester';
@@ -74,7 +75,10 @@ export default function Index() {
   const defaultSemester = defaultScheduleSemester ?? getEstimatedCurrentSemester(true);
   const estimatedCurrentSemester = getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
-  const semesters = enrollmentSemesters.length > 0 ? enrollmentSemesters : [defaultSemester];
+  const semesters =
+    enrollmentSemesters.length > 0
+      ? includeSeasonalSemesters(enrollmentSemesters, getEstimatedCurrentSemester())
+      : [defaultSemester];
   const requestedSemester =
     defaultScheduleSemester &&
     selectedSemester.year === estimatedCurrentSemester.year &&
