@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { CalendarEntity } from '@/entities/calendar/model';
 import { CompactCalendarRow } from '@/features/calendar/ui/CompactCalendarRow';
@@ -46,6 +46,10 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
+const ThemedArrowForwardIcon = withUnistyles(ArrowForwardIcon, (theme) => ({
+  color: theme.colorsHex.fgPrimary,
+}));
+
 interface TodayScheduleSectionProps {
   actionLabel?: string;
   calendarError: Error | null;
@@ -63,8 +67,6 @@ export const TodayScheduleSection = ({
   selectedCalendarSlugs,
   todayCalendars,
 }: TodayScheduleSectionProps) => {
-  const { theme } = useUnistyles();
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -78,7 +80,7 @@ export const TodayScheduleSection = ({
                 <ThemedText color="fgPrimary" typography="labelMd">
                   {actionLabel}
                 </ThemedText>
-                <ArrowForwardIcon color={theme.colorsHex.fgPrimary} size={16} />
+                <ThemedArrowForwardIcon size={16} />
               </View>
             )}
           </Button>

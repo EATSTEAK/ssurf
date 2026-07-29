@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { StudentInformationEntity } from '@/entities/studentInformation/model';
 import { ProfileIcon } from '@/shared/ui/icons';
@@ -22,13 +22,15 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export const UserProfile = ({ info }: { info: StudentInformationEntity }) => {
-  const { theme } = useUnistyles();
+const ThemedProfileIcon = withUnistyles(ProfileIcon, (theme) => ({
+  color: theme.colorsHex.fgSurface,
+}));
 
+export const UserProfile = ({ info }: { info: StudentInformationEntity }) => {
   return (
     <View style={styles.profileView}>
       <View style={styles.profileIcon}>
-        <ProfileIcon color={theme.colorsHex.fgSurface} size={32} />
+        <ThemedProfileIcon size={32} />
       </View>
       <View>
         <ThemedText typography="headingXl">{info.name}</ThemedText>

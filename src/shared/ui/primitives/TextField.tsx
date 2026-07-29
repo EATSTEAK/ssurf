@@ -1,19 +1,19 @@
 import { TextInput, TextInputProps } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 type Props = TextInputProps;
 
-export const TextField = ({ style, placeholderTextColor, ...props }: Props) => {
-  const { theme } = useUnistyles();
+const UnistylesTextInput = withUnistyles(TextInput);
 
-  return (
-    <TextInput
-      {...props}
-      placeholderTextColor={placeholderTextColor ?? theme.colors.fgSurfaceMuted}
-      style={[styles.container, style]}
-    />
-  );
-};
+export const TextField = ({ style, placeholderTextColor, ...props }: Props) => (
+  <UnistylesTextInput
+    {...props}
+    style={[styles.container, style]}
+    uniProps={(theme) => ({
+      placeholderTextColor: placeholderTextColor ?? theme.colors.fgSurfaceMuted,
+    })}
+  />
+);
 
 const styles = StyleSheet.create((theme) => ({
   container: {

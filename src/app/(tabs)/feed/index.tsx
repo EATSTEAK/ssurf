@@ -3,7 +3,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
 import { FeedNoticeListItem } from '@/entities/feed/model';
@@ -44,8 +44,11 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
+const ThemedSettingsIcon = withUnistyles(SettingsIcon, (theme) => ({
+  color: theme.colorsHex.fgSurface,
+}));
+
 export default function FeedScreen() {
-  const { theme } = useUnistyles();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -184,7 +187,7 @@ export default function FeedScreen() {
           headerShown: true,
           headerRight: () => (
             <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
-              <SettingsIcon color={theme.colorsHex.fgSurface} size={24} />
+              <ThemedSettingsIcon size={24} />
             </Pressable>
           ),
           headerTitle: () => <></>,

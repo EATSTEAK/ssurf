@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
@@ -80,8 +80,14 @@ function getTabKey(item: GradeTabView): string {
   return semesterToString({ semester: item.semester, year: item.year });
 }
 
+const ThemedEyeIcon = withUnistyles(EyeIcon, (theme) => ({
+  color: theme.colorsHex.fgSurface,
+}));
+const ThemedEyeOffIcon = withUnistyles(EyeOffIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceMuted,
+}));
+
 function GradesContent() {
-  const { theme } = useUnistyles();
   const { data, error, isLoading, refresh } = useGradeTabView();
   const {
     data: graduation,
@@ -233,11 +239,7 @@ function GradesContent() {
                   <Pressable onPress={toggleBlur}>
                     <Header
                       action={
-                        isBlurred ? (
-                          <EyeOffIcon color={theme.colorsHex.fgSurfaceMuted} size={16} />
-                        ) : (
-                          <EyeIcon color={theme.colorsHex.fgSurface} size={16} />
-                        )
+                        isBlurred ? <ThemedEyeOffIcon size={16} /> : <ThemedEyeIcon size={16} />
                       }
                       title="성적"
                     />

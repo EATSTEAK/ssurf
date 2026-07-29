@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet, useUnistyles, withUnistyles } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { LockIcon } from '@/shared/ui/icons';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -31,17 +31,18 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
+const ThemedLockIcon = withUnistyles(LockIcon, (theme) => ({
+  color: theme.colorsHex.fgSurface,
+}));
 const UnistylesSafeAreaView = withUnistyles(SafeAreaView);
 
 export const LoginDisclaimer = () => {
-  const { theme } = useUnistyles();
-
   return (
     <UnistylesSafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
       <View style={styles.waveContainer}>
         <Wave color="surface" style={styles.wave} />
       </View>
-      <LockIcon color={theme.colorsHex.fgSurface} />
+      <ThemedLockIcon />
       <ThemedText typography="headingMd">로그인 정보는 기기에만 저장돼요.</ThemedText>
       <ThemedText typography="bodySm">SSURF는 여러분의 어떤 정보도 열람할 수 없어요.</ThemedText>
     </UnistylesSafeAreaView>

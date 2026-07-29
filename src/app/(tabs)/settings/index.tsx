@@ -3,7 +3,7 @@ import { Link, router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { useStudentInformation } from '@/entities/studentInformation/lib/queries';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
@@ -36,8 +36,17 @@ const styles = StyleSheet.create((theme) => ({
   infoView: { display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' },
 }));
 
+const ThemedBellIcon = withUnistyles(BellIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
+}));
+const ThemedLogoutIcon = withUnistyles(LogoutIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
+}));
+const ThemedNewspaperIcon = withUnistyles(NewspaperIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
+}));
+
 export default function Index() {
-  const { theme } = useUnistyles();
   const { logout } = useRusaintSession();
   const { data: info, isSyncing, refresh } = useStudentInformation();
   const scrollY = useSharedValue(0);
@@ -79,19 +88,19 @@ export default function Index() {
               <ThemedText typography="headingLg">설정</ThemedText>
               <ActionList>
                 <ActionListItem
-                  icon={<NewspaperIcon color={theme.colorsHex.fgSurfaceDimmer} size={24} />}
+                  icon={<ThemedNewspaperIcon size={24} />}
                   onPress={() => router.push('/(tabs)/settings/feed')}
                 >
                   <ThemedText typography="bodyLg">피드 설정</ThemedText>
                 </ActionListItem>
                 <ActionListItem
-                  icon={<BellIcon color={theme.colorsHex.fgSurfaceDimmer} size={24} />}
+                  icon={<ThemedBellIcon size={24} />}
                   onPress={() => router.push('./notifications', { relativeToDirectory: true })}
                 >
                   <ThemedText typography="bodyLg">알림 설정</ThemedText>
                 </ActionListItem>
                 <ActionListItem
-                  icon={<LogoutIcon color={theme.colorsHex.fgSurfaceDimmer} size={24} />}
+                  icon={<ThemedLogoutIcon size={24} />}
                   onPress={() => setIsLogoutModalVisible(true)}
                 >
                   <ThemedText typography="bodyLg">로그아웃</ThemedText>
