@@ -3,12 +3,11 @@ import { Link, router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { useStudentInformation } from '@/entities/studentInformation/lib/queries';
 import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import { UserProfile } from '@/features/settings/ui/UserProfile';
-import { paletteHex } from '@/shared/lib/theme';
 import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -20,7 +19,7 @@ import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-const styles = StyleSheet.create((theme, rt) => ({
+const styles = StyleSheet.create((theme) => ({
   root: {
     width: '100%',
     height: '100%',
@@ -34,10 +33,17 @@ const styles = StyleSheet.create((theme, rt) => ({
     flexDirection: 'column',
     padding: theme.gap(3),
   },
-  actionListSymbol: {
-    color: rt.colorScheme === 'dark' ? paletteHex.sand200 : paletteHex.sand800,
-  },
   infoView: { display: 'flex', gap: 8, flexDirection: 'row', alignItems: 'center' },
+}));
+
+const ThemedBellIcon = withUnistyles(BellIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
+}));
+const ThemedLogoutIcon = withUnistyles(LogoutIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
+}));
+const ThemedNewspaperIcon = withUnistyles(NewspaperIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
 }));
 
 export default function Index() {
@@ -82,19 +88,19 @@ export default function Index() {
               <ThemedText typography="headingLg">설정</ThemedText>
               <ActionList>
                 <ActionListItem
-                  icon={<NewspaperIcon color={styles.actionListSymbol.color} size={24} />}
+                  icon={<ThemedNewspaperIcon size={24} />}
                   onPress={() => router.push('/(tabs)/settings/feed')}
                 >
                   <ThemedText typography="bodyLg">피드 설정</ThemedText>
                 </ActionListItem>
                 <ActionListItem
-                  icon={<BellIcon color={styles.actionListSymbol.color} size={24} />}
+                  icon={<ThemedBellIcon size={24} />}
                   onPress={() => router.push('./notifications', { relativeToDirectory: true })}
                 >
                   <ThemedText typography="bodyLg">알림 설정</ThemedText>
                 </ActionListItem>
                 <ActionListItem
-                  icon={<LogoutIcon color={styles.actionListSymbol.color} size={24} />}
+                  icon={<ThemedLogoutIcon size={24} />}
                   onPress={() => setIsLogoutModalVisible(true)}
                 >
                   <ThemedText typography="bodyLg">로그아웃</ThemedText>

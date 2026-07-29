@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { TabView } from 'react-native-tab-view';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { FeedNoticeListItem, FeedSiteEntity } from '@/entities/feed/model';
 import { ArrowForwardIcon } from '@/shared/ui/icons';
@@ -75,6 +75,10 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     gap: theme.gap(1),
   },
+}));
+
+const ThemedArrowForwardIcon = withUnistyles(ArrowForwardIcon, (theme) => ({
+  color: theme.colorsHex.fgPrimary,
 }));
 
 type NoticeCardProps = {
@@ -185,7 +189,7 @@ export const NoticeCard = memo(function NoticeCard({
               <ThemedText color="fgPrimary" typography="labelMd">
                 {actionLabel}
               </ThemedText>
-              <ArrowForwardIcon color="white" size={16} />
+              <ThemedArrowForwardIcon size={16} />
             </View>
           </Button>
         ) : null}

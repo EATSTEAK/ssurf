@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
@@ -64,14 +64,6 @@ const styles = StyleSheet.create((theme) => ({
     height: 150,
     marginBottom: theme.gap(2),
   },
-  eyeIcon: {
-    size: 16,
-    color: theme.colorsHex.fgSurface,
-  },
-  eyeOffIcon: {
-    size: 16,
-    color: theme.colorsHex.fgSurfaceMuted,
-  },
   sceneContent: {
     backgroundColor: theme.colors.surface,
     minHeight: '100%',
@@ -87,6 +79,13 @@ function getTabKey(item: GradeTabView): string {
   }
   return semesterToString({ semester: item.semester, year: item.year });
 }
+
+const ThemedEyeIcon = withUnistyles(EyeIcon, (theme) => ({
+  color: theme.colorsHex.fgSurface,
+}));
+const ThemedEyeOffIcon = withUnistyles(EyeOffIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceMuted,
+}));
 
 function GradesContent() {
   const { data, error, isLoading, refresh } = useGradeTabView();
@@ -240,14 +239,7 @@ function GradesContent() {
                   <Pressable onPress={toggleBlur}>
                     <Header
                       action={
-                        isBlurred ? (
-                          <EyeOffIcon
-                            color={styles.eyeOffIcon.color}
-                            size={styles.eyeOffIcon.size}
-                          />
-                        ) : (
-                          <EyeIcon color={styles.eyeIcon.color} size={styles.eyeIcon.size} />
-                        )
+                        isBlurred ? <ThemedEyeOffIcon size={16} /> : <ThemedEyeIcon size={16} />
                       }
                       title="성적"
                     />

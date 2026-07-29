@@ -22,11 +22,7 @@ export const GraduationFulfilledRequirementsToggle = ({
     onPress={onToggle}
     style={({ pressed }) => styles.toggleButton(pressed)}
   >
-    <ChevronRightToggleIcon
-      color={styles.toggleIcon.color}
-      expanded={isExpanded}
-      size={styles.toggleIcon.size}
-    />
+    <ChevronRightToggleIcon expanded={isExpanded} />
     <ThemedText color="fgSurfaceMuted" typography="bodySm">
       충족된 요건 {count}개 {isExpanded ? '숨기기' : '보기'}
     </ThemedText>

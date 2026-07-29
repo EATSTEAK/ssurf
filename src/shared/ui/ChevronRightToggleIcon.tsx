@@ -1,7 +1,9 @@
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { ChevronRightIcon, IconProps } from '@/shared/ui/icons';
+
+const ThemedChevronRightIcon = withUnistyles(ChevronRightIcon);
 
 const styles = StyleSheet.create({
   root: (expanded: boolean) => ({
@@ -11,15 +13,25 @@ const styles = StyleSheet.create({
 
 export interface ChevronRightToggleIconProps extends Omit<
   IconProps,
-  'materialName' | 'symbolName'
+  'color' | 'materialName' | 'symbolName'
 > {
+  color?: string;
   expanded: boolean;
 }
 
-export function ChevronRightToggleIcon({ expanded, ...props }: ChevronRightToggleIconProps) {
+export function ChevronRightToggleIcon({
+  color,
+  expanded,
+  size = 12,
+  ...props
+}: ChevronRightToggleIconProps) {
   return (
     <View style={styles.root(expanded)}>
-      <ChevronRightIcon {...props} />
+      <ThemedChevronRightIcon
+        size={size}
+        uniProps={(theme) => ({ color: color ?? theme.colorsHex.fgSurfaceMuted })}
+        {...props}
+      />
     </View>
   );
 }

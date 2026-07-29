@@ -1,6 +1,6 @@
 import { View, ViewProps } from 'react-native';
 import { SafeAreaView, SafeAreaViewProps } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -11,8 +11,10 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
+const UnistylesSafeAreaView = withUnistyles(SafeAreaView);
+
 export const SafeContainer = ({ style, ...props }: SafeAreaViewProps) => {
-  return <SafeAreaView style={[styles.container, style]} {...props} />;
+  return <UnistylesSafeAreaView style={[styles.container, style]} {...props} />;
 };
 
 export const Container = ({ style, ...props }: ViewProps) => {

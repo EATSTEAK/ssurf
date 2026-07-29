@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import {
   GraduationRequirementsGeneralEntity,
@@ -14,9 +14,6 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     gap: theme.gap(1),
   },
-  icon: {
-    color: theme.colorsHex.fgSurface,
-  },
   buttonStyle: ({ pressed }) => ({
     backgroundColor: pressed ? theme.colors.surfaceDimmer : theme.colors.surfaceDim,
     alignItems: 'flex-start',
@@ -28,6 +25,10 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'flex-start',
     gap: theme.gap(0.5),
   },
+}));
+
+const ThemedArrowForwardIcon = withUnistyles(ArrowForwardIcon, (theme) => ({
+  color: theme.colorsHex.fgSurface,
 }));
 
 export interface GraduationSummaryProps {
@@ -73,7 +74,7 @@ export const GraduationSummary = ({
           variant="ghost"
         >
           <View style={styles.buttonContent}>
-            <ArrowForwardIcon color={styles.icon.color} size={16} />
+            <ThemedArrowForwardIcon size={16} />
             <ThemedText>상세 보기</ThemedText>
           </View>
         </Button>

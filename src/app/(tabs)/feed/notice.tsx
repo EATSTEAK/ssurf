@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
@@ -80,6 +80,10 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.gap(1),
     borderRadius: theme.cornerRadius.md,
   },
+}));
+
+const ThemedSettingsIcon = withUnistyles(SettingsIcon, (theme) => ({
+  color: theme.colorsHex.fgSurface,
 }));
 
 export default function FeedNoticeScreen() {
@@ -204,7 +208,7 @@ export default function FeedNoticeScreen() {
           headerTitle: () => <></>,
           headerRight: () => (
             <Pressable onPress={() => router.push('/settings/feed')} style={styles.settingButton}>
-              <SettingsIcon color="white" size={24} />
+              <ThemedSettingsIcon size={24} />
             </Pressable>
           ),
         }}

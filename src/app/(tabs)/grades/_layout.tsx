@@ -1,18 +1,14 @@
 import { Stack } from 'expo-router';
-import { StyleSheet } from 'react-native-unistyles';
-
-const styles = StyleSheet.create((theme) => ({
-  background: {
-    backgroundColor: theme.colorsHex.surface,
-  },
-}));
+import { useUnistyles } from 'react-native-unistyles';
 
 export default function StackLayout() {
+  const { theme } = useUnistyles();
+
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: styles.background.backgroundColor },
+        contentStyle: { backgroundColor: theme.colorsHex.surface },
       }}
     >
       <Stack.Screen name="index" />

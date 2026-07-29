@@ -6,7 +6,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
@@ -16,7 +16,7 @@ export interface FloatingHeaderProps {
   title: string;
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create({
   header: {
     position: 'absolute',
     top: 0,
@@ -27,7 +27,6 @@ const styles = StyleSheet.create((theme) => ({
     elevation: 1,
   },
   headerGradient: {
-    gradientColor: theme.colors.surfaceDim,
     width: '100%',
   },
   headerContent: {
@@ -40,6 +39,10 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     gap: 4,
   },
+});
+
+const ThemedLinearGradient = withUnistyles(LinearGradient, (theme) => ({
+  colors: [theme.colors.surfaceDim, 'transparent'] as const,
 }));
 
 export const FloatingHeader = ({ scrollY, title, label }: FloatingHeaderProps) => {
@@ -61,8 +64,7 @@ export const FloatingHeader = ({ scrollY, title, label }: FloatingHeaderProps) =
   });
   return (
     <Animated.View style={[styles.header, normalHeaderAnimatedStyle]}>
-      <LinearGradient
-        colors={[styles.headerGradient.gradientColor, 'transparent']}
+      <ThemedLinearGradient
         end={{ x: 0.5, y: 1 }}
         start={{ x: 0.5, y: 0 }}
         style={styles.headerGradient}
@@ -77,7 +79,7 @@ export const FloatingHeader = ({ scrollY, title, label }: FloatingHeaderProps) =
             </Animated.View>
           )}
         </SafeAreaView>
-      </LinearGradient>
+      </ThemedLinearGradient>
     </Animated.View>
   );
 };

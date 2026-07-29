@@ -54,8 +54,4 @@ export const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.gap(3),
     paddingVertical: theme.gap(2),
   }),
-  toggleIcon: {
-    color: theme.colorsHex.fgSurfaceMuted,
-    size: 12,
-  },
 }));
