@@ -4,15 +4,14 @@ import {
   Button as JetpackButton,
   Host as JetpackHost,
 } from '@expo/ui/jetpack-compose';
-import { fillMaxWidth, wrapContentWidth } from '@expo/ui/jetpack-compose/modifiers';
+import { defaultMinSize } from '@expo/ui/jetpack-compose/modifiers';
 import {
-  Button as SwiftButton,
-  ContextMenu as SwiftContextMenu,
   Host as SwiftHost,
+  Menu as SwiftMenu,
   Picker as SwiftPicker,
   Text as SwiftText,
 } from '@expo/ui/swift-ui';
-import { tag, tint } from '@expo/ui/swift-ui/modifiers';
+import { frame, tag, tint } from '@expo/ui/swift-ui/modifiers';
 import { YearSemester } from '@rusaint/react-native';
 import { useState } from 'react';
 import { Platform } from 'react-native';
@@ -51,33 +50,26 @@ export const SemesterSelector = withUnistyles(
     };
     return Platform.select({
       ios: (
-        <SwiftHost
-          style={{
-            width: 50,
-            height: 30,
-          }}
-        >
-          <SwiftContextMenu>
-            <SwiftContextMenu.Trigger>
-              <SwiftButton label="학기" modifiers={[tint(styles.triggerColor.color)]} />
-            </SwiftContextMenu.Trigger>
-            <SwiftContextMenu.Items>
-              <SwiftPicker
-                onSelectionChange={(index) => {
-                  if (typeof index === 'number') {
-                    handleSelect(index);
-                  }
-                }}
-                selection={selectedIndex ?? null}
-              >
-                {semesters.map((semester, index) => (
-                  <SwiftText key={`${semester.year}-${semester.semester}`} modifiers={[tag(index)]}>
-                    {semesterToString(semester)}
-                  </SwiftText>
-                ))}
-              </SwiftPicker>
-            </SwiftContextMenu.Items>
-          </SwiftContextMenu>
+        <SwiftHost matchContents>
+          <SwiftMenu
+            label="학기"
+            modifiers={[frame({ minHeight: 44, minWidth: 44 }), tint(styles.triggerColor.color)]}
+          >
+            <SwiftPicker
+              onSelectionChange={(index) => {
+                if (typeof index === 'number') {
+                  handleSelect(index);
+                }
+              }}
+              selection={selectedIndex ?? null}
+            >
+              {semesters.map((semester, index) => (
+                <SwiftText key={`${semester.year}-${semester.semester}`} modifiers={[tag(index)]}>
+                  {semesterToString(semester)}
+                </SwiftText>
+              ))}
+            </SwiftPicker>
+          </SwiftMenu>
         </SwiftHost>
       ),
       android: (
@@ -89,7 +81,7 @@ export const SemesterSelector = withUnistyles(
                   contentColor: styles.triggerColor.color,
                   containerColor: styles.jetpackItemColor.backgroundColor,
                 }}
-                modifiers={[fillMaxWidth(0.2), wrapContentWidth('centerHorizontally')]}
+                modifiers={[defaultMinSize({ minHeight: 44, minWidth: 64 })]}
                 onClick={() => setIsExpanded(true)}
               >
                 <ThemedText color="primaryInverted">학기</ThemedText>

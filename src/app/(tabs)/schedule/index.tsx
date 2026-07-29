@@ -1,4 +1,3 @@
-import { SemesterType } from '@rusaint/react-native';
 import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
@@ -14,14 +13,12 @@ import { useCalendars } from '@/entities/calendar/lib/queries';
 import { CalendarEntity } from '@/entities/calendar/model';
 import { useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
+import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
 import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
+import { includeSeasonalSemesters } from '@/features/schedule/lib/utils';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
 import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
-import {
-  constructSemesters,
-  getEstimatedCurrentSemester,
-  semesterToString,
-} from '@/shared/lib/semester';
+import { getEstimatedCurrentSemester, semesterToString } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
@@ -70,15 +67,32 @@ export default function Index() {
   const router = useRouter();
   const { defaultScheduleSemester } = useRusaintApplication();
   const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
+  const {
+    data: enrollmentSemesters,
+    isSyncing: isEnrollmentSyncing,
+    refresh: refreshEnrollmentSemesters,
+  } = useEnrollmentSemesters();
   const defaultSemester = defaultScheduleSemester ?? getEstimatedCurrentSemester(true);
   const estimatedCurrentSemester = getEstimatedCurrentSemester(true);
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
-  const effectiveSelectedSemester =
+  const semesters =
+    enrollmentSemesters.length > 0
+      ? includeSeasonalSemesters(enrollmentSemesters, getEstimatedCurrentSemester())
+      : [defaultSemester];
+  const requestedSemester =
     defaultScheduleSemester &&
     selectedSemester.year === estimatedCurrentSemester.year &&
     selectedSemester.semester === estimatedCurrentSemester.semester
       ? defaultScheduleSemester
       : selectedSemester;
+  const effectiveSelectedSemester =
+    semesters.find(
+      (semester) =>
+        semester.year === requestedSemester.year &&
+        semester.semester === requestedSemester.semester,
+    ) ??
+    semesters[0] ??
+    defaultSemester;
 
   const {
     data,
@@ -126,11 +140,12 @@ export default function Index() {
   );
 
   const handleRefresh = () => {
-    if (isSyncing || isCalendarSyncing) {
+    if (isSyncing || isCalendarSyncing || isEnrollmentSyncing) {
       return;
     }
     void refreshSchedule();
     void refreshCalendars();
+    void refreshEnrollmentSemesters();
   };
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -138,15 +153,6 @@ export default function Index() {
       scrollY.value = event.contentOffset.y;
     },
   });
-
-  const semesters = useMemo(
-    () =>
-      constructSemesters(defaultSemester.year - 4, defaultSemester.year, [
-        SemesterType.Two,
-        SemesterType.One,
-      ]),
-    [defaultSemester.year],
-  );
 
   const hasData = data.length > 0;
 
@@ -189,7 +195,7 @@ export default function Index() {
           headerShown: true,
           headerRight: () => (
             <SemesterSelector
-              onChange={(index) => setSelectedSemester(semesters[index])}
+              onChange={(_, semester) => setSelectedSemester(semester)}
               selectedIndex={semesters.findIndex(
                 (semester) =>
                   semester.year === effectiveSelectedSemester.year &&
@@ -207,7 +213,7 @@ export default function Index() {
         <RefreshableScrollView
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isSyncing || isCalendarSyncing}
+          refreshing={isSyncing || isCalendarSyncing || isEnrollmentSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>

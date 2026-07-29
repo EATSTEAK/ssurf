@@ -2,7 +2,7 @@ import { StudentInformation, StudentInformationApplicationInterface } from '@rus
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/db';
-import { studentInformation } from '@/entities/studentInformation/model';
+import { studentAcademicRecords, studentInformation } from '@/entities/studentInformation/model';
 import { cache } from '@/shared/model/schema/cache';
 
 export const syncStudentInformation = async (client: StudentInformationApplicationInterface) => {
@@ -62,6 +62,40 @@ export const syncStudentInformation = async (client: StudentInformationApplicati
         set: {
           updatedAt: Date.now(),
         },
+      })
+      .execute();
+  });
+};
+
+export const syncStudentAcademicRecords = async (
+  client: StudentInformationApplicationInterface,
+  studentId: string,
+) => {
+  const { records } = await client.academicRecord();
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(studentAcademicRecords)
+      .where(eq(studentAcademicRecords.studentId, studentId))
+      .execute();
+
+    if (records.length > 0) {
+      await tx
+        .insert(studentAcademicRecords)
+        .values(records.map((record, sequence) => ({ studentId, sequence, ...record })))
+        .execute();
+    }
+
+    await tx
+      .insert(cache)
+      .values({
+        studentId,
+        key: 'student-information.academic-records',
+        updatedAt: Date.now(),
+      })
+      .onConflictDoUpdate({
+        target: [cache.studentId, cache.key],
+        set: { updatedAt: Date.now() },
       })
       .execute();
   });
