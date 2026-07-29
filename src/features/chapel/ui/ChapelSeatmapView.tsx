@@ -1,12 +1,13 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
+import { getChapelSeatId } from '@/entities/chapel/lib/seat';
 import { ChapelSeatmap1F } from '@/features/chapel/ui/seatmap/ChapelSeatmap1F';
 import { ChapelSeatmap2F3F } from '@/features/chapel/ui/seatmap/ChapelSeatmap2F3F';
 
 interface ChapelSeatmapViewProps {
   floor: 1 | 2 | 3;
-  seat: `${string}-${number}-${number}`;
+  seat: null | string;
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -31,16 +32,22 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-export const ChapelSeatmapView = ({ floor }: ChapelSeatmapViewProps) => {
+export const ChapelSeatmapView = ({ floor, seat }: ChapelSeatmapViewProps) => {
+  const selectedSeat = getChapelSeatId(floor, seat);
+
   return (
-    <View style={styles.container}>
+    <View
+      accessibilityLabel={`${floor}층 ${selectedSeat ?? seat ?? ''} 좌석 배치도`}
+      accessibilityRole="image"
+      style={styles.container}
+    >
       {floor === 1 ? (
         <View style={styles.firstFloor}>
-          <ChapelSeatmap1F height="100%" width="100%" />
+          <ChapelSeatmap1F height="100%" seat={selectedSeat} width="100%" />
         </View>
       ) : (
         <View style={styles.secondThirdFloor}>
-          <ChapelSeatmap2F3F height="100%" width="100%" />
+          <ChapelSeatmap2F3F height="100%" seat={selectedSeat} width="100%" />
         </View>
       )}
     </View>

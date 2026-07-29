@@ -1,7 +1,12 @@
 import * as React from 'react';
-import Svg, { ClipPath, Defs, G, Path, Rect, SvgProps } from 'react-native-svg';
+import Svg, { ClipPath, Defs, G, Mask, Path, Rect, SvgProps, Use } from 'react-native-svg';
 import { useUnistyles } from 'react-native-unistyles';
-export const ChapelSeatmap2F3F = (props: SvgProps) => {
+
+type ChapelSeatmap2F3FProps = SvgProps & {
+  seat?: null | string;
+};
+
+export const ChapelSeatmap2F3F = ({ seat, ...props }: ChapelSeatmap2F3FProps) => {
   const { theme } = useUnistyles();
   return (
     <Svg fill="none" viewBox="0 0 915 590" {...props}>
@@ -6346,6 +6351,11 @@ export const ChapelSeatmap2F3F = (props: SvgProps) => {
         </G>
       </G>
       <Defs>
+        {seat && (
+          <Mask id="csm-23f-selected-seat" maskType="alpha">
+            <Use height={590} href={`#csm-23f-${seat}`} strokeWidth={8} width={915} />
+          </Mask>
+        )}
         <ClipPath id="csm-23f-clip0_206_4497">
           <Path d="m690 193.791 136.751-16.79 1.828 14.887-136.751 16.791z" fill="#fff" />
         </ClipPath>
@@ -6584,6 +6594,14 @@ export const ChapelSeatmap2F3F = (props: SvgProps) => {
           <Path d="m113.512 505.509 85.273 11.984-2.088 14.854-85.273-11.984z" fill="#fff" />
         </ClipPath>
       </Defs>
+      {seat && (
+        <Rect
+          fill={theme.colors.primary}
+          height={590}
+          mask="url(#csm-23f-selected-seat)"
+          width={915}
+        />
+      )}
     </Svg>
   );
 };
