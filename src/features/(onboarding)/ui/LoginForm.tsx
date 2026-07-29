@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 import { useLoading } from 'react-simplikit';
@@ -10,6 +10,12 @@ import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { Button } from '@/shared/ui/primitives/Button';
 import { TextField } from '@/shared/ui/primitives/TextField';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
+
+const normalizeLoginErrorMessage = (message: string) =>
+  message.replace(
+    /^RusaintError\.General:[\s\S]*?Token is not included in response:\s*([\s\S]*)$/,
+    (_, detail: string) => detail.replaceAll('\\n', '\n').trim(),
+  );
 
 const styles = StyleSheet.create((theme) => ({
   view: {
@@ -30,17 +36,23 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 export const LoginForm = () => {
-  const { login, hasCredential } = useRusaintSession();
+  const { login } = useRusaintSession();
   const [isLoading, startLoading] = useLoading();
 
   const [id, setId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
   const onPressLoginButton = async () => {
-    await startLoading(login(id, password));
-    if (hasCredential) {
-      console.log('redirecting to chapel...');
+    try {
+      await startLoading(login(id, password));
       router.replace('/(tabs)/chapel');
+    } catch (error) {
+      Alert.alert(
+        '로그인 실패',
+        error instanceof Error
+          ? normalizeLoginErrorMessage(error.message)
+          : '알 수 없는 오류가 발생했어요.',
+      );
     }
   };
 

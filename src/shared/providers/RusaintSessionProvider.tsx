@@ -43,27 +43,18 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   const sessionCreatedAtRef = useRef<Date | null>(null);
 
   const connectNewSession = async (id: string, password: string) => {
-    const session = await new USaintSessionBuilder()
-      .withPassword(id, password)
-      .catch(console.error);
-
-    if (!session) {
-      return false;
-    }
+    const session = await new USaintSessionBuilder().withPassword(id, password);
 
     applications.start(session, id);
     sessionCreatedAtRef.current = new Date();
     setSession(session);
-    return true;
   };
 
   const login = async (id: string, password: string) => {
     // TODO: handle session refresh
-    if (await connectNewSession(id, password)) {
-      await setUserInfo({ id, password });
-      return true;
-    }
-    return false;
+    await connectNewSession(id, password);
+    await setUserInfo({ id, password });
+    return true;
   };
 
   const refreshSession = useCallback(async () => {
