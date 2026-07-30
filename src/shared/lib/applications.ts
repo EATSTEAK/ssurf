@@ -25,7 +25,7 @@ type ApplicationValues = {
   chapel: WithDefaultSemester<ChapelApplicationInterface>;
   grades: WithDefaultSemester<CourseGradesApplicationInterface>;
   graduationRequirements: GraduationRequirementsApplicationInterface;
-  personalCourseSchedule: WithDefaultSemester<PersonalCourseScheduleApplicationInterface>;
+  personalCourseSchedule: PersonalCourseScheduleApplicationInterface;
   scholarships: ScholarshipsApplicationInterface;
   studentInformation: StudentInformationApplicationInterface;
 };
@@ -162,14 +162,10 @@ const start = (session: USaintSessionInterface, studentId: string) => {
       const personalCourseSchedule = await new PersonalCourseScheduleApplicationBuilder().build(
         session,
       );
-      const defaultScheduleSemester = await personalCourseSchedule.getSelectedSemester();
       if (currentGeneration !== generation) {
         return;
       }
-      currentSlots.personalCourseSchedule.resolve({
-        client: personalCourseSchedule,
-        defaultSemester: defaultScheduleSemester,
-      });
+      currentSlots.personalCourseSchedule.resolve(personalCourseSchedule);
 
       const grades = await new CourseGradesApplicationBuilder().build(session);
       const defaultGradesSemester = await grades.getSelectedSemester();

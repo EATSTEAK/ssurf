@@ -15,11 +15,10 @@ import { useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
 import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
-import { includeSeasonalSemesters } from '@/features/schedule/lib/utils';
+import { buildScheduleSemesters } from '@/features/schedule/lib/utils';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
 import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
 import { getEstimatedCurrentSemester, semesterToString } from '@/shared/lib/semester';
-import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
@@ -65,34 +64,20 @@ const RUSAINT_NO_SCHEDULE =
 
 export default function Index() {
   const router = useRouter();
-  const { defaultScheduleSemester } = useRusaintApplication();
   const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
   const {
     data: enrollmentSemesters,
     isSyncing: isEnrollmentSyncing,
     refresh: refreshEnrollmentSemesters,
   } = useEnrollmentSemesters();
-  const defaultSemester = defaultScheduleSemester ?? getEstimatedCurrentSemester(true);
-  const estimatedCurrentSemester = getEstimatedCurrentSemester(true);
-  const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
-  const semesters =
-    enrollmentSemesters.length > 0
-      ? includeSeasonalSemesters(enrollmentSemesters, getEstimatedCurrentSemester())
-      : [defaultSemester];
-  const requestedSemester =
-    defaultScheduleSemester &&
-    selectedSemester.year === estimatedCurrentSemester.year &&
-    selectedSemester.semester === estimatedCurrentSemester.semester
-      ? defaultScheduleSemester
-      : selectedSemester;
+  const estimatedCurrentSemester = getEstimatedCurrentSemester();
+  const [selectedSemester, setSelectedSemester] = useState(estimatedCurrentSemester);
+  const semesters = buildScheduleSemesters(estimatedCurrentSemester, enrollmentSemesters);
   const effectiveSelectedSemester =
     semesters.find(
       (semester) =>
-        semester.year === requestedSemester.year &&
-        semester.semester === requestedSemester.semester,
-    ) ??
-    semesters[0] ??
-    defaultSemester;
+        semester.year === selectedSemester.year && semester.semester === selectedSemester.semester,
+    ) ?? estimatedCurrentSemester;
 
   const {
     data,

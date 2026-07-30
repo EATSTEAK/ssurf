@@ -1,18 +1,16 @@
 import type { CourseScheduleEntity } from '@/entities/courseSchedule/model';
-import type { SemesterType, YearSemester } from '@rusaint/react-native';
+import type { YearSemester } from '@rusaint/react-native';
 
-export const includeSeasonalSemesters = (
+export const buildScheduleSemesters = (
+  estimatedSemester: YearSemester,
   enrollmentSemesters: readonly YearSemester[],
-  currentSemester: YearSemester,
-): YearSemester[] =>
-  enrollmentSemesters.flatMap((semester) => {
-    const seasonalSemester = (semester.semester + 1) as SemesterType;
-    const isFuture =
-      semester.year > currentSemester.year ||
-      (semester.year === currentSemester.year && seasonalSemester > currentSemester.semester);
-
-    return isFuture ? [semester] : [{ year: semester.year, semester: seasonalSemester }, semester];
-  });
+): YearSemester[] => [
+  estimatedSemester,
+  ...enrollmentSemesters.filter(
+    (semester) =>
+      semester.year !== estimatedSemester.year || semester.semester !== estimatedSemester.semester,
+  ),
+];
 
 export const formatMinutesToTime = (minutes: number): string => {
   const h = Math.floor(minutes / 60);

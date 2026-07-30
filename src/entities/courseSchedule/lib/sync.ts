@@ -14,7 +14,7 @@ export const courseScheduleSync = (
   return {
     key: [studentId, `personalCourseSchedule.${year}-${semester}`],
     run: async () => {
-      const { client } = await applications.get('personalCourseSchedule', studentId, generation);
+      const client = await applications.get('personalCourseSchedule', studentId, generation);
       await syncCourseSchedule(client, studentId, year, semester);
     },
   };

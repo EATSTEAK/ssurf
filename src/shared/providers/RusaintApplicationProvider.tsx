@@ -7,28 +7,24 @@ import { useRusaintSession } from '@/shared/providers/RusaintSessionProvider';
 export interface RusaintApplicationContext {
   defaultChapelSemester: null | YearSemester;
   defaultGradesSemester: null | YearSemester;
-  defaultScheduleSemester: null | YearSemester;
   studentId: null | string;
 }
 
 const RusaintApplicationContext = createContext<RusaintApplicationContext>({
   defaultChapelSemester: null,
   defaultGradesSemester: null,
-  defaultScheduleSemester: null,
   studentId: null,
 });
 
 type DefaultSemesters = {
   defaultChapelSemester: null | YearSemester;
   defaultGradesSemester: null | YearSemester;
-  defaultScheduleSemester: null | YearSemester;
   session: null | USaintSessionInterface;
 };
 
 const emptyDefaults = (session: null | USaintSessionInterface): DefaultSemesters => ({
   defaultChapelSemester: null,
   defaultGradesSemester: null,
-  defaultScheduleSemester: null,
   session,
 });
 
@@ -72,18 +68,6 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
       () => undefined,
     );
 
-    void applications.get('personalCourseSchedule', studentId, generation).then(
-      ({ defaultSemester }) => {
-        if (active) {
-          setDefaults((current) => ({
-            ...(current.session === session ? current : emptyDefaults(session)),
-            defaultScheduleSemester: defaultSemester,
-          }));
-        }
-      },
-      () => undefined,
-    );
-
     return () => {
       active = false;
     };
@@ -96,7 +80,6 @@ export const RusaintApplicationProvider = ({ children }: React.PropsWithChildren
       value={{
         defaultChapelSemester: currentDefaults.defaultChapelSemester,
         defaultGradesSemester: currentDefaults.defaultGradesSemester,
-        defaultScheduleSemester: currentDefaults.defaultScheduleSemester,
         studentId,
       }}
     >
