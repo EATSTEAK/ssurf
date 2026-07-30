@@ -158,13 +158,6 @@ export const syncCourseInformation = async (
   const result = await withCourseScheduleClient(client, () =>
     loadCourseInformation({
       courseNames: scheduledCourses.map(({ name }) => name),
-      findAll: () =>
-        client.findDetailedLectures(
-          year,
-          semester,
-          new LectureCategoryBuilder().findByLecture('%%'),
-          false,
-        ),
       findByName: (name) =>
         client.findDetailedLectures(
           year,
