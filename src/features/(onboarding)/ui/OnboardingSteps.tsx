@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import loadingImage from '@/assets/loading.png';
-import { LmsConnectionView } from '@/features/(onboarding)/ui/lms-connection-view';
+import { LmsConnectionView } from '@/features/lms/ui/LmsConnectionView';
 import { enableBackgroundUpdates } from '@/shared/lib/backgroundUpdates';
 import { getCanvasAccessToken, getStoredCredentials } from '@/shared/lib/credentials';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';

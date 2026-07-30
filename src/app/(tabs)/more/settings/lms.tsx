@@ -4,8 +4,8 @@ import { ActivityIndicator, Alert, Platform, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { testCanvasAccessToken } from '@/features/(onboarding)/lib/lms-token';
-import { LmsConnectionView } from '@/features/(onboarding)/ui/lms-connection-view';
+import { testCanvasAccessToken } from '@/features/lms/lib/lmsToken';
+import { LmsConnectionView } from '@/features/lms/ui/LmsConnectionView';
 import {
   deleteCanvasAccessToken,
   getCanvasAccessToken,

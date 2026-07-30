@@ -6,7 +6,7 @@ import {
   isCanvasProfileSettingsUrl,
   parseLmsBridgeMessage,
   testCanvasAccessToken,
-} from './lms-token';
+} from './lmsToken';
 
 describe('LMS token bridge', () => {
   it('creates a nonce when React Native does not provide Web Crypto', () => {

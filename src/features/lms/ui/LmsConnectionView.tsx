@@ -11,7 +11,7 @@ import {
   isCanvasProfileSettingsUrl,
   LmsBridgeMessage,
   parseLmsBridgeMessage,
-} from '@/features/(onboarding)/lib/lms-token';
+} from '@/features/lms/lib/lmsToken';
 import { saveCanvasAccessToken, StoredCredentials } from '@/shared/lib/credentials';
 import { ChevronLeftIcon } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui/primitives/Button';
