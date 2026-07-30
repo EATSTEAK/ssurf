@@ -14,7 +14,7 @@ import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
-import { BellIcon, LogoutIcon, NewspaperIcon, SettingsIcon } from '@/shared/ui/icons';
+import { BellIcon, LockIcon, LogoutIcon, NewspaperIcon, SettingsIcon } from '@/shared/ui/icons';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { ActionList, ActionListItem } from '@/shared/ui/primitives/ActionList';
 import { Space } from '@/shared/ui/primitives/Space';
@@ -37,6 +37,9 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 const ThemedBellIcon = withUnistyles(BellIcon, (theme) => ({
+  color: theme.colorsHex.fgSurfaceDimmer,
+}));
+const ThemedLockIcon = withUnistyles(LockIcon, (theme) => ({
   color: theme.colorsHex.fgSurfaceDimmer,
 }));
 const ThemedLogoutIcon = withUnistyles(LogoutIcon, (theme) => ({
@@ -102,6 +105,12 @@ export default function Index() {
                   onPress={() => router.push('/more/settings/notifications')}
                 >
                   <ThemedText typography="bodyLg">알림 설정</ThemedText>
+                </ActionListItem>
+                <ActionListItem
+                  icon={<ThemedLockIcon size={24} />}
+                  onPress={() => router.push('/more/settings/lms')}
+                >
+                  <ThemedText typography="bodyLg">LMS 설정</ThemedText>
                 </ActionListItem>
                 {revisionPressCount >= 5 && (
                   <ActionListItem

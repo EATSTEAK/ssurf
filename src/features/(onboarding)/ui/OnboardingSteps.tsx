@@ -1,3 +1,5 @@
+import type { StoredCredentials } from '@/shared/lib/credentials';
+
 import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { PropsWithChildren, useEffect, useState } from 'react';
@@ -6,7 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import loadingImage from '@/assets/loading.png';
+import { LmsConnectionView } from '@/features/lms/ui/LmsConnectionView';
 import { enableBackgroundUpdates } from '@/shared/lib/backgroundUpdates';
+import { getCanvasAccessToken, getStoredCredentials } from '@/shared/lib/credentials';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { Button } from '@/shared/ui/primitives/Button';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -157,15 +161,34 @@ export function IntroStep({ onNext }: { onNext: () => void }) {
 
 export function PermissionsStep({ onNext, studentId }: { onNext: () => void; studentId: string }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [lmsConnected, setLmsConnected] = useState(false);
+  const [lmsCredentials, setLmsCredentials] = useState<null | StoredCredentials>(null);
+  const [isOpeningLms, setIsOpeningLms] = useState(false);
 
   useEffect(() => {
-    void Notifications.getPermissionsAsync()
-      .then((permission) => setNotificationsEnabled(permission.granted))
-      .catch((error) => console.error('Failed to check notification permission:', error));
-  }, []);
+    void Promise.all([Notifications.getPermissionsAsync(), getCanvasAccessToken(studentId)])
+      .then(([permission, token]) => {
+        setNotificationsEnabled(permission.granted);
+        setLmsConnected(token != null);
+      })
+      .catch((error) => console.error('Failed to check onboarding permissions:', error));
+  }, [studentId]);
 
-  const onPressLmsLogin = () => {
-    Alert.alert('LMS 로그인', 'LMS 로그인 플로우는 준비 중이에요.');
+  const onPressLmsLogin = async () => {
+    setIsOpeningLms(true);
+    try {
+      const credentials = await getStoredCredentials();
+      if (!credentials) {
+        Alert.alert('LMS 연결 실패', '저장된 학교 계정 정보가 없어요. 다시 로그인해주세요.');
+        return;
+      }
+      setLmsCredentials(credentials);
+    } catch (error) {
+      console.error('Failed to prepare LMS login:', error);
+      Alert.alert('LMS 연결 실패', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsOpeningLms(false);
+    }
   };
 
   const onPressNotifications = async () => {
@@ -180,6 +203,19 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
       Alert.alert('알림 설정 실패', '잠시 후 다시 시도해 주세요.');
     }
   };
+
+  if (lmsCredentials) {
+    return (
+      <LmsConnectionView
+        credentials={lmsCredentials}
+        onClose={() => setLmsCredentials(null)}
+        onConnected={() => {
+          setLmsConnected(true);
+          setLmsCredentials(null);
+        }}
+      />
+    );
+  }
 
   return (
     <SurfaceStep>
@@ -210,12 +246,14 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
             </View>
           </View>
           <Button
-            onPress={onPressLmsLogin}
+            accessibilityState={{ disabled: lmsConnected || isOpeningLms }}
+            disabled={lmsConnected || isOpeningLms}
+            onPress={() => void onPressLmsLogin()}
             style={styles.button}
             textStyle={styles.buttonText}
             variant="success"
           >
-            로그인
+            {lmsConnected ? '완료됨' : isOpeningLms ? '연결 준비 중...' : '로그인'}
           </Button>
         </View>
         <View style={styles.permissionSection}>
