@@ -59,7 +59,7 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: '500',
     color: theme.colors.fgSurfaceDim,
   },
-  todayHeaderCell: {
+  todayColumn: {
     borderRadius: 6,
     backgroundColor: theme.colors.errorContainer,
   },
@@ -123,7 +123,7 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
         {displayWeekdays.map((day) => (
           <View
             key={day}
-            style={[styles.headerCell, day === today ? styles.todayHeaderCell : undefined]}
+            style={[styles.headerCell, day === today ? styles.todayColumn : undefined]}
           >
             <Text style={[styles.headerText, day === today ? styles.todayHeaderText : undefined]}>
               {WEEKDAY_LABELS[day]}
@@ -143,7 +143,10 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
 
         <View style={styles.dayColumnsContainer}>
           {displayWeekdays.map((day) => (
-            <View key={day} style={styles.dayColumn}>
+            <View
+              key={day}
+              style={[styles.dayColumn, day === today ? styles.todayColumn : undefined]}
+            >
               {hours.map((hour) => (
                 <View key={hour} style={styles.gridLine} />
               ))}
