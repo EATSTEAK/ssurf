@@ -18,14 +18,14 @@ import {
 
 type WithDefaultSemester<T> = {
   client: T;
-  defaultSemester: YearSemester;
+  defaultSemester: null | YearSemester;
 };
 
 type ApplicationValues = {
   chapel: WithDefaultSemester<ChapelApplicationInterface>;
   grades: WithDefaultSemester<CourseGradesApplicationInterface>;
   graduationRequirements: GraduationRequirementsApplicationInterface;
-  personalCourseSchedule: PersonalCourseScheduleApplicationInterface;
+  personalCourseSchedule: WithDefaultSemester<PersonalCourseScheduleApplicationInterface>;
   scholarships: ScholarshipsApplicationInterface;
   studentInformation: StudentInformationApplicationInterface;
 };
@@ -162,10 +162,16 @@ const start = (session: USaintSessionInterface, studentId: string) => {
       const personalCourseSchedule = await new PersonalCourseScheduleApplicationBuilder().build(
         session,
       );
+      const defaultScheduleSemester = await personalCourseSchedule
+        .getSelectedSemester()
+        .catch(() => null);
       if (currentGeneration !== generation) {
         return;
       }
-      currentSlots.personalCourseSchedule.resolve(personalCourseSchedule);
+      currentSlots.personalCourseSchedule.resolve({
+        client: personalCourseSchedule,
+        defaultSemester: defaultScheduleSemester,
+      });
 
       const grades = await new CourseGradesApplicationBuilder().build(session);
       const defaultGradesSemester = await grades.getSelectedSemester();

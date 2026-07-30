@@ -4,13 +4,23 @@ import type { YearSemester } from '@rusaint/react-native';
 export const buildScheduleSemesters = (
   estimatedSemester: YearSemester,
   enrollmentSemesters: readonly YearSemester[],
-): YearSemester[] => [
-  estimatedSemester,
-  ...enrollmentSemesters.filter(
-    (semester) =>
-      semester.year !== estimatedSemester.year || semester.semester !== estimatedSemester.semester,
-  ),
-];
+  defaultSemester: null | YearSemester,
+  selectedSemester: null | YearSemester,
+): YearSemester[] => {
+  const semesters = [
+    selectedSemester,
+    defaultSemester,
+    estimatedSemester,
+    ...enrollmentSemesters,
+  ].filter((semester): semester is YearSemester => semester != null);
+
+  return semesters.filter(
+    (semester, index) =>
+      semesters.findIndex(
+        (candidate) => candidate.year === semester.year && candidate.semester === semester.semester,
+      ) === index,
+  );
+};
 
 export const formatMinutesToTime = (minutes: number): string => {
   const h = Math.floor(minutes / 60);
