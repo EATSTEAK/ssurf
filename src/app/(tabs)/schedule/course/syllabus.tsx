@@ -1,12 +1,17 @@
 import type { LectureSyllabus, SemesterType } from '@rusaint/react-native';
 
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useCourseSyllabus } from '@/entities/courseSchedule/lib/queries';
 import { CourseDetailRow, CourseDetailSection } from '@/features/schedule/ui/CourseDetailSection';
+import { SafeContainer } from '@/shared/ui/containers/Container';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
+import { Header } from '@/shared/ui/headers/Header';
 import { Button } from '@/shared/ui/primitives/Button';
+import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
@@ -18,6 +23,9 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(2),
     padding: theme.gap(2),
     paddingBottom: theme.gap(6),
+  },
+  heading: {
+    gap: theme.gap(0.5),
   },
   loading: {
     alignItems: 'center',
@@ -77,37 +85,63 @@ const SyllabusContent = ({
   year: number;
 }) => {
   const { data, error, isSyncing, refresh } = useCourseSyllabus(year, semester, code, name);
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: '강의계획서' }} />
-      <ScrollView
-        contentContainerStyle={styles.content}
-        contentInsetAdjustmentBehavior="automatic"
-        style={styles.root}
-      >
-        {!data ? (
-          <CourseDetailSection title="강의계획서">
-            {isSyncing || !error ? (
-              <View style={styles.loading}>
-                <ActivityIndicator accessibilityLabel="강의계획서 불러오는 중" />
-                <ThemedText typography="bodyLg">강의계획서를 불러오는 중이에요.</ThemedText>
-              </View>
+      <Stack.Screen
+        options={{
+          headerBackVisible: true,
+          headerShown: true,
+          headerTitle: () => <></>,
+          headerTransparent: true,
+          title: '강의계획서',
+        }}
+      />
+      <View style={styles.root}>
+        <Animated.ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+        >
+          <SafeContainer style={styles.content}>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.heading}>
+              <Header title="강의계획서" />
+              <ThemedText color="fgSecondary" selectable typography="bodyLg">
+                {name}
+              </ThemedText>
+            </View>
+            {!data ? (
+              <CourseDetailSection title="강의계획서">
+                {isSyncing || !error ? (
+                  <View style={styles.loading}>
+                    <ActivityIndicator accessibilityLabel="강의계획서 불러오는 중" />
+                    <ThemedText typography="bodyLg">강의계획서를 불러오는 중이에요.</ThemedText>
+                  </View>
+                ) : (
+                  <>
+                    <ThemedText color="error" selectable typography="bodyLg">
+                      {error.message}
+                    </ThemedText>
+                    <Button onPress={() => void refresh()} variant="outline">
+                      다시 시도
+                    </Button>
+                  </>
+                )}
+              </CourseDetailSection>
             ) : (
-              <>
-                <ThemedText color="error" selectable typography="bodyLg">
-                  {error.message}
-                </ThemedText>
-                <Button onPress={() => void refresh()} variant="outline">
-                  다시 시도
-                </Button>
-              </>
+              <SyllabusSections data={data} />
             )}
-          </CourseDetailSection>
-        ) : (
-          <SyllabusSections data={data} />
-        )}
-      </ScrollView>
+          </SafeContainer>
+        </Animated.ScrollView>
+        <FloatingHeader label={name} scrollY={scrollY} title="강의계획서" />
+      </View>
     </>
   );
 };

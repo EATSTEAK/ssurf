@@ -6,7 +6,8 @@ import type { SemesterType } from '@rusaint/react-native';
 
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { useCourseInformationCandidates } from '@/entities/courseSchedule/lib/queries';
@@ -16,8 +17,12 @@ import {
   WEEKDAY_LABELS,
 } from '@/features/schedule/lib/utils';
 import { CourseDetailRow, CourseDetailSection } from '@/features/schedule/ui/CourseDetailSection';
+import { SafeContainer } from '@/shared/ui/containers/Container';
+import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
+import { Header } from '@/shared/ui/headers/Header';
 import { ChevronRightIcon } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui/primitives/Button';
+import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
@@ -140,6 +145,12 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
   const router = useRouter();
   const { theme } = useUnistyles();
   const [selectedId, setSelectedId] = useState<null | string>(null);
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
   const { data, error, hasLoaded, isSyncing, refresh } = useCourseInformationCandidates(
     schedule.year,
     schedule.semester as SemesterType,
@@ -169,153 +180,172 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: schedule.name }} />
-      <ScrollView
-        contentContainerStyle={styles.content}
-        contentInsetAdjustmentBehavior="automatic"
-        style={styles.root}
-      >
-        <View style={styles.heading}>
-          <ThemedText selectable typography="heading2xl">
-            {schedule.name}
-          </ThemedText>
-          <ThemedText color="fgSecondary" selectable typography="bodyLg">
-            {schedule.professor}
-          </ThemedText>
-        </View>
-
-        <CourseDetailSection title="내 시간표">
-          <CourseDetailRow
-            label="시간"
-            value={`${WEEKDAY_LABELS[schedule.weekday]} ${formatTimeRange(
-              schedule.startTime,
-              schedule.endTime,
-            )}`}
-          />
-          <CourseDetailRow label="강의실" value={schedule.classroom} />
-        </CourseDetailSection>
-
-        {matches.length > 1 ? (
-          <CourseDetailSection title="분반 선택">
-            {matches.map((candidate) => {
-              const id = candidateId(candidate);
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selectedId === id }}
-                  key={id}
-                  onPress={() => setSelectedId(id)}
-                  style={({ pressed }) => [
-                    styles.candidate(selectedId === id),
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <ThemedText typography="headingMd">
-                    {candidate.code}
-                    {candidate.division ? ` · ${candidate.division}분반` : ''}
-                  </ThemedText>
-                  <ThemedText color="fgSecondary" typography="bodyMd">
-                    {candidate.professor} · {candidate.scheduleRoom}
-                  </ThemedText>
-                </Pressable>
-              );
-            })}
-          </CourseDetailSection>
-        ) : null}
-
-        {!selected && matches.length <= 1 ? (
-          <CourseDetailSection title="추가 정보">
-            {isSyncing || (!hasLoaded && !error) ? (
-              <View style={styles.loading}>
-                <ActivityIndicator accessibilityLabel="전체 과목 정보 불러오는 중" />
-                <ThemedText typography="bodyLg">전체 과목 정보를 불러오는 중이에요.</ThemedText>
-              </View>
-            ) : (
-              <>
-                <ThemedText color={error ? 'error' : 'fgSecondary'} selectable typography="bodyLg">
-                  {error?.message ?? '일치하는 과목 정보를 찾지 못했어요.'}
-                </ThemedText>
-                <Button onPress={() => void refresh()} variant="outline">
-                  다시 시도
-                </Button>
-              </>
-            )}
-          </CourseDetailSection>
-        ) : null}
-
-        {lecture ? (
-          <CourseDetailSection title="과목 정보">
-            <CourseDetailRow label="과목번호" value={lecture.code} />
-            <CourseDetailRow label="분반" value={lecture.division} />
-            <CourseDetailRow label="이수구분" value={lecture.category} />
-            <CourseDetailRow label="다전공 이수구분" value={lecture.subCategory} />
-            <CourseDetailRow label="공학인증" value={lecture.abeekInfo} />
-            <CourseDetailRow label="교과영역" value={lecture.field} />
-            <CourseDetailRow label="개설학과" value={lecture.department} />
-            <CourseDetailRow label="시간/학점" value={lecture.timePoints} />
-            <CourseDetailRow label="수강인원" value={lecture.personeel} />
-            <CourseDetailRow label="여석" value={lecture.remainingSeats} />
-            <CourseDetailRow label="강의시간/강의실" value={lecture.scheduleRoom} />
-            <CourseDetailRow label="수강대상" value={lecture.target} />
-          </CourseDetailSection>
-        ) : null}
-
-        {detail?.categories.length ? (
-          <CourseDetailSection title="과목 분류">
-            <CourseDetailRow label="분류" value={detail.categories.join('\n')} />
-          </CourseDetailSection>
-        ) : null}
-
-        {detail?.prerequisites.length ? (
-          <CourseDetailSection title="선수 과목">
-            <CourseDetailRow label="과목" value={listLectures(detail.prerequisites)} />
-          </CourseDetailSection>
-        ) : null}
-
-        {detail?.alternativeLectures.length ? (
-          <CourseDetailSection title="대체 과목">
-            {detail.alternativeLectures.map((item) => (
-              <CourseDetailRow
-                key={`${item.kind}:${item.code}`}
-                label={item.kind}
-                value={`${item.code} ${item.name}`}
-              />
-            ))}
-          </CourseDetailSection>
-        ) : null}
-
-        {detail?.changesHistory.length ? (
-          <CourseDetailSection title="강의 변경 이력">
-            {detail.changesHistory.map((item) => (
-              <CourseDetailRow
-                key={`${item.startDate}:${item.endDate}:${item.name}`}
-                label={`${item.startDate} - ${item.endDate}`}
-                value={item.name}
-              />
-            ))}
-          </CourseDetailSection>
-        ) : null}
-
-        {lecture ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !lecture.syllabus }}
-            disabled={!lecture.syllabus}
-            onPress={openSyllabus}
-            style={({ pressed }) => [styles.syllabus(!lecture.syllabus), pressed && styles.pressed]}
-          >
-            <View>
-              <ThemedText typography="headingLg">강의계획서</ThemedText>
-              <ThemedText color="fgSecondary" typography="bodyMd">
-                {lecture.syllabus ? '전체 강의계획서 보기' : '등록된 강의계획서가 없어요.'}
+      <Stack.Screen
+        options={{
+          headerBackVisible: true,
+          headerShown: true,
+          headerTitle: () => <></>,
+          headerTransparent: true,
+          title: schedule.name,
+        }}
+      />
+      <View style={styles.root}>
+        <Animated.ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+        >
+          <SafeContainer style={styles.content}>
+            {Platform.OS === 'ios' && <Space gap={2} />}
+            <View style={styles.heading}>
+              <Header title={schedule.name} />
+              <ThemedText color="fgSecondary" selectable typography="bodyLg">
+                {schedule.professor}
               </ThemedText>
             </View>
-            {lecture.syllabus ? (
-              <ChevronRightIcon color={theme.colorsHex.fgSurface} size={20} />
+
+            <CourseDetailSection title="내 시간표">
+              <CourseDetailRow
+                label="시간"
+                value={`${WEEKDAY_LABELS[schedule.weekday]} ${formatTimeRange(
+                  schedule.startTime,
+                  schedule.endTime,
+                )}`}
+              />
+              <CourseDetailRow label="강의실" value={schedule.classroom} />
+            </CourseDetailSection>
+
+            {matches.length > 1 ? (
+              <CourseDetailSection title="분반 선택">
+                {matches.map((candidate) => {
+                  const id = candidateId(candidate);
+                  return (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedId === id }}
+                      key={id}
+                      onPress={() => setSelectedId(id)}
+                      style={({ pressed }) => [
+                        styles.candidate(selectedId === id),
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <ThemedText typography="headingMd">
+                        {candidate.code}
+                        {candidate.division ? ` · ${candidate.division}분반` : ''}
+                      </ThemedText>
+                      <ThemedText color="fgSecondary" typography="bodyMd">
+                        {candidate.professor} · {candidate.scheduleRoom}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </CourseDetailSection>
             ) : null}
-          </Pressable>
-        ) : null}
-      </ScrollView>
+
+            {!selected && matches.length <= 1 ? (
+              <CourseDetailSection title="추가 정보">
+                {isSyncing || (!hasLoaded && !error) ? (
+                  <View style={styles.loading}>
+                    <ActivityIndicator accessibilityLabel="전체 과목 정보 불러오는 중" />
+                    <ThemedText typography="bodyLg">전체 과목 정보를 불러오는 중이에요.</ThemedText>
+                  </View>
+                ) : (
+                  <>
+                    <ThemedText
+                      color={error ? 'error' : 'fgSecondary'}
+                      selectable
+                      typography="bodyLg"
+                    >
+                      {error?.message ?? '일치하는 과목 정보를 찾지 못했어요.'}
+                    </ThemedText>
+                    <Button onPress={() => void refresh()} variant="outline">
+                      다시 시도
+                    </Button>
+                  </>
+                )}
+              </CourseDetailSection>
+            ) : null}
+
+            {lecture ? (
+              <CourseDetailSection title="과목 정보">
+                <CourseDetailRow label="과목번호" value={lecture.code} />
+                <CourseDetailRow label="분반" value={lecture.division} />
+                <CourseDetailRow label="이수구분" value={lecture.category} />
+                <CourseDetailRow label="다전공 이수구분" value={lecture.subCategory} />
+                <CourseDetailRow label="공학인증" value={lecture.abeekInfo} />
+                <CourseDetailRow label="교과영역" value={lecture.field} />
+                <CourseDetailRow label="개설학과" value={lecture.department} />
+                <CourseDetailRow label="시간/학점" value={lecture.timePoints} />
+                <CourseDetailRow label="수강인원" value={lecture.personeel} />
+                <CourseDetailRow label="여석" value={lecture.remainingSeats} />
+                <CourseDetailRow label="강의시간/강의실" value={lecture.scheduleRoom} />
+                <CourseDetailRow label="수강대상" value={lecture.target} />
+              </CourseDetailSection>
+            ) : null}
+
+            {detail?.categories.length ? (
+              <CourseDetailSection title="과목 분류">
+                <CourseDetailRow label="분류" value={detail.categories.join('\n')} />
+              </CourseDetailSection>
+            ) : null}
+
+            {detail?.prerequisites.length ? (
+              <CourseDetailSection title="선수 과목">
+                <CourseDetailRow label="과목" value={listLectures(detail.prerequisites)} />
+              </CourseDetailSection>
+            ) : null}
+
+            {detail?.alternativeLectures.length ? (
+              <CourseDetailSection title="대체 과목">
+                {detail.alternativeLectures.map((item) => (
+                  <CourseDetailRow
+                    key={`${item.kind}:${item.code}`}
+                    label={item.kind}
+                    value={`${item.code} ${item.name}`}
+                  />
+                ))}
+              </CourseDetailSection>
+            ) : null}
+
+            {detail?.changesHistory.length ? (
+              <CourseDetailSection title="강의 변경 이력">
+                {detail.changesHistory.map((item) => (
+                  <CourseDetailRow
+                    key={`${item.startDate}:${item.endDate}:${item.name}`}
+                    label={`${item.startDate} - ${item.endDate}`}
+                    value={item.name}
+                  />
+                ))}
+              </CourseDetailSection>
+            ) : null}
+
+            {lecture ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !lecture.syllabus }}
+                disabled={!lecture.syllabus}
+                onPress={openSyllabus}
+                style={({ pressed }) => [
+                  styles.syllabus(!lecture.syllabus),
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View>
+                  <ThemedText typography="headingLg">강의계획서</ThemedText>
+                  <ThemedText color="fgSecondary" typography="bodyMd">
+                    {lecture.syllabus ? '전체 강의계획서 보기' : '등록된 강의계획서가 없어요.'}
+                  </ThemedText>
+                </View>
+                {lecture.syllabus ? (
+                  <ChevronRightIcon color={theme.colorsHex.fgSurface} size={20} />
+                ) : null}
+              </Pressable>
+            ) : null}
+          </SafeContainer>
+        </Animated.ScrollView>
+        <FloatingHeader label={schedule.professor} scrollY={scrollY} title={schedule.name} />
+      </View>
     </>
   );
 };
