@@ -5,15 +5,18 @@ import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
 import { HOUR_HEIGHT } from '@/features/schedule/lib/utils';
 
 const styles = StyleSheet.create((theme) => ({
-  cell: (colorIndex: number) => ({
+  cell: (colorIndex: number, isActive: boolean) => ({
     position: 'absolute' as const,
     left: 2,
     right: 2,
     borderRadius: 6,
+    borderWidth: isActive ? 2 : 0,
+    borderColor: theme.colors.error,
     paddingHorizontal: 4,
     paddingVertical: 3,
     overflow: 'hidden' as const,
     backgroundColor: theme.schedule.courseColors[colorIndex].bg,
+    zIndex: isActive ? 1 : 0,
   }),
   text: (colorIndex: number) => ({
     color: theme.schedule.courseColors[colorIndex].fg,
@@ -33,12 +36,19 @@ const styles = StyleSheet.create((theme) => ({
 
 interface ScheduleCellProps {
   colorIndex: number;
+  isActive: boolean;
   item: CourseScheduleEntity;
   onPress: (item: CourseScheduleEntity) => void;
   startHour: number;
 }
 
-export const ScheduleCell = ({ colorIndex, item, startHour, onPress }: ScheduleCellProps) => {
+export const ScheduleCell = ({
+  colorIndex,
+  isActive,
+  item,
+  startHour,
+  onPress,
+}: ScheduleCellProps) => {
   const top = PixelRatio.roundToNearestPixel(
     ((item.startTime - startHour * 60) / 60) * HOUR_HEIGHT,
   );
@@ -48,7 +58,10 @@ export const ScheduleCell = ({ colorIndex, item, startHour, onPress }: ScheduleC
   const isShort = height < 40;
 
   return (
-    <Pressable onPress={() => onPress(item)} style={[styles.cell(colorIndex), { top, height }]}>
+    <Pressable
+      onPress={() => onPress(item)}
+      style={[styles.cell(colorIndex, isActive), { top, height }]}
+    >
       <Text numberOfLines={isShort ? 1 : 2} style={[styles.name, styles.text(colorIndex)]}>
         {item.name}
       </Text>

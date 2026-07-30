@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -7,6 +7,7 @@ import {
   assignCourseColorIndices,
   getGridBounds,
   HOUR_HEIGHT,
+  isScheduleActive,
   WEEKDAY_LABELS,
 } from '@/features/schedule/lib/utils';
 import { ScheduleCell } from '@/features/schedule/ui/ScheduleCell';
@@ -58,11 +59,28 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: '500',
     color: theme.colors.fgSurfaceDim,
   },
+  todayHeaderCell: {
+    borderRadius: 6,
+    backgroundColor: theme.colors.errorContainer,
+  },
+  todayHeaderText: {
+    color: theme.colors.fgErrorContainer,
+    fontWeight: '700',
+  },
   gridLine: {
     height: HOUR_HEIGHT,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: theme.colors.surfaceDimmer,
   },
+  currentTimeLine: (top: number) => ({
+    position: 'absolute' as const,
+    left: 0,
+    right: 0,
+    top,
+    height: 2,
+    backgroundColor: theme.colors.error,
+    zIndex: 2,
+  }),
 }));
 
 interface ScheduleGridProps {
@@ -73,8 +91,18 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
   const { startHour, endHour, weekdays } = getGridBounds(data);
   const totalHours = endHour - startHour;
   const [selectedItem, setSelectedItem] = useState<CourseScheduleEntity | null>(null);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const displayWeekdays = weekdays.length > 0 ? weekdays : [0, 1, 2, 3, 4];
+  const today = (now.getDay() + 6) % 7;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const currentTimeTop = ((currentMinutes - startHour * 60) / 60) * HOUR_HEIGHT;
+  const showCurrentTime = currentMinutes >= startHour * 60 && currentMinutes < endHour * 60;
 
   const hours = Array.from({ length: totalHours }, (_, i) => startHour + i);
 
@@ -93,8 +121,13 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
     <View>
       <View style={styles.headerRow}>
         {displayWeekdays.map((day) => (
-          <View key={day} style={styles.headerCell}>
-            <Text style={styles.headerText}>{WEEKDAY_LABELS[day]}</Text>
+          <View
+            key={day}
+            style={[styles.headerCell, day === today ? styles.todayHeaderCell : undefined]}
+          >
+            <Text style={[styles.headerText, day === today ? styles.todayHeaderText : undefined]}>
+              {WEEKDAY_LABELS[day]}
+            </Text>
           </View>
         ))}
       </View>
@@ -117,12 +150,16 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
               {(coursesByDay.get(day) ?? []).map((item) => (
                 <ScheduleCell
                   colorIndex={colorIndexMap.get(item)!}
+                  isActive={isScheduleActive(item, now)}
                   item={item}
                   key={`${item.name}-${item.startTime}`}
                   onPress={setSelectedItem}
                   startHour={startHour}
                 />
               ))}
+              {day === today && showCurrentTime ? (
+                <View pointerEvents="none" style={styles.currentTimeLine(currentTimeTop)} />
+              ) : null}
             </View>
           ))}
         </View>
