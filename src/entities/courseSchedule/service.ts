@@ -1,9 +1,32 @@
-import { PersonalCourseScheduleApplicationInterface, SemesterType } from '@rusaint/react-native';
+import {
+  CourseScheduleApplicationLike,
+  LectureCategoryBuilder,
+  PersonalCourseScheduleApplicationInterface,
+  SemesterType,
+} from '@rusaint/react-native';
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/db';
-import { courseSchedule } from '@/entities/courseSchedule/model';
+import { courseInformation, courseSchedule, courseSyllabus } from '@/entities/courseSchedule/model';
 import { cache } from '@/shared/model/schema/cache';
+
+const courseScheduleQueues = new WeakMap<CourseScheduleApplicationLike, Promise<void>>();
+
+const withCourseScheduleClient = <T>(
+  client: CourseScheduleApplicationLike,
+  operation: () => Promise<T>,
+): Promise<T> => {
+  const previous = courseScheduleQueues.get(client) ?? Promise.resolve();
+  const result = previous.then(operation, operation);
+  courseScheduleQueues.set(
+    client,
+    result.then(
+      () => undefined,
+      () => undefined,
+    ),
+  );
+  return result;
+};
 
 const parseTimeToMinutes = (time: string): null | { endMinutes: number; startMinutes: number } => {
   const match = time.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
@@ -111,6 +134,109 @@ export const syncCourseSchedule = async (
         set: {
           updatedAt: Date.now(),
         },
+      })
+      .execute();
+  });
+};
+
+export const syncCourseInformation = async (
+  client: CourseScheduleApplicationLike,
+  studentId: string,
+  year: number,
+  semester: SemesterType,
+) => {
+  const result = await withCourseScheduleClient(client, () =>
+    client.findDetailedLectures(
+      year,
+      semester,
+      new LectureCategoryBuilder().findByLecture('*'),
+      false,
+    ),
+  );
+  const rows: (typeof courseInformation.$inferInsert)[] = result.map(({ detail, lecture }) => ({
+    studentId,
+    year,
+    semester,
+    code: lecture.code,
+    division: lecture.division ?? '',
+    name: lecture.name,
+    professor: lecture.professor,
+    scheduleRoom: lecture.scheduleRoom,
+    lecture,
+    detail,
+  }));
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(courseInformation)
+      .where(
+        and(
+          eq(courseInformation.studentId, studentId),
+          eq(courseInformation.year, year),
+          eq(courseInformation.semester, semester),
+        ),
+      )
+      .execute();
+
+    for (let index = 0; index < rows.length; index += 90) {
+      await tx
+        .insert(courseInformation)
+        .values(rows.slice(index, index + 90))
+        .onConflictDoNothing()
+        .execute();
+    }
+
+    const cacheKey = `courseInformation.${year}-${semester}`;
+    await tx
+      .insert(cache)
+      .values({ studentId, key: cacheKey, updatedAt: Date.now() })
+      .onConflictDoUpdate({
+        target: [cache.studentId, cache.key],
+        set: { updatedAt: Date.now() },
+      })
+      .execute();
+  });
+};
+
+export const syncCourseSyllabus = async (
+  client: CourseScheduleApplicationLike,
+  studentId: string,
+  year: number,
+  semester: SemesterType,
+  code: string,
+  name: string,
+) => {
+  const data = await withCourseScheduleClient(client, async () => {
+    const category = new LectureCategoryBuilder().findByLecture(name);
+    const lectures = await client.findLectures(year, semester, category);
+    if (!lectures.some((lecture) => lecture.code === code)) {
+      throw new Error('강의 정보를 찾을 수 없어요.');
+    }
+    return client.lectureSyllabus(code);
+  });
+  const cacheKey = `courseSyllabus.${year}-${semester}-${code}`;
+
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(courseSyllabus)
+      .values({ studentId, year, semester, code, data })
+      .onConflictDoUpdate({
+        target: [
+          courseSyllabus.studentId,
+          courseSyllabus.year,
+          courseSyllabus.semester,
+          courseSyllabus.code,
+        ],
+        set: { data },
+      })
+      .execute();
+
+    await tx
+      .insert(cache)
+      .values({ studentId, key: cacheKey, updatedAt: Date.now() })
+      .onConflictDoUpdate({
+        target: [cache.studentId, cache.key],
+        set: { updatedAt: Date.now() },
       })
       .execute();
   });

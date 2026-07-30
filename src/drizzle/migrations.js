@@ -14,6 +14,7 @@ import m0009 from './0009_mixed_praxagora.sql';
 import m0010 from './0010_chubby_punisher.sql';
 import m0011 from './0011_mellow_lifeguard.sql';
 import m0012 from './0012_bright_manta.sql';
+import m0013 from './0013_strong_santa_claus.sql';
 
 export default {
   journal,
@@ -31,5 +32,6 @@ export default {
     m0010,
     m0011,
     m0012,
+    m0013,
   },
 };

@@ -4,6 +4,7 @@ import {
   CourseGradesApplicationBuilder,
   CourseGradesApplicationInterface,
   CourseScheduleApplicationBuilder,
+  CourseScheduleApplicationLike,
   GraduationRequirementsApplicationBuilder,
   GraduationRequirementsApplicationInterface,
   PersonalCourseScheduleApplicationBuilder,
@@ -23,6 +24,7 @@ type WithDefaultSemester<T> = {
 
 type ApplicationValues = {
   chapel: WithDefaultSemester<ChapelApplicationInterface>;
+  courseSchedule: CourseScheduleApplicationLike;
   grades: WithDefaultSemester<CourseGradesApplicationInterface>;
   graduationRequirements: GraduationRequirementsApplicationInterface;
   personalCourseSchedule: WithDefaultSemester<PersonalCourseScheduleApplicationInterface>;
@@ -81,6 +83,7 @@ const createDeferred = <T>(): Deferred<T> => {
 
 const createSlots = (): ApplicationSlots => ({
   chapel: createDeferred(),
+  courseSchedule: createDeferred(),
   grades: createDeferred(),
   graduationRequirements: createDeferred(),
   personalCourseSchedule: createDeferred(),
@@ -90,6 +93,7 @@ const createSlots = (): ApplicationSlots => ({
 
 const applicationNames = Object.freeze<ApplicationName[]>([
   'chapel',
+  'courseSchedule',
   'grades',
   'graduationRequirements',
   'personalCourseSchedule',
@@ -153,11 +157,11 @@ const start = (session: USaintSessionInterface, studentId: string) => {
       }
       currentSlots.chapel.resolve({ client: chapel, defaultSemester: defaultChapelSemester });
 
-      // 소비자는 없지만 기존 U-Saint 애플리케이션 초기화 순서를 유지한다.
-      await new CourseScheduleApplicationBuilder().build(session);
+      const courseSchedule = await new CourseScheduleApplicationBuilder().build(session);
       if (currentGeneration !== generation) {
         return;
       }
+      currentSlots.courseSchedule.resolve(courseSchedule);
 
       const personalCourseSchedule = await new PersonalCourseScheduleApplicationBuilder().build(
         session,

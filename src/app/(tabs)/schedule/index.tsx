@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo } from 'react';
-import { Platform, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -11,7 +11,7 @@ import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useCalendars } from '@/entities/calendar/lib/queries';
 import { CalendarEntity } from '@/entities/calendar/model';
-import { useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
+import { useCourseInformationSync, useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
 import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
@@ -39,6 +39,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   gridContainer: {
     paddingHorizontal: theme.gap(1),
+  },
+  headerActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.gap(1),
   },
   root: {
     backgroundColor: theme.colors.surface,
@@ -89,6 +94,8 @@ export default function Index() {
     error,
     refresh: refreshSchedule,
   } = useCourseSchedule(effectiveSelectedSemester.year, effectiveSelectedSemester.semester);
+  const { isSyncing: isCourseInformationSyncing, refresh: refreshCourseInformation } =
+    useCourseInformationSync(effectiveSelectedSemester.year, effectiveSelectedSemester.semester);
   const {
     data: calendars,
     error: calendarError,
@@ -123,10 +130,11 @@ export default function Index() {
   );
 
   const handleRefresh = () => {
-    if (isSyncing || isCalendarSyncing || isEnrollmentSyncing) {
+    if (isSyncing || isCourseInformationSyncing || isCalendarSyncing || isEnrollmentSyncing) {
       return;
     }
     void refreshSchedule();
+    void refreshCourseInformation();
     void refreshCalendars();
     void refreshEnrollmentSemesters();
   };
@@ -177,15 +185,20 @@ export default function Index() {
         options={{
           headerShown: true,
           headerRight: () => (
-            <SemesterSelector
-              onChange={(_, semester) => void setSavedSemester(semester)}
-              selectedIndex={semesters.findIndex(
-                (semester) =>
-                  semester.year === effectiveSelectedSemester.year &&
-                  semester.semester === effectiveSelectedSemester.semester,
-              )}
-              semesters={semesters}
-            />
+            <View style={styles.headerActions}>
+              {isCourseInformationSyncing ? (
+                <ActivityIndicator accessibilityLabel="전체 과목 정보 불러오는 중" size="small" />
+              ) : null}
+              <SemesterSelector
+                onChange={(_, semester) => void setSavedSemester(semester)}
+                selectedIndex={semesters.findIndex(
+                  (semester) =>
+                    semester.year === effectiveSelectedSemester.year &&
+                    semester.semester === effectiveSelectedSemester.semester,
+                )}
+                semesters={semesters}
+              />
+            </View>
           ),
           headerTitle: () => <></>,
           headerTransparent: true,
@@ -218,7 +231,11 @@ export default function Index() {
             {hasData ? (
               <>
                 <View style={styles.gridContainer}>
-                  <ScheduleGrid data={data} />
+                  <ScheduleGrid
+                    data={data}
+                    semester={effectiveSelectedSemester.semester}
+                    year={effectiveSelectedSemester.year}
+                  />
                 </View>
                 <Space gap={8} />
               </>
