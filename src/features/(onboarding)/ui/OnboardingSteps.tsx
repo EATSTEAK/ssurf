@@ -166,13 +166,13 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
   const [isOpeningLms, setIsOpeningLms] = useState(false);
 
   useEffect(() => {
-    void Promise.all([Notifications.getPermissionsAsync(), getCanvasAccessToken()])
+    void Promise.all([Notifications.getPermissionsAsync(), getCanvasAccessToken(studentId)])
       .then(([permission, token]) => {
         setNotificationsEnabled(permission.granted);
         setLmsConnected(token != null);
       })
       .catch((error) => console.error('Failed to check onboarding permissions:', error));
-  }, []);
+  }, [studentId]);
 
   const onPressLmsLogin = async () => {
     setIsOpeningLms(true);

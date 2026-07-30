@@ -63,8 +63,8 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   const login = async (id: string, password: string) => {
     // TODO: handle session refresh
     const nextSession = await new USaintSessionBuilder().withPassword(id, password);
-    if (userInfo.id !== id) {
-      await deleteCanvasAccessToken();
+    if (userInfo.id && userInfo.id !== id) {
+      await deleteCanvasAccessToken(userInfo.id);
     }
     await setUserInfo({ id, password });
     applications.start(nextSession, id);
@@ -106,7 +106,7 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
     applications.reset();
     const results = await Promise.allSettled([
       setUserInfo({ id: null, password: null }),
-      deleteCanvasAccessToken(),
+      ...(userInfo.id ? [deleteCanvasAccessToken(userInfo.id)] : []),
     ]);
     setSession(null);
     sessionCreatedAtRef.current = null;

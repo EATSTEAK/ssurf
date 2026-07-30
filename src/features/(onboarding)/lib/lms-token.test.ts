@@ -5,6 +5,7 @@ import {
   createCanvasTokenScript,
   isCanvasProfileSettingsUrl,
   parseLmsBridgeMessage,
+  testCanvasAccessToken,
 } from './lms-token';
 
 describe('LMS token bridge', () => {
@@ -21,6 +22,28 @@ describe('LMS token bridge', () => {
         Reflect.deleteProperty(globalThis, 'crypto');
       }
     }
+  });
+
+  it('tests a Canvas token against the signed-in student profile', async () => {
+    let authorization: null | string = null;
+    const request: typeof fetch = async (_input, init) => {
+      authorization = new Headers(init?.headers).get('Authorization');
+      return new Response(JSON.stringify({ login_id: '20260001' }), { status: 200 });
+    };
+
+    await expect(testCanvasAccessToken('canvas-token', '20260001', request)).resolves.toBe(true);
+    expect(authorization).toBe('Bearer canvas-token');
+  });
+
+  it('rejects invalid and mismatched Canvas tokens', async () => {
+    const unauthorized: typeof fetch = async () => new Response(null, { status: 401 });
+    const mismatched: typeof fetch = async () =>
+      new Response(JSON.stringify({ login_id: 'different-student' }), { status: 200 });
+
+    await expect(testCanvasAccessToken('invalid-token', '20260001', unauthorized)).resolves.toBe(
+      false,
+    );
+    await expect(testCanvasAccessToken('valid-token', '20260001', mismatched)).resolves.toBe(false);
   });
 
   it('accepts tokens only from the trusted Canvas settings page', () => {

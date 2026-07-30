@@ -36,6 +36,43 @@ export const isCanvasProfileSettingsUrl = (url: string) => {
   }
 };
 
+export const testCanvasAccessToken = async (
+  token: string,
+  studentId: string,
+  request: typeof fetch = fetch,
+) => {
+  if (!token) {
+    return false;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await request(`${CANVAS_BASE_URL}/api/v1/users/self/profile`, {
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+    if (response.status === 401 || response.status === 403) {
+      return false;
+    }
+    if (!response.ok) {
+      throw new Error(`LearningX 연결 확인에 실패했어요. (${response.status})`);
+    }
+
+    const profile: unknown = await response.json();
+    if (typeof profile !== 'object' || profile === null) {
+      return false;
+    }
+    const profileRecord = profile as Record<string, unknown>;
+    const profileIds = [profileRecord.login_id, profileRecord.sis_user_id]
+      .filter((value): value is string => typeof value === 'string')
+      .map((value) => value.trim());
+    return profileIds.includes(studentId.trim());
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
 export const parseLmsBridgeMessage = (raw: string, nonce: string): LmsBridgeMessage | null => {
   try {
     const value: unknown = JSON.parse(raw);

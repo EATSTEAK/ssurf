@@ -11,8 +11,16 @@ export type StoredCredentials = {
 };
 
 export const USER_INFO_KEY = 'user-info';
-export const CANVAS_ACCESS_TOKEN_KEY = 'canvas-access-token';
+const LEGACY_CANVAS_ACCESS_TOKEN_KEY = 'canvas-access-token';
 export const EMPTY_USER_INFO: StoredUserInfo = { id: null, password: null };
+
+const getCanvasAccessTokenKey = (studentId: string) => {
+  const normalizedStudentId = studentId.trim();
+  if (!/^[A-Za-z0-9._-]+$/.test(normalizedStudentId)) {
+    throw new Error('올바른 학번이 필요해요.');
+  }
+  return `${LEGACY_CANVAS_ACCESS_TOKEN_KEY}-${normalizedStudentId}`;
+};
 
 const isNullableString = (value: unknown): value is null | string =>
   value === null || typeof value === 'string';
@@ -47,9 +55,29 @@ export const getStoredCredentials = async (): Promise<null | StoredCredentials> 
   return value.id && value.password ? { id: value.id, password: value.password } : null;
 };
 
-export const getCanvasAccessToken = () => SecureStore.getItemAsync(CANVAS_ACCESS_TOKEN_KEY);
+export const getCanvasAccessToken = async (studentId: string) => {
+  const key = getCanvasAccessTokenKey(studentId);
+  const token = await SecureStore.getItemAsync(key);
+  if (token) {
+    return token;
+  }
 
-export const saveCanvasAccessToken = (token: string) =>
-  SecureStore.setItemAsync(CANVAS_ACCESS_TOKEN_KEY, token);
+  const legacyToken = await SecureStore.getItemAsync(LEGACY_CANVAS_ACCESS_TOKEN_KEY);
+  if (!legacyToken) {
+    return null;
+  }
+  await SecureStore.setItemAsync(key, legacyToken);
+  await SecureStore.deleteItemAsync(LEGACY_CANVAS_ACCESS_TOKEN_KEY);
+  return legacyToken;
+};
 
-export const deleteCanvasAccessToken = () => SecureStore.deleteItemAsync(CANVAS_ACCESS_TOKEN_KEY);
+export const saveCanvasAccessToken = async (studentId: string, token: string) => {
+  await SecureStore.setItemAsync(getCanvasAccessTokenKey(studentId), token);
+  await SecureStore.deleteItemAsync(LEGACY_CANVAS_ACCESS_TOKEN_KEY);
+};
+
+export const deleteCanvasAccessToken = (studentId: string) =>
+  Promise.all([
+    SecureStore.deleteItemAsync(getCanvasAccessTokenKey(studentId)),
+    SecureStore.deleteItemAsync(LEGACY_CANVAS_ACCESS_TOKEN_KEY),
+  ]).then(() => undefined);

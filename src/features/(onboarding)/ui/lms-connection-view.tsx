@@ -104,7 +104,7 @@ export const LmsConnectionView = ({
     pendingTokenRef.current = token;
     setStatus('saving');
     try {
-      await saveCanvasAccessToken(token);
+      await saveCanvasAccessToken(credentials.id, token);
       pendingTokenRef.current = null;
       onConnected();
     } catch (error) {

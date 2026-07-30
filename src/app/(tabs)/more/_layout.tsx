@@ -6,6 +6,7 @@ export default function StackLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="developer" />
       <Stack.Screen name="settings/feed" />
+      <Stack.Screen name="settings/lms" />
       <Stack.Screen name="settings/notifications" />
     </Stack>
   );
