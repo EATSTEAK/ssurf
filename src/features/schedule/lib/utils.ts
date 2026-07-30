@@ -31,6 +31,15 @@ export const formatMinutesToTime = (minutes: number): string => {
 export const formatTimeRange = (startTime: number, endTime: number): string =>
   `${formatMinutesToTime(startTime)} - ${formatMinutesToTime(endTime)}`;
 
+export const isScheduleActive = (
+  item: Pick<CourseScheduleEntity, 'endTime' | 'startTime' | 'weekday'>,
+  now: Date,
+): boolean => {
+  const weekday = (now.getDay() + 6) % 7;
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  return item.weekday === weekday && item.startTime <= minutes && minutes < item.endTime;
+};
+
 export const getGridBounds = (
   data: CourseScheduleEntity[],
 ): { endHour: number; startHour: number; weekdays: number[] } => {
