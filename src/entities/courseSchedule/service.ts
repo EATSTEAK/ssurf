@@ -162,7 +162,7 @@ export const syncCourseInformation = async (
         client.findDetailedLectures(
           year,
           semester,
-          new LectureCategoryBuilder().findByLecture('*'),
+          new LectureCategoryBuilder().findByLecture('%%'),
           false,
         ),
       findByName: (name) =>
