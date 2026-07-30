@@ -7,6 +7,7 @@ import {
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/db';
+import { loadCourseInformation } from '@/entities/courseSchedule/lib/courseInformationLoader';
 import { courseInformation, courseSchedule, courseSyllabus } from '@/entities/courseSchedule/model';
 import { cache } from '@/shared/model/schema/cache';
 
@@ -145,13 +146,33 @@ export const syncCourseInformation = async (
   year: number,
   semester: SemesterType,
 ) => {
+  const scheduledCourses = await db.query.courseSchedule.findMany({
+    columns: { name: true },
+    where: (courseSchedule, { and, eq }) =>
+      and(
+        eq(courseSchedule.studentId, studentId),
+        eq(courseSchedule.year, year),
+        eq(courseSchedule.semester, semester),
+      ),
+  });
   const result = await withCourseScheduleClient(client, () =>
-    client.findDetailedLectures(
-      year,
-      semester,
-      new LectureCategoryBuilder().findByLecture('*'),
-      false,
-    ),
+    loadCourseInformation({
+      courseNames: scheduledCourses.map(({ name }) => name),
+      findAll: () =>
+        client.findDetailedLectures(
+          year,
+          semester,
+          new LectureCategoryBuilder().findByLecture('*'),
+          false,
+        ),
+      findByName: (name) =>
+        client.findDetailedLectures(
+          year,
+          semester,
+          new LectureCategoryBuilder().findByLecture(name),
+          false,
+        ),
+    }),
   );
   const rows: (typeof courseInformation.$inferInsert)[] = result.map(({ detail, lecture }) => ({
     studentId,
