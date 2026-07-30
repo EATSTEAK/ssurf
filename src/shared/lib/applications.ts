@@ -18,7 +18,7 @@ import {
 
 type WithDefaultSemester<T> = {
   client: T;
-  defaultSemester: YearSemester;
+  defaultSemester: null | YearSemester;
 };
 
 type ApplicationValues = {
@@ -162,7 +162,9 @@ const start = (session: USaintSessionInterface, studentId: string) => {
       const personalCourseSchedule = await new PersonalCourseScheduleApplicationBuilder().build(
         session,
       );
-      const defaultScheduleSemester = await personalCourseSchedule.getSelectedSemester();
+      const defaultScheduleSemester = await personalCourseSchedule
+        .getSelectedSemester()
+        .catch(() => null);
       if (currentGeneration !== generation) {
         return;
       }

@@ -1,3 +1,5 @@
+import type { YearSemester } from '@rusaint/react-native';
+
 import * as t from 'drizzle-orm/sqlite-core';
 import { sqliteTable } from 'drizzle-orm/sqlite-core';
 
@@ -43,6 +45,9 @@ export const settingsSchema = {
   },
   'schedule.selectedCalendarSlugs': {
     defaultValue: ['calendar/ssu-academic-calendar'],
+  },
+  'schedule.selectedSemester': {
+    defaultValue: null as null | YearSemester,
   },
 };
 
