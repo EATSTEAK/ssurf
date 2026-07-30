@@ -70,6 +70,11 @@ jobs:
             fi
           fi
 
+      - name: Node.js 설정
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.13'
+
       - name: pnpm 설치
         uses: pnpm/action-setup@v5
 

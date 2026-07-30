@@ -82,10 +82,12 @@ export const RefreshableScrollView = ({
         onScroll={scrollHandler}
         refreshControl={
           <RefreshControl
+            colors={['transparent']}
             onRefresh={onRefresh}
+            progressBackgroundColor="transparent"
             progressViewOffset={progressViewOffset}
             refreshing={refreshing}
-            style={{ visibility: 'hidden' }}
+            tintColor="transparent"
           />
         }
         scrollEventThrottle={16}

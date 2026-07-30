@@ -78,10 +78,12 @@ function ScrollableContent({
         onScroll={composedOnScroll}
         refreshControl={
           <RefreshControl
+            colors={['transparent']}
             onRefresh={resolvedOnRefresh}
+            progressBackgroundColor="transparent"
             progressViewOffset={progressViewOffset ?? originalHeaderHeight}
             refreshing={resolvedRefreshing}
-            style={{ visibility: 'hidden' }}
+            tintColor="transparent"
           />
         }
         scrollEventThrottle={scrollEventThrottle ?? 16}
