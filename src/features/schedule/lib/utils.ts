@@ -1,5 +1,68 @@
 import type { CourseScheduleEntity } from '@/entities/courseSchedule/model';
-import type { YearSemester } from '@rusaint/react-native';
+import type { Lecture, YearSemester } from '@rusaint/react-native';
+
+export type CourseMatchCandidate = {
+  lecture: Pick<Lecture, 'name' | 'professor' | 'scheduleRoom'>;
+};
+
+const normalizeCourseText = (value: string) => value.toLocaleLowerCase().replace(/\s+/g, '');
+
+const scheduleRoomTimes = (value: string) =>
+  Array.from(
+    value.matchAll(/(\d{1,2}):(\d{2})/g),
+    (match) => Number(match[1]) * 60 + Number(match[2]),
+  );
+
+export const findCourseMatch = <T extends CourseMatchCandidate>(
+  schedule: Pick<
+    CourseScheduleEntity,
+    'classroom' | 'endTime' | 'name' | 'professor' | 'startTime'
+  >,
+  candidates: readonly T[],
+): T | undefined => {
+  const scheduleName = normalizeCourseText(schedule.name);
+  const scheduleProfessor = normalizeCourseText(schedule.professor);
+  const scheduleClassroom = normalizeCourseText(schedule.classroom);
+  let best: undefined | { candidate: T; score: number };
+  let tied = false;
+
+  for (const candidate of candidates) {
+    if (normalizeCourseText(candidate.lecture.name) !== scheduleName) {
+      continue;
+    }
+
+    const professor = normalizeCourseText(candidate.lecture.professor);
+    const scheduleRoom = normalizeCourseText(candidate.lecture.scheduleRoom);
+    const times = scheduleRoomTimes(candidate.lecture.scheduleRoom);
+    let score = 0;
+
+    if (
+      scheduleProfessor &&
+      professor &&
+      (professor.includes(scheduleProfessor) || scheduleProfessor.includes(professor))
+    ) {
+      score += 4;
+    }
+    if (scheduleClassroom && scheduleRoom.includes(scheduleClassroom)) {
+      score += 2;
+    }
+    if (times.includes(schedule.startTime)) {
+      score += 1;
+    }
+    if (times.includes(schedule.endTime)) {
+      score += 1;
+    }
+
+    if (!best || score > best.score) {
+      best = { candidate, score };
+      tied = false;
+    } else if (score === best.score) {
+      tied = true;
+    }
+  }
+
+  return tied ? undefined : best?.candidate;
+};
 
 export const buildScheduleSemesters = (
   estimatedSemester: YearSemester,

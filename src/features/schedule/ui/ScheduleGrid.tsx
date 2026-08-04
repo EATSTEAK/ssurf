@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
@@ -11,7 +12,6 @@ import {
   WEEKDAY_LABELS,
 } from '@/features/schedule/lib/utils';
 import { ScheduleCell } from '@/features/schedule/ui/ScheduleCell';
-import { ScheduleDetailModal } from '@/features/schedule/ui/ScheduleDetailModal';
 
 const TIME_LABEL_WIDTH = 40;
 const COLOR_SIZE = 8;
@@ -85,12 +85,14 @@ const styles = StyleSheet.create((theme) => ({
 
 interface ScheduleGridProps {
   data: CourseScheduleEntity[];
+  semester: number;
+  year: number;
 }
 
-export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
+export const ScheduleGrid = ({ data, semester, year }: ScheduleGridProps) => {
+  const router = useRouter();
   const { startHour, endHour, weekdays } = getGridBounds(data);
   const totalHours = endHour - startHour;
-  const [selectedItem, setSelectedItem] = useState<CourseScheduleEntity | null>(null);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -116,6 +118,22 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
     existing.push(item);
     coursesByDay.set(item.weekday, existing);
   }
+
+  const handlePressCourse = (item: CourseScheduleEntity) => {
+    router.push({
+      pathname: '/(tabs)/schedule/course',
+      params: {
+        classroom: item.classroom,
+        endTime: String(item.endTime),
+        name: item.name,
+        professor: item.professor,
+        semester: String(semester),
+        startTime: String(item.startTime),
+        weekday: String(item.weekday),
+        year: String(year),
+      },
+    });
+  };
 
   return (
     <View>
@@ -156,7 +174,7 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
                   isActive={isScheduleActive(item, now)}
                   item={item}
                   key={`${item.name}-${item.startTime}`}
-                  onPress={setSelectedItem}
+                  onPress={handlePressCourse}
                   startHour={startHour}
                 />
               ))}
@@ -167,12 +185,6 @@ export const ScheduleGrid = ({ data }: ScheduleGridProps) => {
           ))}
         </View>
       </View>
-
-      <ScheduleDetailModal
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-        visible={selectedItem !== null}
-      />
     </View>
   );
 };

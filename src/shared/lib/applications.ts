@@ -3,7 +3,10 @@ import {
   ChapelApplicationInterface,
   CourseGradesApplicationBuilder,
   CourseGradesApplicationInterface,
+  CourseRegistrationStatusApplicationBuilder,
+  CourseRegistrationStatusApplicationLike,
   CourseScheduleApplicationBuilder,
+  CourseScheduleApplicationLike,
   GraduationRequirementsApplicationBuilder,
   GraduationRequirementsApplicationInterface,
   PersonalCourseScheduleApplicationBuilder,
@@ -23,6 +26,8 @@ type WithDefaultSemester<T> = {
 
 type ApplicationValues = {
   chapel: WithDefaultSemester<ChapelApplicationInterface>;
+  courseRegistrationStatus: CourseRegistrationStatusApplicationLike;
+  courseSchedule: CourseScheduleApplicationLike;
   grades: WithDefaultSemester<CourseGradesApplicationInterface>;
   graduationRequirements: GraduationRequirementsApplicationInterface;
   personalCourseSchedule: WithDefaultSemester<PersonalCourseScheduleApplicationInterface>;
@@ -81,6 +86,8 @@ const createDeferred = <T>(): Deferred<T> => {
 
 const createSlots = (): ApplicationSlots => ({
   chapel: createDeferred(),
+  courseRegistrationStatus: createDeferred(),
+  courseSchedule: createDeferred(),
   grades: createDeferred(),
   graduationRequirements: createDeferred(),
   personalCourseSchedule: createDeferred(),
@@ -90,6 +97,8 @@ const createSlots = (): ApplicationSlots => ({
 
 const applicationNames = Object.freeze<ApplicationName[]>([
   'chapel',
+  'courseRegistrationStatus',
+  'courseSchedule',
   'grades',
   'graduationRequirements',
   'personalCourseSchedule',
@@ -153,11 +162,11 @@ const start = (session: USaintSessionInterface, studentId: string) => {
       }
       currentSlots.chapel.resolve({ client: chapel, defaultSemester: defaultChapelSemester });
 
-      // 소비자는 없지만 기존 U-Saint 애플리케이션 초기화 순서를 유지한다.
-      await new CourseScheduleApplicationBuilder().build(session);
+      const courseSchedule = await new CourseScheduleApplicationBuilder().build(session);
       if (currentGeneration !== generation) {
         return;
       }
+      currentSlots.courseSchedule.resolve(courseSchedule);
 
       const personalCourseSchedule = await new PersonalCourseScheduleApplicationBuilder().build(
         session,
@@ -193,6 +202,21 @@ const start = (session: USaintSessionInterface, studentId: string) => {
         return;
       }
       currentSlots.scholarships.resolve(scholarships);
+
+      try {
+        const courseRegistrationStatus =
+          await new CourseRegistrationStatusApplicationBuilder().build(session);
+        if (currentGeneration !== generation) {
+          return;
+        }
+        currentSlots.courseRegistrationStatus.resolve(courseRegistrationStatus);
+      } catch (error) {
+        if (currentGeneration === generation) {
+          currentSlots.courseRegistrationStatus.reject(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }
     } catch (error) {
       if (currentGeneration === generation) {
         rejectPending(error instanceof Error ? error : new Error(String(error)));
