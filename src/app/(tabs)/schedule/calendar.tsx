@@ -1,9 +1,16 @@
+import type { LegendListProps, LegendListRef, OnViewableItemsChanged } from '@legendapp/list';
+
+import { format } from 'date-fns';
 import { Stack, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { CalendarProvider } from 'react-native-calendars';
-import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  FadeOutUp,
+  LinearTransition,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
@@ -12,63 +19,63 @@ import { CalendarEntity } from '@/entities/calendar/model';
 import { useFeedSites } from '@/entities/feed/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import {
+  findCalendarIndexForDate,
   getCalendarDateKey,
   getCalendarDateKeysInMonth,
-  getCalendarDateKeysInWeek,
   getMonthDateKey,
-  isCalendarOnDate,
   parseCalendarDateKey,
 } from '@/features/calendar/lib/isTodayCalendar';
-import { CompactCalendarRow } from '@/features/calendar/ui/CompactCalendarRow';
+import { CalendarContent } from '@/features/calendar/ui/CalendarContent';
 import { type CalendarMarking, MonthlyCalendar } from '@/features/calendar/ui/MonthlyCalendar';
-import { WeeklyCalendar } from '@/features/calendar/ui/WeeklyCalendar';
-import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
-import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
-import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
 import { SettingsIcon } from '@/shared/ui/icons';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
-import { type ViewMode, ViewModeSegmentedControl } from '@/shared/ui/ViewModeSegmentedControl';
 
 const NATIVE_TAB_BAR_HEIGHT = 49;
+const CALENDAR_COLLAPSE_OFFSET = 48;
+const CALENDAR_ENTERING = FadeInUp.duration(180);
+const CALENDAR_EXITING = FadeOutUp.duration(160);
+const CALENDAR_LAYOUT_TRANSITION = LinearTransition.duration(180);
 const PERIOD_COLORS = ['#5B8DEF', '#2BB673', '#F59E0B', '#E85D75', '#8B5CF6', '#14B8A6'];
 
 const styles = StyleSheet.create((theme) => ({
-  emptySection: {
-    alignItems: 'center',
-    gap: theme.gap(1),
+  listHeader: {
     paddingHorizontal: theme.gap(3),
-    paddingVertical: theme.gap(4),
+    paddingTop: theme.gap(1),
   },
-  list: {
-    backgroundColor: theme.colors.surfaceDim,
-    borderRadius: theme.cornerRadius.md,
-    overflow: 'hidden',
+  listSection: {
+    flex: 1,
+    gap: theme.gap(2),
   },
   root: {
     backgroundColor: theme.colors.surface,
-    height: '100%',
+    flex: 1,
     position: 'relative',
     width: '100%',
-  },
-  section: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.cornerRadius.lg,
-    gap: theme.gap(2),
-    paddingVertical: theme.gap(3),
   },
   settingButton: {
     borderRadius: theme.cornerRadius.md,
     padding: theme.gap(1),
   },
+  subtitleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  toggleButton: {
+    backgroundColor: theme.colors.surfaceDim,
+    borderRadius: theme.cornerRadius.md,
+    paddingHorizontal: theme.gap(1.5),
+    paddingVertical: theme.gap(1),
+  },
   topView: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.gap(3),
-    width: '100%',
+    gap: theme.gap(1),
     padding: theme.gap(3),
+    width: '100%',
   },
 }));
 
@@ -88,78 +95,134 @@ export default function ScheduleCalendarScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
-  const today = useMemo(() => new Date(), []);
-  const todayKey = useMemo(() => getCalendarDateKey(today), [today]);
+  const [todayKey] = useState(() => getCalendarDateKey(new Date()));
   const [selectedDate, setSelectedDate] = useState(todayKey);
-  const [visibleMonth, setVisibleMonth] = useState(getMonthDateKey(today));
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [visibleMonth, setVisibleMonth] = useState(() =>
+    getMonthDateKey(parseCalendarDateKey(todayKey)),
+  );
+  const [isCalendarCollapsed, setIsCalendarCollapsed] = useState(false);
+  const listRef = useRef<LegendListRef>(null);
+  const didInitialScroll = useRef(false);
+  const dragStartOffset = useRef(0);
+  const hasUserScrolled = useRef(false);
+  const reduceMotion = useReducedMotion();
 
-  const {
-    data: sites,
-    error: siteError,
-    isSyncing: isSyncingSites,
-    refresh: refreshSites,
-  } = useFeedSites();
-  const calendarSites = useMemo(() => sites.filter((site) => site.kind === 'calendar'), [sites]);
+  const { error: siteError, isSyncing: isSyncingSites, refresh: refreshSites } = useFeedSites();
   const { data, error, isSyncing, refresh } = useCalendars(selectedCalendarSlugs);
   const syncError = siteError ?? error;
+  const hasSources = selectedCalendarSlugs.length > 0;
+  const bottomPadding = NATIVE_TAB_BAR_HEIGHT + insets.bottom + 32;
 
-  const handleSelectDate = useCallback((dateString: string) => {
-    setSelectedDate(dateString);
-    setVisibleMonth(getMonthDateKey(parseCalendarDateKey(dateString)));
+  const scrollToDate = useCallback(
+    (dateString: string, animated: boolean) => {
+      const index = findCalendarIndexForDate(data, parseCalendarDateKey(dateString));
+
+      if (index >= 0) {
+        listRef.current?.scrollToIndex({ animated, index, viewPosition: 0 });
+      }
+    },
+    [data],
+  );
+
+  useEffect(() => {
+    if (didInitialScroll.current || data.length === 0) {
+      return;
+    }
+
+    didInitialScroll.current = true;
+    scrollToDate(todayKey, false);
+  }, [data.length, scrollToDate, todayKey]);
+
+  const handleSelectDate = useCallback(
+    (dateString: string) => {
+      setSelectedDate(dateString);
+      setVisibleMonth(getMonthDateKey(parseCalendarDateKey(dateString)));
+      scrollToDate(dateString, true);
+    },
+    [scrollToDate],
+  );
+
+  const handleMonthChange = useCallback(
+    (dateString: string) => {
+      const monthKey = getMonthDateKey(parseCalendarDateKey(dateString));
+      setSelectedDate(monthKey);
+      setVisibleMonth(monthKey);
+      scrollToDate(monthKey, true);
+    },
+    [scrollToDate],
+  );
+
+  const handleListScroll = useCallback<NonNullable<LegendListProps<CalendarEntity>['onScroll']>>(
+    (event) => {
+      if (!hasUserScrolled.current) {
+        return;
+      }
+
+      const offset = event.nativeEvent.contentOffset.y;
+      setIsCalendarCollapsed(
+        (current) => current || offset - dragStartOffset.current > CALENDAR_COLLAPSE_OFFSET,
+      );
+    },
+    [],
+  );
+
+  const handleListScrollBeginDrag = useCallback<
+    NonNullable<LegendListProps<CalendarEntity>['onScrollBeginDrag']>
+  >((event) => {
+    dragStartOffset.current = event.nativeEvent.contentOffset.y;
+    hasUserScrolled.current = true;
   }, []);
 
-  const selectedDateItems = useMemo(
-    () => data.filter((item) => isCalendarOnDate(item, parseCalendarDateKey(selectedDate))),
-    [data, selectedDate],
-  );
+  const handleToggleCalendar = useCallback(() => {
+    hasUserScrolled.current = false;
+    setIsCalendarCollapsed((current) => !current);
+  }, []);
 
-  const buildMarkedDates = useCallback(
-    (resolveDateKeys: (item: CalendarEntity) => string[]) => {
-      const marks = data.reduce<Record<string, CalendarMarking>>((acc, item) => {
-        const dateKeys = resolveDateKeys(item);
+  const handleViewableItemsChanged = useCallback<
+    NonNullable<OnViewableItemsChanged<CalendarEntity>>
+  >(({ viewableItems }) => {
+    const visibleItem = viewableItems.find(
+      ({ item }) => item.startsAt !== null || item.endsAt !== null,
+    )?.item;
+    const timestamp = visibleItem?.startsAt ?? visibleItem?.endsAt;
 
-        dateKeys.forEach((dateKey, index) => {
-          const periods = acc[dateKey]?.periods ?? [];
-          periods.push({
-            color: getPeriodColor(item),
-            endingDay: index === dateKeys.length - 1,
-            startingDay: index === 0,
-          });
-          acc[dateKey] = {
-            ...acc[dateKey],
-            periods,
-          };
-        });
+    if (timestamp === null || timestamp === undefined) {
+      return;
+    }
 
-        return acc;
-      }, {});
-
-      marks[selectedDate] = {
-        ...marks[selectedDate],
-        periods: marks[selectedDate]?.periods ?? [],
-        selected: true,
-        selectedColor: theme.colors.primary,
-        selectedTextColor: theme.colors.fgPrimary,
-      };
-
-      return marks;
-    },
-    [data, selectedDate, theme.colors.fgPrimary, theme.colors.primary],
-  );
+    const date = new Date(timestamp);
+    setSelectedDate(getCalendarDateKey(date));
+    setVisibleMonth(getMonthDateKey(date));
+  }, []);
 
   const monthMarkedDates = useMemo(() => {
     const monthDate = parseCalendarDateKey(visibleMonth);
-    return buildMarkedDates((item) => getCalendarDateKeysInMonth(item, monthDate));
-  }, [buildMarkedDates, visibleMonth]);
+    const marks = data.reduce<Record<string, CalendarMarking>>((acc, item) => {
+      const dateKeys = getCalendarDateKeysInMonth(item, monthDate);
 
-  const weekMarkedDates = useMemo(() => {
-    const weekDate = parseCalendarDateKey(selectedDate);
-    return buildMarkedDates((item) => getCalendarDateKeysInWeek(item, weekDate));
-  }, [buildMarkedDates, selectedDate]);
+      dateKeys.forEach((dateKey, index) => {
+        const periods = acc[dateKey]?.periods ?? [];
+        periods.push({
+          color: getPeriodColor(item),
+          endingDay: index === dateKeys.length - 1,
+          startingDay: index === 0,
+        });
+        acc[dateKey] = { ...acc[dateKey], periods };
+      });
 
-  const scrollY = useSharedValue(0);
-  const bottomPadding = NATIVE_TAB_BAR_HEIGHT + insets.bottom + 32;
+      return acc;
+    }, {});
+
+    marks[selectedDate] = {
+      ...marks[selectedDate],
+      periods: marks[selectedDate]?.periods ?? [],
+      selected: true,
+      selectedColor: theme.colors.primary,
+      selectedTextColor: theme.colors.fgPrimary,
+    };
+
+    return marks;
+  }, [data, selectedDate, theme.colors.fgPrimary, theme.colors.primary, visibleMonth]);
 
   const handleRefresh = useCallback(() => {
     if (isSyncing || isSyncingSites) {
@@ -168,12 +231,6 @@ export default function ScheduleCalendarScreen() {
 
     void Promise.all([refreshSites(), refresh()]);
   }, [isSyncing, isSyncingSites, refresh, refreshSites]);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
 
   const handleOpenUrl = useCallback(async (url: null | string) => {
     if (!url) {
@@ -213,84 +270,74 @@ export default function ScheduleCalendarScreen() {
         }}
       />
       <View style={styles.root}>
-        <RefreshableScrollView
-          contentContainerStyle={{ paddingBottom: bottomPadding }}
-          onRefresh={handleRefresh}
-          onScroll={scrollHandler}
-          refreshing={isSyncing || isSyncingSites}
-          scrollEventThrottle={16}
-        >
-          <SafeContainer>
-            {Platform.OS === 'ios' && <Space gap={2} />}
-            <View style={styles.topView}>
-              <Header title="일정" />
+        <SafeContainer>
+          {Platform.OS === 'ios' && <Space gap={2} />}
+          <View style={styles.topView}>
+            <Header title="일정" />
+            <View style={styles.subtitleRow}>
               <ThemedText color="fgSecondary" typography="labelMd">
-                {viewMode === 'week' ? '주간 일정' : '월간 일정'}
+                월간 일정
               </ThemedText>
-
-              <ViewModeSegmentedControl onChange={setViewMode} value={viewMode} />
+              {hasSources ? (
+                <Pressable
+                  accessibilityLabel={isCalendarCollapsed ? '캘린더 펼치기' : '캘린더 접기'}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: !isCalendarCollapsed }}
+                  hitSlop={6}
+                  onPress={handleToggleCalendar}
+                  style={styles.toggleButton}
+                >
+                  <ThemedText color="fgSecondary" typography="labelSm">
+                    {isCalendarCollapsed ? '펼치기' : '접기'}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
             </View>
+          </View>
 
-            {calendarSites.length > 0 && selectedCalendarSlugs.length > 0 ? (
-              viewMode === 'week' ? (
-                <CalendarProvider date={selectedDate} onDateChanged={handleSelectDate}>
-                  <WeeklyCalendar
-                    currentDate={selectedDate}
-                    markedDates={weekMarkedDates}
-                    onSelectDate={handleSelectDate}
-                  />
-                </CalendarProvider>
-              ) : (
-                <MonthlyCalendar
-                  markedDates={monthMarkedDates}
-                  onMonthChange={setVisibleMonth}
-                  onSelectDate={handleSelectDate}
-                  visibleMonth={visibleMonth}
-                />
-              )
-            ) : null}
-            <CardView>
-              <View style={{ paddingHorizontal: 12 }}>
-                <ThemedText typography="headingLg">선택한 날짜 일정</ThemedText>
+          {hasSources && !isCalendarCollapsed ? (
+            <Animated.View
+              entering={reduceMotion ? undefined : CALENDAR_ENTERING}
+              exiting={reduceMotion ? undefined : CALENDAR_EXITING}
+            >
+              <MonthlyCalendar
+                markedDates={monthMarkedDates}
+                onMonthChange={handleMonthChange}
+                onSelectDate={handleSelectDate}
+                visibleMonth={visibleMonth}
+              />
+            </Animated.View>
+          ) : null}
+
+          <Animated.View
+            layout={reduceMotion ? undefined : CALENDAR_LAYOUT_TRANSITION}
+            style={styles.listSection}
+          >
+            {hasSources ? (
+              <View style={styles.listHeader}>
+                <ThemedText typography="headingLg">전체 일정</ThemedText>
                 <ThemedText color="fgSecondary" typography="bodySm">
-                  {selectedDate.replace(/-/g, '.')}
+                  {format(parseCalendarDateKey(visibleMonth), 'yyyy년 M월')}
                 </ThemedText>
               </View>
-              {/* TODO: 일정 소스가 더 늘어나면 여기서 선택 UI를 제공한다. */}
-              {syncError ? (
-                <View style={styles.emptySection}>
-                  <ThemedText color="error" typography="bodyMd">
-                    일정을 불러오지 못했어요
-                  </ThemedText>
-                </View>
-              ) : selectedCalendarSlugs.length === 0 ? (
-                <View style={styles.emptySection}>
-                  <ThemedText typography="bodyMd">선택된 일정 소스가 없어요</ThemedText>
-                </View>
-              ) : selectedDateItems.length === 0 ? (
-                <View style={styles.emptySection}>
-                  <ThemedText typography="bodyMd">선택한 날짜의 일정이 없어요</ThemedText>
-                </View>
-              ) : (
-                <View style={styles.list}>
-                  {selectedDateItems.map((item, index) => (
-                    <CompactCalendarRow
-                      isLast={index === selectedDateItems.length - 1}
-                      item={item}
-                      key={`${item.slug}-${item.id}`}
-                      onPress={handlePressCalendar}
-                    />
-                  ))}
-                </View>
-              )}
-            </CardView>
-          </SafeContainer>
-        </RefreshableScrollView>
-        <FloatingHeader
-          label={viewMode === 'week' ? '주간 일정' : '월간 일정'}
-          scrollY={scrollY}
-          title="일정"
-        />
+            ) : null}
+
+            <CalendarContent
+              error={syncError}
+              hasSources={hasSources}
+              isSyncing={isSyncing || isSyncingSites}
+              items={data}
+              listContentContainerStyle={{ paddingBottom: bottomPadding }}
+              listRef={listRef}
+              onPressItem={handlePressCalendar}
+              onRefresh={handleRefresh}
+              onScroll={handleListScroll}
+              onScrollBeginDrag={handleListScrollBeginDrag}
+              onViewableItemsChanged={handleViewableItemsChanged}
+              scrollEventThrottle={32}
+            />
+          </Animated.View>
+        </SafeContainer>
       </View>
     </>
   );

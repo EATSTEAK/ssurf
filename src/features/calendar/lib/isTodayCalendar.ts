@@ -2,12 +2,10 @@ import {
   eachDayOfInterval,
   endOfDay,
   endOfMonth,
-  endOfWeek,
   format,
   parseISO,
   startOfDay,
   startOfMonth,
-  startOfWeek,
 } from 'date-fns';
 
 import { CalendarEntity } from '@/entities/calendar/model';
@@ -52,6 +50,22 @@ export function isCalendarOnDate(item: CalendarEntity, date: Date) {
   return range.start <= endOfDay(date).getTime() && range.end >= startOfDay(date).getTime();
 }
 
+export function findCalendarIndexForDate(items: CalendarEntity[], date: Date) {
+  const matchingIndex = items.findIndex((item) => isCalendarOnDate(item, date));
+
+  if (matchingIndex >= 0) {
+    return matchingIndex;
+  }
+
+  const dateStart = startOfDay(date).getTime();
+  const nextIndex = items.findIndex((item) => {
+    const timestamp = item.startsAt ?? item.endsAt;
+    return timestamp !== null && timestamp >= dateStart;
+  });
+
+  return nextIndex >= 0 ? nextIndex : items.length - 1;
+}
+
 export function getCalendarDateKeysInMonth(item: CalendarEntity, visibleMonth: Date) {
   const range = resolveRange(item);
 
@@ -63,31 +77,6 @@ export function getCalendarDateKeysInMonth(item: CalendarEntity, visibleMonth: D
   const monthEnd = endOfMonth(visibleMonth).getTime();
   const intervalStart = Math.max(range.start, monthStart);
   const intervalEnd = Math.min(range.end, monthEnd);
-
-  if (intervalStart > intervalEnd) {
-    return [];
-  }
-
-  return eachDayOfInterval({
-    end: startOfDay(new Date(intervalEnd)),
-    start: startOfDay(new Date(intervalStart)),
-  }).map(getCalendarDateKey);
-}
-
-export const getWeekDateKey = (date: Date) =>
-  getCalendarDateKey(startOfWeek(date, { weekStartsOn: 1 }));
-
-export function getCalendarDateKeysInWeek(item: CalendarEntity, visibleDate: Date) {
-  const range = resolveRange(item);
-
-  if (!range) {
-    return [];
-  }
-
-  const weekStart = startOfWeek(visibleDate, { weekStartsOn: 1 }).getTime();
-  const weekEnd = endOfWeek(visibleDate, { weekStartsOn: 1 }).getTime();
-  const intervalStart = Math.max(range.start, weekStart);
-  const intervalEnd = Math.min(range.end, weekEnd);
 
   if (intervalStart > intervalEnd) {
     return [];
