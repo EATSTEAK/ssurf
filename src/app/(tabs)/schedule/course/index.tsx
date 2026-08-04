@@ -17,6 +17,7 @@ import {
   WEEKDAY_LABELS,
 } from '@/features/schedule/lib/utils';
 import { CourseDetailRow, CourseDetailSection } from '@/features/schedule/ui/CourseDetailSection';
+import { semesterToString } from '@/shared/lib/semester';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
@@ -32,11 +33,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   content: {
     gap: theme.gap(2),
-    padding: theme.gap(2),
     paddingBottom: theme.gap(6),
+    paddingTop: theme.gap(2),
   },
   heading: {
     gap: theme.gap(0.5),
+    paddingHorizontal: theme.gap(2),
   },
   loading: {
     alignItems: 'center',
@@ -62,6 +64,7 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.cornerRadius.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginHorizontal: theme.gap(2),
     opacity: disabled ? 0.5 : 1,
     padding: theme.gap(2),
   }),
@@ -227,6 +230,13 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
 
             <CourseDetailSection title="내 시간표">
               <CourseDetailRow
+                label="학기"
+                value={semesterToString({
+                  semester: schedule.semester as SemesterType,
+                  year: schedule.year,
+                })}
+              />
+              <CourseDetailRow
                 label="시간"
                 value={`${WEEKDAY_LABELS[schedule.weekday]} ${formatTimeRange(
                   schedule.startTime,
@@ -355,7 +365,7 @@ export default function CourseRoute() {
     return (
       <>
         <Stack.Screen options={{ headerShown: true, title: '과목 정보' }} />
-        <View style={[styles.root, styles.content]}>
+        <View style={[styles.root, styles.content, styles.heading]}>
           <ThemedText color="error" typography="bodyLg">
             잘못된 과목 정보예요.
           </ThemedText>

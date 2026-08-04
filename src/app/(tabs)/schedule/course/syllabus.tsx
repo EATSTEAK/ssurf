@@ -21,11 +21,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   content: {
     gap: theme.gap(2),
-    padding: theme.gap(2),
     paddingBottom: theme.gap(6),
+    paddingTop: theme.gap(2),
   },
   heading: {
     gap: theme.gap(0.5),
+    paddingHorizontal: theme.gap(2),
   },
   loading: {
     alignItems: 'center',
@@ -235,7 +236,7 @@ export default function SyllabusRoute() {
     return (
       <>
         <Stack.Screen options={{ headerShown: true, title: '강의계획서' }} />
-        <View style={[styles.root, styles.content]}>
+        <View style={[styles.root, styles.content, styles.heading]}>
           <ThemedText color="error" typography="bodyLg">
             잘못된 강의계획서 정보예요.
           </ThemedText>
