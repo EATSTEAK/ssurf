@@ -39,6 +39,7 @@ type RouteParam = string | string[] | undefined;
 type SyllabusRouteParams = {
   code?: RouteParam;
   name?: RouteParam;
+  professor?: RouteParam;
   semester?: RouteParam;
   year?: RouteParam;
 };
@@ -51,9 +52,16 @@ const singleParam = (value: RouteParam) => (typeof value === 'string' ? value : 
 const parseSyllabusRouteParams = (params: SyllabusRouteParams) => {
   const code = singleParam(params.code);
   const name = singleParam(params.name);
+  const professor = singleParam(params.professor);
   const semesterParam = singleParam(params.semester);
   const yearParam = singleParam(params.year);
-  if (!code?.trim() || !name?.trim() || semesterParam === null || yearParam === null) {
+  if (
+    !code?.trim() ||
+    !name?.trim() ||
+    professor === null ||
+    semesterParam === null ||
+    yearParam === null
+  ) {
     return null;
   }
 
@@ -70,21 +78,24 @@ const parseSyllabusRouteParams = (params: SyllabusRouteParams) => {
     return null;
   }
 
-  return { code, name, semester: semester as SemesterType, year };
+  return { code, name, professor, semester: semester as SemesterType, year };
 };
 
 const SyllabusContent = ({
   code,
   name,
+  professor,
   semester,
   year,
 }: {
   code: string;
   name: string;
+  professor: string;
   semester: SemesterType;
   year: number;
 }) => {
   const { data, error, isSyncing, refresh } = useCourseSyllabus(year, semester, code, name);
+  const subtitle = `${name} / ${professor}`;
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -114,7 +125,7 @@ const SyllabusContent = ({
             <View style={styles.heading}>
               <Header title="강의계획서" />
               <ThemedText color="fgSecondary" selectable typography="bodyLg">
-                {name}
+                {subtitle}
               </ThemedText>
             </View>
             {!data ? (
@@ -140,7 +151,7 @@ const SyllabusContent = ({
             )}
           </SafeContainer>
         </Animated.ScrollView>
-        <FloatingHeader label={name} scrollY={scrollY} title="강의계획서" />
+        <FloatingHeader label={subtitle} scrollY={scrollY} title="강의계획서" />
       </View>
     </>
   );

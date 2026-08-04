@@ -161,6 +161,7 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
     (matches.length === 1 ? matches[0] : null);
   const lecture = selected?.lecture;
   const detail = selected?.detail;
+  const subtitle = `${schedule.name} / ${schedule.professor}`;
 
   const openSyllabus = () => {
     if (!lecture?.syllabus || !selected) {
@@ -172,6 +173,7 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
       params: {
         code: selected.code,
         name: selected.name,
+        professor: schedule.professor,
         semester: String(schedule.semester),
         year: String(schedule.year),
       },
@@ -186,7 +188,7 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
           headerShown: true,
           headerTitle: () => <></>,
           headerTransparent: true,
-          title: schedule.name,
+          title: '과목 상세',
         }}
       />
       <View style={styles.root}>
@@ -198,9 +200,9 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
           <SafeContainer style={styles.content}>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.heading}>
-              <Header title={schedule.name} />
+              <Header title="과목 상세" />
               <ThemedText color="fgSecondary" selectable typography="bodyLg">
-                {schedule.professor}
+                {subtitle}
               </ThemedText>
             </View>
 
@@ -344,7 +346,7 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
             ) : null}
           </SafeContainer>
         </Animated.ScrollView>
-        <FloatingHeader label={schedule.professor} scrollY={scrollY} title={schedule.name} />
+        <FloatingHeader label={subtitle} scrollY={scrollY} title="과목 상세" />
       </View>
     </>
   );
