@@ -202,6 +202,29 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
               </ThemedText>
             </View>
 
+            {lecture ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !lecture.syllabus }}
+                disabled={!lecture.syllabus}
+                onPress={openSyllabus}
+                style={({ pressed }) => [
+                  styles.syllabus(!lecture.syllabus),
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View>
+                  <ThemedText typography="headingLg">강의계획서</ThemedText>
+                  <ThemedText color="fgSecondary" typography="bodyMd">
+                    {lecture.syllabus ? '전체 강의계획서 보기' : '등록된 강의계획서가 없어요.'}
+                  </ThemedText>
+                </View>
+                {lecture.syllabus ? (
+                  <ChevronRightIcon color={theme.colorsHex.fgSurface} size={20} />
+                ) : null}
+              </Pressable>
+            ) : null}
+
             <CourseDetailSection title="내 시간표">
               <CourseDetailRow
                 label="시간"
@@ -316,29 +339,6 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
                   />
                 ))}
               </CourseDetailSection>
-            ) : null}
-
-            {lecture ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled: !lecture.syllabus }}
-                disabled={!lecture.syllabus}
-                onPress={openSyllabus}
-                style={({ pressed }) => [
-                  styles.syllabus(!lecture.syllabus),
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View>
-                  <ThemedText typography="headingLg">강의계획서</ThemedText>
-                  <ThemedText color="fgSecondary" typography="bodyMd">
-                    {lecture.syllabus ? '전체 강의계획서 보기' : '등록된 강의계획서가 없어요.'}
-                  </ThemedText>
-                </View>
-                {lecture.syllabus ? (
-                  <ChevronRightIcon color={theme.colorsHex.fgSurface} size={20} />
-                ) : null}
-              </Pressable>
             ) : null}
           </SafeContainer>
         </Animated.ScrollView>

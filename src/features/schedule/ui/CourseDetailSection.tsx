@@ -3,16 +3,10 @@ import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
+import { CardView } from '@/shared/ui/containers/CardView';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
-  section: {
-    backgroundColor: theme.colors.surfaceDim,
-    borderCurve: 'continuous',
-    borderRadius: theme.cornerRadius.md,
-    gap: theme.gap(2),
-    padding: theme.gap(2),
-  },
   row: {
     gap: theme.gap(0.5),
   },
@@ -25,10 +19,10 @@ export const CourseDetailSection = ({
   children: ReactNode;
   title: string;
 }) => (
-  <View style={styles.section}>
+  <CardView>
     <ThemedText typography="headingLg">{title}</ThemedText>
     {children}
-  </View>
+  </CardView>
 );
 
 export const CourseDetailRow = ({ label, value }: { label: string; value?: null | string }) => {
