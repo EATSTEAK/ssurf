@@ -56,7 +56,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 16,
     width: 150,
   },
-  topView: {
+  paddedSection: {
     display: 'flex',
     flexDirection: 'column',
     gap: theme.gap(2),
@@ -214,11 +214,24 @@ export default function Index() {
         >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
-            <View style={styles.topView}>
+            <View style={styles.paddedSection}>
               <Header title="시간표" />
               <ThemedText typography="labelMd">
                 {semesterToString(effectiveSelectedSemester)}
               </ThemedText>
+            </View>
+            {hasData ? (
+              <View style={styles.gridContainer}>
+                <ScheduleGrid
+                  data={data}
+                  semester={effectiveSelectedSemester.semester}
+                  year={effectiveSelectedSemester.year}
+                />
+              </View>
+            ) : (
+              renderEmptyContent()
+            )}
+            <View style={styles.paddedSection}>
               <TodayScheduleSection
                 actionLabel="월간 일정 보기"
                 calendarError={calendarError ?? null}
@@ -228,20 +241,7 @@ export default function Index() {
                 todayCalendars={todayCalendars}
               />
             </View>
-            {hasData ? (
-              <>
-                <View style={styles.gridContainer}>
-                  <ScheduleGrid
-                    data={data}
-                    semester={effectiveSelectedSemester.semester}
-                    year={effectiveSelectedSemester.year}
-                  />
-                </View>
-                <Space gap={8} />
-              </>
-            ) : (
-              renderEmptyContent()
-            )}
+            <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
         <FloatingHeader
