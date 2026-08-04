@@ -1,4 +1,5 @@
 import {
+  CourseRegistrationStatusApplicationLike,
   CourseScheduleApplicationLike,
   LectureCategoryBuilder,
   PersonalCourseScheduleApplicationInterface,
@@ -11,7 +12,27 @@ import { loadCourseInformation } from '@/entities/courseSchedule/lib/courseInfor
 import { courseInformation, courseSchedule, courseSyllabus } from '@/entities/courseSchedule/model';
 import { cache } from '@/shared/model/schema/cache';
 
+const courseRegistrationQueues = new WeakMap<
+  CourseRegistrationStatusApplicationLike,
+  Promise<void>
+>();
 const courseScheduleQueues = new WeakMap<CourseScheduleApplicationLike, Promise<void>>();
+
+const withCourseRegistrationClient = <T>(
+  client: CourseRegistrationStatusApplicationLike,
+  operation: () => Promise<T>,
+): Promise<T> => {
+  const previous = courseRegistrationQueues.get(client) ?? Promise.resolve();
+  const result = previous.then(operation, operation);
+  courseRegistrationQueues.set(
+    client,
+    result.then(
+      () => undefined,
+      () => undefined,
+    ),
+  );
+  return result;
+};
 
 const withCourseScheduleClient = <T>(
   client: CourseScheduleApplicationLike,
@@ -142,29 +163,30 @@ export const syncCourseSchedule = async (
 
 export const syncCourseInformation = async (
   client: CourseScheduleApplicationLike,
+  registrationClient: CourseRegistrationStatusApplicationLike,
   studentId: string,
   year: number,
   semester: SemesterType,
 ) => {
-  const scheduledCourses = await db.query.courseSchedule.findMany({
-    columns: { name: true },
-    where: (courseSchedule, { and, eq }) =>
-      and(
-        eq(courseSchedule.studentId, studentId),
-        eq(courseSchedule.year, year),
-        eq(courseSchedule.semester, semester),
-      ),
-  });
+  const registeredCourses = await withCourseRegistrationClient(registrationClient, () =>
+    registrationClient.lectures(year, semester),
+  );
   const result = await withCourseScheduleClient(client, () =>
     loadCourseInformation({
-      courseNames: scheduledCourses.map(({ name }) => name),
-      findByName: (name) =>
-        client.findDetailedLectures(
+      courseCodes: registeredCourses.map(({ code }) => code),
+      findByCode: async (code) => {
+        const matches = await client.findDetailedLectures(
           year,
           semester,
-          new LectureCategoryBuilder().findByLecture(name),
+          new LectureCategoryBuilder().findByLecture(code),
           false,
-        ),
+        );
+        const exactMatches = matches.filter(({ lecture }) => lecture.code === code);
+        if (exactMatches.length === 0) {
+          throw new Error('No lecture found');
+        }
+        return exactMatches;
+      },
     }),
   );
   const rows: (typeof courseInformation.$inferInsert)[] = result.map(({ detail, lecture }) => ({
@@ -218,10 +240,9 @@ export const syncCourseSyllabus = async (
   year: number,
   semester: SemesterType,
   code: string,
-  name: string,
 ) => {
   const data = await withCourseScheduleClient(client, async () => {
-    const category = new LectureCategoryBuilder().findByLecture(name);
+    const category = new LectureCategoryBuilder().findByLecture(code);
     const lectures = await client.findLectures(year, semester, category);
     if (!lectures.some((lecture) => lecture.code === code)) {
       throw new Error('강의 정보를 찾을 수 없어요.');

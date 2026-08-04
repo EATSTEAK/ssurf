@@ -95,7 +95,7 @@ const SyllabusContent = ({
   semester: SemesterType;
   year: number;
 }) => {
-  const { data, error, isSyncing, refresh } = useCourseSyllabus(year, semester, code, name);
+  const { data, error, isSyncing, refresh } = useCourseSyllabus(year, semester, code);
   const subtitle = `${name} / ${professor}`;
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({

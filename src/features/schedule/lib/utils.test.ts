@@ -2,7 +2,7 @@ import type { SemesterType } from '@rusaint/react-native';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildScheduleSemesters, findBestCourseMatches, isScheduleActive } from './utils';
+import { buildScheduleSemesters, findCourseMatch, isScheduleActive } from './utils';
 
 const semester = (year: number, value: number) => ({ year, semester: value as SemesterType });
 
@@ -35,7 +35,7 @@ describe('buildScheduleSemesters', () => {
   });
 });
 
-describe('findBestCourseMatches', () => {
+describe('findCourseMatch', () => {
   const schedule = {
     name: '자료구조',
     professor: '홍길동',
@@ -51,19 +51,19 @@ describe('findBestCourseMatches', () => {
     const matching = candidate('홍길동', '월 09:00-10:15 (정보과학관 101호)');
     const other = candidate('김철수', '월 09:00-10:15 (정보과학관 201호)');
 
-    expect(findBestCourseMatches(schedule, [other, matching])).toEqual([matching]);
+    expect(findCourseMatch(schedule, [other, matching])).toBe(matching);
   });
 
-  it('keeps tied divisions for user selection', () => {
+  it('returns no match when scores are tied', () => {
     const first = candidate('홍길동', '월 09:00-10:15 (정보과학관 101호)');
     const second = candidate('홍길동', '수 09:00-10:15 (정보과학관 101호)');
 
-    expect(findBestCourseMatches(schedule, [first, second])).toEqual([first, second]);
+    expect(findCourseMatch(schedule, [first, second])).toBeUndefined();
   });
 
   it('returns no match for a different course', () => {
     const other = { lecture: { name: '운영체제', professor: '홍길동', scheduleRoom: '' } };
 
-    expect(findBestCourseMatches(schedule, [other])).toEqual([]);
+    expect(findCourseMatch(schedule, [other])).toBeUndefined();
   });
 });

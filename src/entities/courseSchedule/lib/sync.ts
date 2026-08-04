@@ -34,8 +34,11 @@ export const courseInformationSync = (
   return {
     key: [studentId, `courseInformation.${year}-${semester}`],
     run: async () => {
-      const client = await applications.get('courseSchedule', studentId, generation);
-      await syncCourseInformation(client, studentId, year, semester);
+      const [client, registrationClient] = await Promise.all([
+        applications.get('courseSchedule', studentId, generation),
+        applications.get('courseRegistrationStatus', studentId, generation),
+      ]);
+      await syncCourseInformation(client, registrationClient, studentId, year, semester);
     },
   };
 };
@@ -45,7 +48,6 @@ export const courseSyllabusSync = (
   year: number,
   semester: SemesterType,
   code: string,
-  name: string,
 ): SyncRequest => {
   const generation = applications.getGeneration();
 
@@ -53,7 +55,7 @@ export const courseSyllabusSync = (
     key: [studentId, `courseSyllabus.${year}-${semester}-${code}`],
     run: async () => {
       const client = await applications.get('courseSchedule', studentId, generation);
-      await syncCourseSyllabus(client, studentId, year, semester, code, name);
+      await syncCourseSyllabus(client, studentId, year, semester, code);
     },
   };
 };

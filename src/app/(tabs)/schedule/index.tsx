@@ -187,7 +187,7 @@ export default function Index() {
           headerRight: () => (
             <View style={styles.headerActions}>
               {isCourseInformationSyncing ? (
-                <ActivityIndicator accessibilityLabel="전체 과목 정보 불러오는 중" size="small" />
+                <ActivityIndicator accessibilityLabel="과목 정보 불러오는 중" size="small" />
               ) : null}
               <SemesterSelector
                 onChange={(_, semester) => void setSavedSemester(semester)}

@@ -76,14 +76,9 @@ export const useCourseInformationCandidates = (year: number, semester: SemesterT
   };
 };
 
-export const useCourseSyllabus = (
-  year: number,
-  semester: SemesterType,
-  code: string,
-  name: string,
-) => {
+export const useCourseSyllabus = (year: number, semester: SemesterType, code: string) => {
   const { studentId } = useRusaintApplication();
-  const sync = useSync(courseSyllabusSync(studentId ?? '', year, semester, code, name));
+  const sync = useSync(courseSyllabusSync(studentId ?? '', year, semester, code));
   const { data, error: queryError } = useLiveQuery(
     db.query.courseSyllabus.findFirst({
       where: (courseSyllabus, { and, eq }) =>

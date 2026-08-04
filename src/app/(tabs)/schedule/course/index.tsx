@@ -1,21 +1,13 @@
-import type {
-  CourseInformationEntity,
-  CourseScheduleEntity,
-} from '@/entities/courseSchedule/model';
+import type { CourseScheduleEntity } from '@/entities/courseSchedule/model';
 import type { SemesterType } from '@rusaint/react-native';
 
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { useCourseInformationCandidates } from '@/entities/courseSchedule/lib/queries';
-import {
-  findBestCourseMatches,
-  formatTimeRange,
-  WEEKDAY_LABELS,
-} from '@/features/schedule/lib/utils';
+import { findCourseMatch, formatTimeRange, WEEKDAY_LABELS } from '@/features/schedule/lib/utils';
 import { CourseDetailRow, CourseDetailSection } from '@/features/schedule/ui/CourseDetailSection';
 import { semesterToString } from '@/shared/lib/semester';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -45,15 +37,6 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     gap: theme.gap(1),
   },
-  candidate: (selected: boolean) => ({
-    backgroundColor: theme.colors.surfaceDimmer,
-    borderColor: selected ? theme.colors.primary : 'transparent',
-    borderCurve: 'continuous',
-    borderRadius: theme.cornerRadius.md,
-    borderWidth: 2,
-    gap: theme.gap(0.5),
-    padding: theme.gap(1.5),
-  }),
   pressed: {
     opacity: 0.7,
   },
@@ -84,9 +67,6 @@ type CourseRouteParams = {
 };
 
 type ScheduleRouteItem = Omit<CourseScheduleEntity, 'studentId'>;
-
-const candidateId = (candidate: CourseInformationEntity) =>
-  `${candidate.code}:${candidate.division}`;
 
 const listLectures = (items: { code: string; name: string }[]) =>
   items.map((item) => `${item.code} ${item.name}`).join('\n');
@@ -147,7 +127,6 @@ const parseCourseRouteParams = (params: CourseRouteParams): null | ScheduleRoute
 const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
   const router = useRouter();
   const { theme } = useUnistyles();
-  const [selectedId, setSelectedId] = useState<null | string>(null);
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -158,10 +137,7 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
     schedule.year,
     schedule.semester as SemesterType,
   );
-  const matches = findBestCourseMatches(schedule, data);
-  const selected =
-    matches.find((candidate) => candidateId(candidate) === selectedId) ??
-    (matches.length === 1 ? matches[0] : null);
+  const selected = findCourseMatch(schedule, data);
   const lecture = selected?.lecture;
   const detail = selected?.detail;
   const subtitle = `${schedule.name} / ${schedule.professor}`;
@@ -246,40 +222,12 @@ const CourseScreen = ({ schedule }: { schedule: ScheduleRouteItem }) => {
               <CourseDetailRow label="강의실" value={schedule.classroom} />
             </CourseDetailSection>
 
-            {matches.length > 1 ? (
-              <CourseDetailSection title="분반 선택">
-                {matches.map((candidate) => {
-                  const id = candidateId(candidate);
-                  return (
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: selectedId === id }}
-                      key={id}
-                      onPress={() => setSelectedId(id)}
-                      style={({ pressed }) => [
-                        styles.candidate(selectedId === id),
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      <ThemedText typography="headingMd">
-                        {candidate.code}
-                        {candidate.division ? ` · ${candidate.division}분반` : ''}
-                      </ThemedText>
-                      <ThemedText color="fgSecondary" typography="bodyMd">
-                        {candidate.professor} · {candidate.scheduleRoom}
-                      </ThemedText>
-                    </Pressable>
-                  );
-                })}
-              </CourseDetailSection>
-            ) : null}
-
-            {!selected && matches.length <= 1 ? (
+            {!selected ? (
               <CourseDetailSection title="추가 정보">
                 {isSyncing || (!hasLoaded && !error) ? (
                   <View style={styles.loading}>
-                    <ActivityIndicator accessibilityLabel="전체 과목 정보 불러오는 중" />
-                    <ThemedText typography="bodyLg">전체 과목 정보를 불러오는 중이에요.</ThemedText>
+                    <ActivityIndicator accessibilityLabel="과목 정보 불러오는 중" />
+                    <ThemedText typography="bodyLg">과목 정보를 불러오는 중이에요.</ThemedText>
                   </View>
                 ) : (
                   <>

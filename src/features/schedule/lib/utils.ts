@@ -13,46 +13,55 @@ const scheduleRoomTimes = (value: string) =>
     (match) => Number(match[1]) * 60 + Number(match[2]),
   );
 
-export const findBestCourseMatches = <T extends CourseMatchCandidate>(
+export const findCourseMatch = <T extends CourseMatchCandidate>(
   schedule: Pick<
     CourseScheduleEntity,
     'classroom' | 'endTime' | 'name' | 'professor' | 'startTime'
   >,
   candidates: readonly T[],
-): T[] => {
+): T | undefined => {
   const scheduleName = normalizeCourseText(schedule.name);
   const scheduleProfessor = normalizeCourseText(schedule.professor);
   const scheduleClassroom = normalizeCourseText(schedule.classroom);
-  const scored = candidates
-    .filter((candidate) => normalizeCourseText(candidate.lecture.name) === scheduleName)
-    .map((candidate) => {
-      const professor = normalizeCourseText(candidate.lecture.professor);
-      const scheduleRoom = normalizeCourseText(candidate.lecture.scheduleRoom);
-      const times = scheduleRoomTimes(candidate.lecture.scheduleRoom);
-      let score = 0;
+  let best: undefined | { candidate: T; score: number };
+  let tied = false;
 
-      if (
-        scheduleProfessor &&
-        professor &&
-        (professor.includes(scheduleProfessor) || scheduleProfessor.includes(professor))
-      ) {
-        score += 4;
-      }
-      if (scheduleClassroom && scheduleRoom.includes(scheduleClassroom)) {
-        score += 2;
-      }
-      if (times.includes(schedule.startTime)) {
-        score += 1;
-      }
-      if (times.includes(schedule.endTime)) {
-        score += 1;
-      }
+  for (const candidate of candidates) {
+    if (normalizeCourseText(candidate.lecture.name) !== scheduleName) {
+      continue;
+    }
 
-      return { candidate, score };
-    });
+    const professor = normalizeCourseText(candidate.lecture.professor);
+    const scheduleRoom = normalizeCourseText(candidate.lecture.scheduleRoom);
+    const times = scheduleRoomTimes(candidate.lecture.scheduleRoom);
+    let score = 0;
 
-  const bestScore = Math.max(...scored.map(({ score }) => score), -1);
-  return scored.filter(({ score }) => score === bestScore).map(({ candidate }) => candidate);
+    if (
+      scheduleProfessor &&
+      professor &&
+      (professor.includes(scheduleProfessor) || scheduleProfessor.includes(professor))
+    ) {
+      score += 4;
+    }
+    if (scheduleClassroom && scheduleRoom.includes(scheduleClassroom)) {
+      score += 2;
+    }
+    if (times.includes(schedule.startTime)) {
+      score += 1;
+    }
+    if (times.includes(schedule.endTime)) {
+      score += 1;
+    }
+
+    if (!best || score > best.score) {
+      best = { candidate, score };
+      tied = false;
+    } else if (score === best.score) {
+      tied = true;
+    }
+  }
+
+  return tied ? undefined : best?.candidate;
 };
 
 export const buildScheduleSemesters = (

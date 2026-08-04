@@ -3,6 +3,8 @@ import {
   ChapelApplicationInterface,
   CourseGradesApplicationBuilder,
   CourseGradesApplicationInterface,
+  CourseRegistrationStatusApplicationBuilder,
+  CourseRegistrationStatusApplicationLike,
   CourseScheduleApplicationBuilder,
   CourseScheduleApplicationLike,
   GraduationRequirementsApplicationBuilder,
@@ -24,6 +26,7 @@ type WithDefaultSemester<T> = {
 
 type ApplicationValues = {
   chapel: WithDefaultSemester<ChapelApplicationInterface>;
+  courseRegistrationStatus: CourseRegistrationStatusApplicationLike;
   courseSchedule: CourseScheduleApplicationLike;
   grades: WithDefaultSemester<CourseGradesApplicationInterface>;
   graduationRequirements: GraduationRequirementsApplicationInterface;
@@ -83,6 +86,7 @@ const createDeferred = <T>(): Deferred<T> => {
 
 const createSlots = (): ApplicationSlots => ({
   chapel: createDeferred(),
+  courseRegistrationStatus: createDeferred(),
   courseSchedule: createDeferred(),
   grades: createDeferred(),
   graduationRequirements: createDeferred(),
@@ -93,6 +97,7 @@ const createSlots = (): ApplicationSlots => ({
 
 const applicationNames = Object.freeze<ApplicationName[]>([
   'chapel',
+  'courseRegistrationStatus',
   'courseSchedule',
   'grades',
   'graduationRequirements',
@@ -197,6 +202,21 @@ const start = (session: USaintSessionInterface, studentId: string) => {
         return;
       }
       currentSlots.scholarships.resolve(scholarships);
+
+      try {
+        const courseRegistrationStatus =
+          await new CourseRegistrationStatusApplicationBuilder().build(session);
+        if (currentGeneration !== generation) {
+          return;
+        }
+        currentSlots.courseRegistrationStatus.resolve(courseRegistrationStatus);
+      } catch (error) {
+        if (currentGeneration === generation) {
+          currentSlots.courseRegistrationStatus.reject(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }
     } catch (error) {
       if (currentGeneration === generation) {
         rejectPending(error instanceof Error ? error : new Error(String(error)));

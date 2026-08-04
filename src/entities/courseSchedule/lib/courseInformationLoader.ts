@@ -1,20 +1,20 @@
 export type CourseInformationLoaderOptions<T> = {
-  courseNames: readonly string[];
-  findByName: (name: string) => Promise<T[]>;
+  courseCodes: readonly string[];
+  findByCode: (code: string) => Promise<T[]>;
 };
 
 const isNoLectureFound = (error: unknown) => String(error).includes('No lecture found');
 
 export const loadCourseInformation = async <T>({
-  courseNames,
-  findByName,
+  courseCodes,
+  findByCode,
 }: CourseInformationLoaderOptions<T>): Promise<T[]> => {
   const results: T[] = [];
   let firstMissingCourseError: unknown;
 
-  for (const name of new Set(courseNames.map((value) => value.trim()).filter(Boolean))) {
+  for (const code of new Set(courseCodes.map((value) => value.trim()).filter(Boolean))) {
     try {
-      results.push(...(await findByName(name)));
+      results.push(...(await findByCode(code)));
     } catch (error) {
       if (!isNoLectureFound(error)) {
         throw error;
