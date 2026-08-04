@@ -115,11 +115,7 @@ const SyllabusContent = ({
         }}
       />
       <View style={styles.root}>
-        <Animated.ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-        >
+        <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
           <SafeContainer style={styles.content}>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.heading}>
