@@ -1,5 +1,8 @@
+import type { DetailedLecture, Lecture } from '@rusaint/react-native';
+
 import { SemesterType } from '@rusaint/react-native';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
+import { useEffect, useState } from 'react';
 
 import { db } from '@/db';
 import {
@@ -7,6 +10,8 @@ import {
   courseScheduleSync,
   courseSyllabusSync,
 } from '@/entities/courseSchedule/lib/sync';
+import { findCourseInformation, searchCourseLectures } from '@/entities/courseSchedule/service';
+import { applications } from '@/shared/lib/applications';
 import { useSync } from '@/shared/lib/useSync';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 
@@ -73,6 +78,105 @@ export const useCourseInformationCandidates = (year: number, semester: SemesterT
     hasLoaded: cacheEntry?.updatedAt != null,
     isSyncing: sync.isSyncing,
     refresh: sync.refresh,
+  };
+};
+
+export const useCourseCatalogSearch = () => {
+  const { studentId } = useRusaintApplication();
+
+  return async (year: number, semester: SemesterType, keyword: string): Promise<Lecture[]> => {
+    if (!studentId) {
+      throw new Error('로그인 정보를 찾을 수 없어요.');
+    }
+
+    const client = await applications.get(
+      'courseSchedule',
+      studentId,
+      applications.getGeneration(),
+    );
+    return searchCourseLectures(client, year, semester, keyword);
+  };
+};
+
+export const useCourseInformationByCode = (year: number, semester: SemesterType, code: string) => {
+  const { studentId } = useRusaintApplication();
+  const [retryCount, setRetryCount] = useState(0);
+  const requestKey = `${studentId ?? ''}:${year}:${semester}:${code}`;
+  const [remote, setRemote] = useState<{
+    data: DetailedLecture | null;
+    error: Error | null;
+    isSyncing: boolean;
+    key: string;
+  }>({ data: null, error: null, isSyncing: false, key: '' });
+  const {
+    data: cached,
+    error: queryError,
+    updatedAt,
+  } = useLiveQuery(
+    db.query.courseInformation.findFirst({
+      where: (courseInformation, { and, eq }) =>
+        and(
+          eq(courseInformation.studentId, studentId ?? ''),
+          eq(courseInformation.year, year),
+          eq(courseInformation.semester, semester),
+          eq(courseInformation.code, code),
+        ),
+    }),
+    [studentId, year, semester, code],
+  );
+
+  useEffect(() => {
+    if (updatedAt == null || cached || !studentId) {
+      return;
+    }
+
+    let active = true;
+    const generation = applications.getGeneration();
+    void applications
+      .get('courseSchedule', studentId, generation)
+      .then((client) => findCourseInformation(client, year, semester, code))
+      .then(
+        (data) => {
+          if (active) {
+            setRemote({ data, error: null, isSyncing: false, key: requestKey });
+          }
+        },
+        (error: unknown) => {
+          if (active) {
+            setRemote({
+              data: null,
+              error: error instanceof Error ? error : new Error(String(error)),
+              isSyncing: false,
+              key: requestKey,
+            });
+          }
+        },
+      );
+
+    return () => {
+      active = false;
+    };
+  }, [cached, code, requestKey, retryCount, semester, studentId, updatedAt, year]);
+
+  const currentRemote = remote.key === requestKey ? remote : null;
+  const data: DetailedLecture | null = cached
+    ? { detail: cached.detail ?? undefined, lecture: cached.lecture }
+    : (currentRemote?.data ?? null);
+
+  return {
+    data,
+    error:
+      queryError ??
+      currentRemote?.error ??
+      (studentId ? null : new Error('로그인 정보를 찾을 수 없어요.')),
+    isSyncing:
+      !data &&
+      studentId != null &&
+      (updatedAt == null || currentRemote == null || currentRemote.isSyncing),
+    refresh: () => {
+      setRemote({ data: null, error: null, isSyncing: true, key: requestKey });
+      setRetryCount((count) => count + 1);
+    },
   };
 };
 

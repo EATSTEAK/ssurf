@@ -1,25 +1,64 @@
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  Button as JetpackButton,
-  Host as JetpackHost,
-} from '@expo/ui/jetpack-compose';
-import { defaultMinSize } from '@expo/ui/jetpack-compose/modifiers';
-import {
-  Host as SwiftHost,
-  Menu as SwiftMenu,
-  Picker as SwiftPicker,
-  Text as SwiftText,
-} from '@expo/ui/swift-ui';
-import { frame, tag, tint } from '@expo/ui/swift-ui/modifiers';
-import { YearSemester } from '@rusaint/react-native';
+import type { YearSemester } from '@rusaint/react-native';
+
 import { useState } from 'react';
-import { Platform } from 'react-native';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { FlatList, Modal, Pressable, View } from 'react-native';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { semesterToString } from '@/shared/lib/semester';
-import { paletteHex } from '@/shared/lib/theme';
+import { ChevronDownIcon } from '@/shared/ui/icons';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
+
+const ITEM_HEIGHT = 52;
+
+const styles = StyleSheet.create((theme) => ({
+  closeButton: {
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.gap(3),
+  },
+  modal: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.cornerRadius.lg,
+    maxHeight: '72%',
+    overflow: 'hidden',
+    paddingVertical: theme.gap(1),
+    width: '86%',
+  },
+  option: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: ITEM_HEIGHT,
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.gap(3),
+  },
+  optionPressed: {
+    backgroundColor: theme.colors.surfaceDimmer,
+  },
+  optionSelected: {
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  overlay: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  trigger: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.gap(0.5),
+    minHeight: 44,
+    paddingHorizontal: theme.gap(1),
+  },
+  triggerPressed: {
+    opacity: 0.55,
+  },
+}));
 
 export interface SemesterSelectorProps {
   onChange: (index: number, semester: YearSemester) => void;
@@ -27,85 +66,95 @@ export interface SemesterSelectorProps {
   semesters: YearSemester[];
 }
 
-const styles = StyleSheet.create((theme, rt) => ({
-  triggerColor: {
-    color: rt.colorScheme === 'dark' ? paletteHex.wave400 : paletteHex.wave600,
-  },
-  jetpackItemColor: {
-    color: rt.colorScheme === 'dark' ? paletteHex.sand50 : paletteHex.sand950,
-    backgroundColor: rt.colorScheme === 'dark' ? paletteHex.sand900 : paletteHex.sand100,
-  },
-}));
+export const SemesterSelector = ({
+  selectedIndex = 0,
+  semesters,
+  onChange,
+}: SemesterSelectorProps) => {
+  const { theme } = useUnistyles();
+  const [visible, setVisible] = useState(false);
+  const normalizedSelectedIndex =
+    selectedIndex >= 0 && selectedIndex < semesters.length ? selectedIndex : 0;
+  const selectedSemester = semesters[normalizedSelectedIndex];
 
-export const SemesterSelector = withUnistyles(
-  ({ selectedIndex, semesters, onChange }: SemesterSelectorProps) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+  if (!selectedSemester) {
+    return null;
+  }
 
-    const handleSelect = (index: number) => {
-      setIsExpanded(false);
-      const semester = semesters[index];
-      if (semester != null) {
-        onChange(index, semester);
-      }
-    };
-    return Platform.select({
-      ios: (
-        <SwiftHost matchContents>
-          <SwiftMenu
-            label="학기"
-            modifiers={[frame({ minHeight: 44, minWidth: 44 }), tint(styles.triggerColor.color)]}
-          >
-            <SwiftPicker
-              onSelectionChange={(index) => {
-                if (typeof index === 'number') {
-                  handleSelect(index);
-                }
-              }}
-              selection={selectedIndex ?? null}
-            >
-              {semesters.map((semester, index) => (
-                <SwiftText key={`${semester.year}-${semester.semester}`} modifiers={[tag(index)]}>
-                  {semesterToString(semester)}
-                </SwiftText>
-              ))}
-            </SwiftPicker>
-          </SwiftMenu>
-        </SwiftHost>
-      ),
-      android: (
-        <JetpackHost matchContents>
-          <DropdownMenu expanded={isExpanded} onDismissRequest={() => setIsExpanded(false)}>
-            <DropdownMenu.Trigger>
-              <JetpackButton
-                colors={{
-                  contentColor: styles.triggerColor.color,
-                  containerColor: styles.jetpackItemColor.backgroundColor,
-                }}
-                modifiers={[defaultMinSize({ minHeight: 44, minWidth: 64 })]}
-                onClick={() => setIsExpanded(true)}
+  return (
+    <>
+      <Pressable
+        accessibilityHint="학기 선택 창을 열어요"
+        accessibilityLabel={`학기 선택, ${semesterToString(selectedSemester)}`}
+        accessibilityRole="button"
+        onPress={() => setVisible(true)}
+        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed]}
+      >
+        <ThemedText typography="labelMd">{semesterToString(selectedSemester)}</ThemedText>
+        <ChevronDownIcon color={theme.colorsHex.fgPrimary} size={16} />
+      </Pressable>
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+        statusBarTranslucent
+        transparent
+        visible={visible}
+      >
+        <Pressable onPress={() => setVisible(false)} style={styles.overlay}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={styles.modal}>
+            <View style={styles.header}>
+              <ThemedText typography="headingLg">학기 선택</ThemedText>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setVisible(false)}
+                style={styles.closeButton}
               >
-                <ThemedText color="primaryInverted">학기</ThemedText>
-              </JetpackButton>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Items>
-              {semesters.map((semester, index) => (
-                <DropdownMenuItem
-                  elementColors={{
-                    textColor: styles.jetpackItemColor.color,
-                    disabledTextColor: styles.jetpackItemColor.color,
-                  }}
-                  key={`${semester.year}-${semester.semester}`}
-                  onClick={() => handleSelect(index)}
-                >
-                  <DropdownMenuItem.Text>
-                    <ThemedText>{semesterToString(semester)}</ThemedText>
-                  </DropdownMenuItem.Text>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenu.Items>
-          </DropdownMenu>
-        </JetpackHost>
-      ),
-    });
-  },
-);
+                <ThemedText color="primary" typography="labelMd">
+                  닫기
+                </ThemedText>
+              </Pressable>
+            </View>
+            <FlatList
+              data={semesters}
+              getItemLayout={(_, index) => ({
+                index,
+                length: ITEM_HEIGHT,
+                offset: ITEM_HEIGHT * index,
+              })}
+              initialScrollIndex={normalizedSelectedIndex}
+              key={`${selectedSemester.year}-${selectedSemester.semester}`}
+              keyExtractor={({ semester, year }) => `${year}-${semester}`}
+              renderItem={({ index, item }) => {
+                const isSelected = index === normalizedSelectedIndex;
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    onPress={() => {
+                      onChange(index, item);
+                      setVisible(false);
+                    }}
+                    style={({ pressed }) => [
+                      styles.option,
+                      isSelected && styles.optionSelected,
+                      pressed && styles.optionPressed,
+                    ]}
+                  >
+                    <ThemedText typography={isSelected ? 'headingMd' : 'bodyLg'}>
+                      {semesterToString(item)}
+                    </ThemedText>
+                    {isSelected ? (
+                      <ThemedText color="primary" typography="labelMd">
+                        선택됨
+                      </ThemedText>
+                    ) : null}
+                  </Pressable>
+                );
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
+  );
+};
