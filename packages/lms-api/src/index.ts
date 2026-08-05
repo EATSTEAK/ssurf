@@ -486,25 +486,52 @@ class LmsApiClient {
   }
 }
 
-export const lmsApi = {
-  getActiveCourses: async (options: LmsApiRequestOptions) =>
-    new LmsApiClient(options).getActiveCourses(),
-  getAnnouncements: async ({ courses, daysBack, ...options }: AnnouncementsOptions) =>
-    new LmsApiClient(options).getAnnouncements({ courses, daysBack }),
-  getAnnouncementsForCourse: async ({ course, daysBack, ...options }: CourseHistoryOptions) =>
-    new LmsApiClient(options).getAnnouncementsForCourse(course, { daysBack }),
-  getGradedSubmissions: async ({ courses, daysBack, ...options }: GradedSubmissionsOptions) =>
-    new LmsApiClient(options).getGradedSubmissions({ courses, daysBack }),
-  getGradedSubmissionsForCourse: async ({ course, daysBack, ...options }: CourseHistoryOptions) =>
-    new LmsApiClient(options).getGradedSubmissionsForCourse(course, { daysBack }),
-  getPlannerItems: async ({ endDate, filter, startDate, ...options }: PlannerItemsOptions) =>
-    new LmsApiClient(options).getPlannerItems({ endDate, filter, startDate }),
-  getSelf: async (options: LmsApiRequestOptions) => new LmsApiClient(options).getSelf(),
-  getSelfProfile: async (options: LmsApiRequestOptions) =>
-    new LmsApiClient(options).getSelfProfile(),
-  getUpcomingLearningItems: async ({ daysAhead, from, ...options }: UpcomingLearningItemsOptions) =>
-    new LmsApiClient(options).getUpcomingLearningItems({ daysAhead, from }),
-};
+export const getActiveCourses = async (options: LmsApiRequestOptions) =>
+  new LmsApiClient(options).getActiveCourses();
+
+export const getAnnouncements = async ({ courses, daysBack, ...options }: AnnouncementsOptions) =>
+  new LmsApiClient(options).getAnnouncements({ courses, daysBack });
+
+export const getAnnouncementsForCourse = async ({
+  course,
+  daysBack,
+  ...options
+}: CourseHistoryOptions) =>
+  new LmsApiClient(options).getAnnouncementsForCourse(course, { daysBack });
+
+export const getGradedSubmissions = async ({
+  courses,
+  daysBack,
+  ...options
+}: GradedSubmissionsOptions) =>
+  new LmsApiClient(options).getGradedSubmissions({ courses, daysBack });
+
+export const getGradedSubmissionsForCourse = async ({
+  course,
+  daysBack,
+  ...options
+}: CourseHistoryOptions) =>
+  new LmsApiClient(options).getGradedSubmissionsForCourse(course, { daysBack });
+
+export const getPlannerItems = async ({
+  endDate,
+  filter,
+  startDate,
+  ...options
+}: PlannerItemsOptions) =>
+  new LmsApiClient(options).getPlannerItems({ endDate, filter, startDate });
+
+export const getSelf = async (options: LmsApiRequestOptions) => new LmsApiClient(options).getSelf();
+
+export const getSelfProfile = async (options: LmsApiRequestOptions) =>
+  new LmsApiClient(options).getSelfProfile();
+
+export const getUpcomingLearningItems = async ({
+  daysAhead,
+  from,
+  ...options
+}: UpcomingLearningItemsOptions) =>
+  new LmsApiClient(options).getUpcomingLearningItems({ daysAhead, from });
 
 const announcementFrom = (json: Record<string, unknown>): AnnouncementItem => {
   const contextCode = stringFrom(json.context_code);

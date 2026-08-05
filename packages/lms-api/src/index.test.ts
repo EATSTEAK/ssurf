@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  CanvasApiError,
-  type CanvasCourse,
-  LearningItemType,
-  lmsApi,
-  SubmissionStatus,
-} from './index';
+import * as lmsApi from './index';
 
 const jsonResponse = (data: unknown, init?: ResponseInit) =>
   new Response(JSON.stringify(data), {
@@ -143,7 +137,7 @@ describe('lmsApi', () => {
     };
     const requestOptions = { accessToken: 'token', request: failedBodyRequest };
     const bodyError = await lmsApi.getSelf(requestOptions).catch((caught: unknown) => caught);
-    expect(bodyError).toBeInstanceOf(CanvasApiError);
+    expect(bodyError).toBeInstanceOf(lmsApi.CanvasApiError);
     expect(bodyError).toMatchObject({ message: 'body failed' });
 
     requested = false;
@@ -196,11 +190,15 @@ describe('lmsApi', () => {
     });
 
     expect(items.map(({ title }) => title)).toEqual(['Earlier quiz', 'Later report']);
-    expect(items[0]?.type).toBe(LearningItemType.Quiz);
+    expect(items[0]?.type).toBe(lmsApi.LearningItemType.Quiz);
   });
 
   it('loads announcement and graded-submission models and exposes API errors', async () => {
-    const course: CanvasCourse = { id: '42', isFavorite: false, name: 'Mobile Programming' };
+    const course: lmsApi.CanvasCourse = {
+      id: '42',
+      isFavorite: false,
+      name: 'Mobile Programming',
+    };
     const request: typeof fetch = async (input) => {
       const url = new URL(String(input));
       if (url.pathname === '/api/v1/announcements') {
@@ -240,11 +238,11 @@ describe('lmsApi', () => {
       {
         assignmentName: 'Project 1',
         pointsPossible: 20,
-        status: SubmissionStatus.Graded,
+        status: lmsApi.SubmissionStatus.Graded,
       },
     ]);
     const error = await lmsApi.getSelf(requestOptions).catch((caught: unknown) => caught);
-    expect(error).toBeInstanceOf(CanvasApiError);
+    expect(error).toBeInstanceOf(lmsApi.CanvasApiError);
     expect(error).toMatchObject({ message: 'Invalid access token.', statusCode: 401 });
   });
 });

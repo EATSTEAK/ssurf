@@ -3,7 +3,7 @@
 Canvas/LearningX API client for SSURF. The default endpoint is `https://canvas.ssu.ac.kr`.
 
 ```ts
-import { lmsApi } from '@ssurf/lms-api';
+import * as lmsApi from '@ssurf/lms-api';
 
 const profile = await lmsApi.getSelfProfile({ accessToken });
 const courses = await lmsApi.getActiveCourses({ accessToken });
