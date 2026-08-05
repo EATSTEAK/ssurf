@@ -2,28 +2,36 @@ import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
 import { useCalendars } from '@/entities/calendar/lib/queries';
 import { CalendarEntity } from '@/entities/calendar/model';
-import { useCourseInformationSync, useCourseSchedule } from '@/entities/courseSchedule/lib/queries';
+import {
+  useCourseInformationCandidates,
+  useCourseSchedule,
+} from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
 import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
 import { buildScheduleSemesters } from '@/features/schedule/lib/utils';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
 import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
-import { getEstimatedCurrentSemester, semesterToString } from '@/shared/lib/semester';
+import {
+  getEstimatedCurrentSemester,
+  semesterToSlug,
+  semesterToString,
+} from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
+import { SearchIcon } from '@/shared/ui/icons';
 import { Space } from '@/shared/ui/primitives/Space';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 import { SemesterSelector } from '@/shared/ui/SemesterSelector';
@@ -51,6 +59,15 @@ const styles = StyleSheet.create((theme) => ({
     position: 'relative',
     width: '100%',
   },
+  searchButton: {
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  searchButtonPressed: {
+    opacity: 0.55,
+  },
   stateImage: {
     height: 150,
     marginBottom: 16,
@@ -70,6 +87,7 @@ const RUSAINT_NO_SCHEDULE =
 
 export default function Index() {
   const router = useRouter();
+  const { theme } = useUnistyles();
   const { defaultScheduleSemester } = useRusaintApplication();
   const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
   const [savedSemester, setSavedSemester] = useSetting('schedule.selectedSemester');
@@ -94,8 +112,14 @@ export default function Index() {
     error,
     refresh: refreshSchedule,
   } = useCourseSchedule(effectiveSelectedSemester.year, effectiveSelectedSemester.semester);
-  const { isSyncing: isCourseInformationSyncing, refresh: refreshCourseInformation } =
-    useCourseInformationSync(effectiveSelectedSemester.year, effectiveSelectedSemester.semester);
+  const {
+    data: courseInformation,
+    isSyncing: isCourseInformationSyncing,
+    refresh: refreshCourseInformation,
+  } = useCourseInformationCandidates(
+    effectiveSelectedSemester.year,
+    effectiveSelectedSemester.semester,
+  );
   const {
     data: calendars,
     error: calendarError,
@@ -198,6 +222,23 @@ export default function Index() {
                 )}
                 semesters={semesters}
               />
+              <Pressable
+                accessibilityLabel="강의 검색"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(tabs)/schedule/search',
+                    params: { term: semesterToSlug(effectiveSelectedSemester) },
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.searchButton,
+                  pressed && styles.searchButtonPressed,
+                ]}
+              >
+                <SearchIcon color={theme.colorsHex.fgPrimary} size={22} />
+              </Pressable>
             </View>
           ),
           headerTitle: () => <></>,
@@ -223,6 +264,7 @@ export default function Index() {
             {hasData ? (
               <View style={styles.gridContainer}>
                 <ScheduleGrid
+                  courseInformation={courseInformation}
                   data={data}
                   semester={effectiveSelectedSemester.semester}
                   year={effectiveSelectedSemester.year}

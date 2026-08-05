@@ -37,6 +37,39 @@ export const semesterToString = (semester: YearSemester): string => {
   return `${semester.year}-${semesterTypeToString(semester.semester)}`;
 };
 
+export const USAINT_COURSE_FIRST_YEAR = 1954;
+
+const semesterSlugParts: Record<SemesterType, string> = {
+  [SemesterType.One]: '1',
+  [SemesterType.Summer]: 'summer',
+  [SemesterType.Two]: '2',
+  [SemesterType.Winter]: 'winter',
+};
+
+export const semesterToSlug = ({ year, semester }: YearSemester): string =>
+  `${year}-${semesterSlugParts[semester]}`;
+
+export const parseSemesterSlug = (value: string): null | YearSemester => {
+  const match = value.match(/^(\d{4})-(1|summer|2|winter)$/);
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  if (year < USAINT_COURSE_FIRST_YEAR || year > 2100) {
+    return null;
+  }
+
+  const semesters: Record<string, SemesterType> = {
+    '1': SemesterType.One,
+    summer: SemesterType.Summer,
+    '2': SemesterType.Two,
+    winter: SemesterType.Winter,
+  };
+
+  return { year, semester: semesters[match[2]] };
+};
+
 export const constructSemesters = (
   startYear: number,
   endYear: number,

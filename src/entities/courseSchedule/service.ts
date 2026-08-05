@@ -1,6 +1,8 @@
 import {
   CourseRegistrationStatusApplicationLike,
   CourseScheduleApplicationLike,
+  DetailedLecture,
+  Lecture,
   LectureCategoryBuilder,
   PersonalCourseScheduleApplicationInterface,
   SemesterType,
@@ -48,6 +50,55 @@ const withCourseScheduleClient = <T>(
     ),
   );
   return result;
+};
+
+const isNoLectureFound = (error: unknown) => String(error).includes('No lecture found');
+
+export const searchCourseLectures = async (
+  client: CourseScheduleApplicationLike,
+  year: number,
+  semester: SemesterType,
+  keyword: string,
+): Promise<Lecture[]> => {
+  const query = keyword.trim();
+  if (!query) {
+    return [];
+  }
+
+  try {
+    const lectures = await withCourseScheduleClient(client, () =>
+      client.findLectures(year, semester, new LectureCategoryBuilder().findByLecture(query)),
+    );
+    return [...new Map(lectures.map((lecture) => [lecture.code, lecture])).values()];
+  } catch (error) {
+    if (isNoLectureFound(error)) {
+      return [];
+    }
+    throw error;
+  }
+};
+
+export const findCourseInformation = async (
+  client: CourseScheduleApplicationLike,
+  year: number,
+  semester: SemesterType,
+  code: string,
+): Promise<DetailedLecture> => {
+  const matches = await withCourseScheduleClient(client, () =>
+    client.findDetailedLectures(
+      year,
+      semester,
+      new LectureCategoryBuilder().findByLecture(code),
+      false,
+    ),
+  );
+  const exactMatches = matches.filter(({ lecture }) => lecture.code === code);
+
+  if (exactMatches.length === 0) {
+    throw new Error('강의 정보를 찾을 수 없어요.');
+  }
+
+  return exactMatches[0];
 };
 
 const parseTimeToMinutes = (time: string): null | { endMinutes: number; startMinutes: number } => {

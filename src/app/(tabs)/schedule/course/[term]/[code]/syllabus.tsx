@@ -6,7 +6,9 @@ import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useCourseSyllabus } from '@/entities/courseSchedule/lib/queries';
+import { parseCourseCode, type RouteParam } from '@/features/schedule/lib/courseRoute';
 import { CourseDetailRow, CourseDetailSection } from '@/features/schedule/ui/CourseDetailSection';
+import { parseSemesterSlug } from '@/shared/lib/semester';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { FloatingHeader } from '@/shared/ui/headers/FloatingHeader';
 import { Header } from '@/shared/ui/headers/Header';
@@ -35,68 +37,25 @@ const styles = StyleSheet.create((theme) => ({
   },
 }));
 
-type RouteParam = string | string[] | undefined;
-
 type SyllabusRouteParams = {
   code?: RouteParam;
-  name?: RouteParam;
-  professor?: RouteParam;
-  semester?: RouteParam;
-  year?: RouteParam;
+  term?: RouteParam;
 };
 
 const lines = (values: (null | string | undefined)[]) =>
   values.filter((value): value is string => Boolean(value?.trim())).join('\n');
 
-const singleParam = (value: RouteParam) => (typeof value === 'string' ? value : null);
-
-const parseSyllabusRouteParams = (params: SyllabusRouteParams) => {
-  const code = singleParam(params.code);
-  const name = singleParam(params.name);
-  const professor = singleParam(params.professor);
-  const semesterParam = singleParam(params.semester);
-  const yearParam = singleParam(params.year);
-  if (
-    !code?.trim() ||
-    !name?.trim() ||
-    professor === null ||
-    semesterParam === null ||
-    yearParam === null
-  ) {
-    return null;
-  }
-
-  const semester = Number(semesterParam);
-  const year = Number(yearParam);
-  if (
-    !Number.isInteger(year) ||
-    year < 2000 ||
-    year > 2100 ||
-    !Number.isInteger(semester) ||
-    semester < 0 ||
-    semester > 3
-  ) {
-    return null;
-  }
-
-  return { code, name, professor, semester: semester as SemesterType, year };
-};
-
 const SyllabusContent = ({
   code,
-  name,
-  professor,
   semester,
   year,
 }: {
   code: string;
-  name: string;
-  professor: string;
   semester: SemesterType;
   year: number;
 }) => {
   const { data, error, isSyncing, refresh } = useCourseSyllabus(year, semester, code);
-  const subtitle = `${name} / ${professor}`;
+  const subtitle = data ? `${data.courseName} / ${data.professor}` : code;
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -116,7 +75,11 @@ const SyllabusContent = ({
         }}
       />
       <View style={styles.root}>
-        <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
+        <Animated.ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+        >
           <SafeContainer style={styles.content}>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.heading}>
@@ -230,9 +193,12 @@ const SyllabusSections = ({ data }: { data: LectureSyllabus }) => (
 );
 
 export default function SyllabusRoute() {
-  const syllabus = parseSyllabusRouteParams(useLocalSearchParams<SyllabusRouteParams>());
+  const params = useLocalSearchParams<SyllabusRouteParams>();
+  const term = typeof params.term === 'string' ? params.term : null;
+  const semester = term ? parseSemesterSlug(term) : null;
+  const code = parseCourseCode(params.code);
 
-  if (!syllabus) {
+  if (!semester || !code) {
     return (
       <>
         <Stack.Screen options={{ headerShown: true, title: '강의계획서' }} />
@@ -245,5 +211,5 @@ export default function SyllabusRoute() {
     );
   }
 
-  return <SyllabusContent {...syllabus} />;
+  return <SyllabusContent code={code} semester={semester.semester} year={semester.year} />;
 }

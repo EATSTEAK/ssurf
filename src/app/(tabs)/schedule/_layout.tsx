@@ -5,8 +5,9 @@ export default function StackLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="calendar" />
-      <Stack.Screen name="course/index" />
-      <Stack.Screen name="course/syllabus" />
+      <Stack.Screen name="search" />
+      <Stack.Screen name="course/[term]/[code]/index" />
+      <Stack.Screen name="course/[term]/[code]/syllabus" />
     </Stack>
   );
 }

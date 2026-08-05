@@ -1,17 +1,21 @@
+import type { SemesterType } from '@rusaint/react-native';
+
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { CourseScheduleEntity } from '@/entities/courseSchedule/model';
+import { CourseInformationEntity, CourseScheduleEntity } from '@/entities/courseSchedule/model';
 import {
   assignCourseColorIndices,
+  findCourseMatch,
   getGridBounds,
   HOUR_HEIGHT,
   isScheduleActive,
   WEEKDAY_LABELS,
 } from '@/features/schedule/lib/utils';
 import { ScheduleCell } from '@/features/schedule/ui/ScheduleCell';
+import { semesterToSlug } from '@/shared/lib/semester';
 
 const TIME_LABEL_WIDTH = 40;
 const COLOR_SIZE = 8;
@@ -84,12 +88,13 @@ const styles = StyleSheet.create((theme) => ({
 }));
 
 interface ScheduleGridProps {
+  courseInformation: CourseInformationEntity[];
   data: CourseScheduleEntity[];
-  semester: number;
+  semester: SemesterType;
   year: number;
 }
 
-export const ScheduleGrid = ({ data, semester, year }: ScheduleGridProps) => {
+export const ScheduleGrid = ({ courseInformation, data, semester, year }: ScheduleGridProps) => {
   const router = useRouter();
   const { startHour, endHour, weekdays } = getGridBounds(data);
   const totalHours = endHour - startHour;
@@ -120,15 +125,23 @@ export const ScheduleGrid = ({ data, semester, year }: ScheduleGridProps) => {
   }
 
   const handlePressCourse = (item: CourseScheduleEntity) => {
+    const course = findCourseMatch(item, courseInformation);
+    if (!course) {
+      Alert.alert('과목 정보를 찾지 못했어요.', '잠시 후 다시 시도해주세요.');
+      return;
+    }
+
     router.push({
-      pathname: '/(tabs)/schedule/course',
+      pathname: '/(tabs)/schedule/course/[term]/[code]',
       params: {
         classroom: item.classroom,
+        code: course.code,
         endTime: String(item.endTime),
         name: item.name,
         professor: item.professor,
         semester: String(semester),
         startTime: String(item.startTime),
+        term: semesterToSlug({ semester, year }),
         weekday: String(item.weekday),
         year: String(year),
       },
