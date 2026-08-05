@@ -120,15 +120,36 @@ export interface PlannerOverride {
   workflowState?: string;
 }
 
-export interface LmsApiClientOptions {
+export interface LmsApiRequestOptions {
   accessToken: string;
   baseUrl?: string;
   request?: typeof fetch;
   timeoutMs?: number;
 }
 
+type AnnouncementsOptions = LmsApiRequestOptions & {
+  courses?: CanvasCourse[];
+  daysBack?: number;
+};
+type CourseHistoryOptions = LmsApiRequestOptions & {
+  course: CanvasCourse;
+  daysBack?: number;
+};
+type GradedSubmissionsOptions = LmsApiRequestOptions & {
+  courses?: CanvasCourse[];
+  daysBack?: number;
+};
+type PlannerItemsOptions = LmsApiRequestOptions & {
+  endDate?: Date;
+  filter?: string;
+  startDate?: Date;
+};
 type QueryValue = boolean | number | readonly string[] | string | undefined;
 type Query = Record<string, QueryValue>;
+type UpcomingLearningItemsOptions = LmsApiRequestOptions & {
+  daysAhead?: number;
+  from?: Date;
+};
 
 const learningItemTypeLabels: Record<LearningItemType, string> = {
   [LearningItemType.Assignment]: '과제',
@@ -149,13 +170,10 @@ const upcomingLearningItemTypes = new Set<LearningItemType>([
 
 export const getLearningItemTypeLabel = (type: LearningItemType) => learningItemTypeLabels[type];
 
-export class LmsApiClient {
-  static readonly defaultBaseUrl = DEFAULT_LMS_BASE_URL;
-
-  readonly baseUrl: string;
-
+class LmsApiClient {
   private readonly accessToken: string;
   private readonly baseOrigin: string;
+  private readonly baseUrl: string;
   private readonly request: typeof fetch;
   private readonly timeoutMs: number;
 
@@ -164,7 +182,7 @@ export class LmsApiClient {
     baseUrl = DEFAULT_LMS_BASE_URL,
     request = fetch,
     timeoutMs = 30_000,
-  }: LmsApiClientOptions) {
+  }: LmsApiRequestOptions) {
     if (!accessToken.trim()) {
       throw new Error('A Canvas access token is required.');
     }
@@ -467,6 +485,26 @@ export class LmsApiClient {
     return url;
   }
 }
+
+export const lmsApi = {
+  getActiveCourses: async (options: LmsApiRequestOptions) =>
+    new LmsApiClient(options).getActiveCourses(),
+  getAnnouncements: async ({ courses, daysBack, ...options }: AnnouncementsOptions) =>
+    new LmsApiClient(options).getAnnouncements({ courses, daysBack }),
+  getAnnouncementsForCourse: async ({ course, daysBack, ...options }: CourseHistoryOptions) =>
+    new LmsApiClient(options).getAnnouncementsForCourse(course, { daysBack }),
+  getGradedSubmissions: async ({ courses, daysBack, ...options }: GradedSubmissionsOptions) =>
+    new LmsApiClient(options).getGradedSubmissions({ courses, daysBack }),
+  getGradedSubmissionsForCourse: async ({ course, daysBack, ...options }: CourseHistoryOptions) =>
+    new LmsApiClient(options).getGradedSubmissionsForCourse(course, { daysBack }),
+  getPlannerItems: async ({ endDate, filter, startDate, ...options }: PlannerItemsOptions) =>
+    new LmsApiClient(options).getPlannerItems({ endDate, filter, startDate }),
+  getSelf: async (options: LmsApiRequestOptions) => new LmsApiClient(options).getSelf(),
+  getSelfProfile: async (options: LmsApiRequestOptions) =>
+    new LmsApiClient(options).getSelfProfile(),
+  getUpcomingLearningItems: async ({ daysAhead, from, ...options }: UpcomingLearningItemsOptions) =>
+    new LmsApiClient(options).getUpcomingLearningItems({ daysAhead, from }),
+};
 
 const announcementFrom = (json: Record<string, unknown>): AnnouncementItem => {
   const contextCode = stringFrom(json.context_code);

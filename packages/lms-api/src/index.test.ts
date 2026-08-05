@@ -4,7 +4,7 @@ import {
   CanvasApiError,
   type CanvasCourse,
   LearningItemType,
-  LmsApiClient,
+  lmsApi,
   SubmissionStatus,
 } from './index';
 
@@ -14,27 +14,27 @@ const jsonResponse = (data: unknown, init?: ResponseInit) =>
     ...init,
   });
 
-describe('LmsApiClient', () => {
-  it('loads the signed-in Canvas profile with authenticated requests', async () => {
+describe('lmsApi', () => {
+  it('uses the access token supplied to each stateless call', async () => {
+    const authorizations: (null | string)[] = [];
     const request: typeof fetch = async (input, init) => {
       expect(String(input)).toBe('https://canvas.ssu.ac.kr/api/v1/users/self/profile');
-      expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer canvas-token');
+      authorizations.push(new Headers(init?.headers).get('Authorization'));
       expect(new Headers(init?.headers).get('Accept')).toBe('application/json+canvas-string-ids');
       return jsonResponse({ id: 42, login_id: '20260001', name: 'Student' });
     };
 
-    const profile = await new LmsApiClient({
-      accessToken: 'canvas-token',
-      request,
-    }).getSelfProfile();
+    const profile = await lmsApi.getSelfProfile({ accessToken: 'first-token', request });
+    await lmsApi.getSelfProfile({ accessToken: 'second-token', request });
 
+    expect(authorizations).toEqual(['Bearer first-token', 'Bearer second-token']);
     expect(profile).toMatchObject({ id: '42', loginId: '20260001', name: 'Student' });
   });
 
-  it('refuses to send Canvas access tokens over plaintext HTTP', () => {
-    expect(
-      () => new LmsApiClient({ accessToken: 'secret', baseUrl: 'http://canvas.example' }),
-    ).toThrow('baseUrl must use HTTPS.');
+  it('refuses to send Canvas access tokens over plaintext HTTP', async () => {
+    await expect(
+      lmsApi.getSelf({ accessToken: 'secret', baseUrl: 'http://canvas.example' }),
+    ).rejects.toThrow('baseUrl must use HTTPS.');
   });
 
   it('follows trusted Canvas pagination and parses course scores', async () => {
@@ -66,7 +66,7 @@ describe('LmsApiClient', () => {
       );
     };
 
-    const courses = await new LmsApiClient({ accessToken: 'token', request }).getActiveCourses();
+    const courses = await lmsApi.getActiveCourses({ accessToken: 'token', request });
 
     expect(requestedUrls).toHaveLength(2);
     expect(courses.map(({ name }) => name)).toEqual(['Algorithms', 'Mobile Programming']);
@@ -83,9 +83,9 @@ describe('LmsApiClient', () => {
         },
       });
     };
-    const cyclicClient = new LmsApiClient({ accessToken: 'token', request: cyclicRequest });
-
-    await expect(cyclicClient.getActiveCourses()).rejects.toMatchObject({
+    await expect(
+      lmsApi.getActiveCourses({ accessToken: 'token', request: cyclicRequest }),
+    ).rejects.toMatchObject({
       message: 'Canvas pagination returned a repeated URL.',
     });
     expect(cyclicRequests).toBe(2);
@@ -97,12 +97,9 @@ describe('LmsApiClient', () => {
         headers: { Link: '<https://evil.example/courses?page=2>; rel="next"' },
       });
     };
-    const crossOriginClient = new LmsApiClient({
-      accessToken: 'token',
-      request: crossOriginRequest,
-    });
-
-    await expect(crossOriginClient.getActiveCourses()).rejects.toMatchObject({
+    await expect(
+      lmsApi.getActiveCourses({ accessToken: 'token', request: crossOriginRequest }),
+    ).rejects.toMatchObject({
       message: 'Canvas pagination returned an untrusted URL.',
     });
     expect(crossOriginRequests).toBe(1);
@@ -121,13 +118,13 @@ describe('LmsApiClient', () => {
         }),
       );
     };
-    const client = new LmsApiClient({
-      accessToken: 'token',
-      request: stalledRequest,
-      timeoutMs: 10,
-    });
-
-    await expect(client.getSelf()).rejects.toMatchObject({
+    await expect(
+      lmsApi.getSelf({
+        accessToken: 'token',
+        request: stalledRequest,
+        timeoutMs: 10,
+      }),
+    ).rejects.toMatchObject({
       message: 'Canvas API request timed out.',
     });
   });
@@ -144,19 +141,18 @@ describe('LmsApiClient', () => {
         }),
       );
     };
-    const client = new LmsApiClient({ accessToken: 'token', request: failedBodyRequest });
-
-    const bodyError = await client.getSelf().catch((caught: unknown) => caught);
+    const requestOptions = { accessToken: 'token', request: failedBodyRequest };
+    const bodyError = await lmsApi.getSelf(requestOptions).catch((caught: unknown) => caught);
     expect(bodyError).toBeInstanceOf(CanvasApiError);
     expect(bodyError).toMatchObject({ message: 'body failed' });
 
     requested = false;
-    await expect(client.getUpcomingLearningItems({ daysAhead: -1 })).rejects.toThrow(
-      'daysAhead must be a non-negative integer.',
-    );
-    await expect(client.getPlannerItems({ startDate: new Date(Number.NaN) })).rejects.toThrow(
-      'startDate must be a valid date.',
-    );
+    await expect(
+      lmsApi.getUpcomingLearningItems({ ...requestOptions, daysAhead: -1 }),
+    ).rejects.toThrow('daysAhead must be a non-negative integer.');
+    await expect(
+      lmsApi.getPlannerItems({ ...requestOptions, startDate: new Date(Number.NaN) }),
+    ).rejects.toThrow('startDate must be a valid date.');
     expect(requested).toBe(false);
   });
 
@@ -193,11 +189,10 @@ describe('LmsApiClient', () => {
       ]);
     };
 
-    const items = await new LmsApiClient({
+    const items = await lmsApi.getUpcomingLearningItems({
       accessToken: 'token',
-      request,
-    }).getUpcomingLearningItems({
       from: new Date('2026-04-30T00:00:00Z'),
+      request,
     });
 
     expect(items.map(({ title }) => title)).toEqual(['Earlier quiz', 'Later report']);
@@ -232,19 +227,23 @@ describe('LmsApiClient', () => {
       }
       return jsonResponse({ message: 'Invalid access token.' }, { status: 401 });
     };
-    const client = new LmsApiClient({ accessToken: 'token', request });
+    const requestOptions = { accessToken: 'token', request };
 
-    await expect(client.getAnnouncements({ courses: [course] })).resolves.toMatchObject([
+    await expect(
+      lmsApi.getAnnouncements({ ...requestOptions, courses: [course] }),
+    ).resolves.toMatchObject([
       { courseName: 'Mobile Programming', messagePreview: 'Hello students' },
     ]);
-    await expect(client.getGradedSubmissions({ courses: [course] })).resolves.toMatchObject([
+    await expect(
+      lmsApi.getGradedSubmissions({ ...requestOptions, courses: [course] }),
+    ).resolves.toMatchObject([
       {
         assignmentName: 'Project 1',
         pointsPossible: 20,
         status: SubmissionStatus.Graded,
       },
     ]);
-    const error = await client.getSelf().catch((caught: unknown) => caught);
+    const error = await lmsApi.getSelf(requestOptions).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(CanvasApiError);
     expect(error).toMatchObject({ message: 'Invalid access token.', statusCode: 401 });
   });
