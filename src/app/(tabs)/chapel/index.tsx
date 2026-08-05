@@ -15,7 +15,7 @@ import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/querie
 import { Attendance } from '@/features/chapel/ui/Attendance';
 import { ChapelProgress } from '@/features/chapel/ui/ChapelProgress';
 import { ChapelSeatmapView } from '@/features/chapel/ui/ChapelSeatmapView';
-import { getEstimatedCurrentSemester, semesterToString } from '@/shared/lib/semester';
+import { getEstimatedCurrentSemester } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { CardView } from '@/shared/ui/containers/CardView';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -148,9 +148,6 @@ export default function Index() {
               {Platform.OS === 'ios' && <Space gap={2} />}
               <View style={styles.topView}>
                 <Header title="채플" />
-                <ThemedText typography="labelMd">
-                  {semesterToString(effectiveSelectedSemester)}
-                </ThemedText>
               </View>
               <Space gap={1} />
               <View style={styles.errorView}>
@@ -232,9 +229,6 @@ export default function Index() {
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
               <Header title="채플" />
-              <ThemedText typography="labelMd">
-                {semesterToString(effectiveSelectedSemester)}
-              </ThemedText>
               <Space gap={1} />
               <View>
                 {finalResult ? (
@@ -302,11 +296,7 @@ export default function Index() {
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader
-          label={semesterToString(effectiveSelectedSemester)}
-          scrollY={scrollY}
-          title="채플"
-        />
+        <FloatingHeader scrollY={scrollY} title="채플" />
       </View>
     </>
   );

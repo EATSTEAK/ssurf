@@ -21,11 +21,7 @@ import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
 import { buildScheduleSemesters } from '@/features/schedule/lib/utils';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
 import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
-import {
-  getEstimatedCurrentSemester,
-  semesterToSlug,
-  semesterToString,
-} from '@/shared/lib/semester';
+import { getEstimatedCurrentSemester, semesterToSlug } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
@@ -257,9 +253,6 @@ export default function Index() {
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.paddedSection}>
               <Header title="시간표" />
-              <ThemedText typography="labelMd">
-                {semesterToString(effectiveSelectedSemester)}
-              </ThemedText>
             </View>
             {hasData ? (
               <View style={styles.gridContainer}>
@@ -286,11 +279,7 @@ export default function Index() {
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader
-          label={semesterToString(effectiveSelectedSemester)}
-          scrollY={scrollY}
-          title="시간표"
-        />
+        <FloatingHeader scrollY={scrollY} title="시간표" />
       </View>
     </>
   );

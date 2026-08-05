@@ -1,6 +1,5 @@
-import type { Lecture, YearSemester } from '@rusaint/react-native';
-
 import { LegendList } from '@legendapp/list';
+import { type Lecture, SemesterType, type YearSemester } from '@rusaint/react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -9,17 +8,26 @@ import { StyleSheet } from 'react-native-unistyles';
 import { useCourseCatalogSearch } from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { CourseSearchResult } from '@/features/schedule/ui/CourseSearchResult';
-import { CourseSemesterPicker } from '@/features/schedule/ui/CourseSemesterPicker';
 import {
+  constructSemesters,
   getEstimatedCurrentSemester,
   parseSemesterSlug,
   semesterToSlug,
   semesterToString,
+  USAINT_COURSE_FIRST_YEAR,
 } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { Header } from '@/shared/ui/headers/Header';
 import { Button } from '@/shared/ui/primitives/Button';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
+import { SemesterSelector } from '@/shared/ui/SemesterSelector';
+
+// ponytail: rusaint RN does not expose the U-Saint year dropdown; U-Saint currently offers 1954 through four years ahead.
+const COURSE_SEARCH_SEMESTERS = constructSemesters(
+  USAINT_COURSE_FIRST_YEAR,
+  new Date().getFullYear() + 4,
+  [SemesterType.Winter, SemesterType.Two, SemesterType.Summer, SemesterType.One],
+);
 
 const styles = StyleSheet.create((theme) => ({
   list: {
@@ -67,7 +75,6 @@ export default function CourseSearchRoute() {
   const [results, setResults] = useState<Lecture[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [isSemesterPickerVisible, setIsSemesterPickerVisible] = useState(false);
 
   const resetResults = () => {
     requestId.current += 1;
@@ -159,12 +166,13 @@ export default function CourseSearchRoute() {
         options={{
           headerBackVisible: true,
           headerRight: () => (
-            <CourseSemesterPicker
-              onChange={handleSemesterChange}
-              onClose={() => setIsSemesterPickerVisible(false)}
-              onOpen={() => setIsSemesterPickerVisible(true)}
-              selectedSemester={selectedSemester}
-              visible={isSemesterPickerVisible}
+            <SemesterSelector
+              onChange={(_, semester) => handleSemesterChange(semester)}
+              selectedIndex={COURSE_SEARCH_SEMESTERS.findIndex(
+                ({ year, semester }) =>
+                  year === selectedSemester.year && semester === selectedSemester.semester,
+              )}
+              semesters={COURSE_SEARCH_SEMESTERS}
             />
           ),
           headerSearchBarOptions: {
