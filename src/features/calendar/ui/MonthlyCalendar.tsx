@@ -119,10 +119,22 @@ export function MonthlyCalendar({
           <ThemedText typography="headingLg">{monthLabel}</ThemedText>
         </View>
         <View style={styles.navButtons}>
-          <Pressable onPress={handlePressPrevMonth} style={styles.navButton}>
+          <Pressable
+            accessibilityLabel="이전 달"
+            accessibilityRole="button"
+            hitSlop={6}
+            onPress={handlePressPrevMonth}
+            style={styles.navButton}
+          >
             <ChevronLeftIcon color={theme.colorsHex.fgSurface} size={20} />
           </Pressable>
-          <Pressable onPress={handlePressNextMonth} style={styles.navButton}>
+          <Pressable
+            accessibilityLabel="다음 달"
+            accessibilityRole="button"
+            hitSlop={6}
+            onPress={handlePressNextMonth}
+            style={styles.navButton}
+          >
             <ChevronRightIcon color={theme.colorsHex.fgSurface} size={20} />
           </Pressable>
         </View>
@@ -133,6 +145,7 @@ export function MonthlyCalendar({
         firstDay={1}
         hideArrows={true}
         hideExtraDays={false}
+        key={visibleMonth}
         markedDates={markedDates}
         markingType="multi-period"
         onDayPress={(day) => onSelectDate(day.dateString)}
