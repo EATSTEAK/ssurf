@@ -77,12 +77,15 @@ export const buildScheduleSemesters = (
     ...enrollmentSemesters,
   ].filter((semester): semester is YearSemester => semester != null);
 
-  return semesters.filter(
-    (semester, index) =>
-      semesters.findIndex(
-        (candidate) => candidate.year === semester.year && candidate.semester === semester.semester,
-      ) === index,
-  );
+  return semesters
+    .filter(
+      (semester, index) =>
+        semesters.findIndex(
+          (candidate) =>
+            candidate.year === semester.year && candidate.semester === semester.semester,
+        ) === index,
+    )
+    .sort((a, b) => b.year - a.year || b.semester - a.semester);
 };
 
 export const formatMinutesToTime = (minutes: number): string => {
