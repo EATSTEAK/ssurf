@@ -170,368 +170,366 @@ const upcomingLearningItemTypes = new Set<LearningItemType>([
 
 export const getLearningItemTypeLabel = (type: LearningItemType) => learningItemTypeLabels[type];
 
-class LmsApiClient {
-  private readonly accessToken: string;
-  private readonly baseOrigin: string;
-  private readonly baseUrl: string;
-  private readonly request: typeof fetch;
-  private readonly timeoutMs: number;
+type LmsApiRequestContext = {
+  accessToken: string;
+  baseOrigin: string;
+  baseUrl: string;
+  request: typeof fetch;
+  timeoutMs: number;
+};
 
-  constructor({
+const createLmsApiRequestContext = ({
+  accessToken,
+  baseUrl = DEFAULT_LMS_BASE_URL,
+  request = fetch,
+  timeoutMs = 30_000,
+}: LmsApiRequestOptions): LmsApiRequestContext => {
+  if (!accessToken.trim()) {
+    throw new Error('A Canvas access token is required.');
+  }
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new Error('timeoutMs must be greater than zero.');
+  }
+
+  let parsedBaseUrl: URL;
+  try {
+    parsedBaseUrl = new URL(baseUrl);
+  } catch {
+    throw new Error('baseUrl must be a valid absolute URL.');
+  }
+  if (parsedBaseUrl.protocol !== 'https:') {
+    throw new Error('baseUrl must use HTTPS.');
+  }
+
+  return {
     accessToken,
-    baseUrl = DEFAULT_LMS_BASE_URL,
-    request = fetch,
-    timeoutMs = 30_000,
-  }: LmsApiRequestOptions) {
-    if (!accessToken.trim()) {
-      throw new Error('A Canvas access token is required.');
-    }
-    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
-      throw new Error('timeoutMs must be greater than zero.');
-    }
-
-    let parsedBaseUrl: URL;
-    try {
-      parsedBaseUrl = new URL(baseUrl);
-    } catch {
-      throw new Error('baseUrl must be a valid absolute URL.');
-    }
-    if (parsedBaseUrl.protocol !== 'https:') {
-      throw new Error('baseUrl must use HTTPS.');
-    }
-
-    this.accessToken = accessToken;
-    this.baseOrigin = parsedBaseUrl.origin;
-    this.baseUrl = parsedBaseUrl.toString().replace(/\/$/, '');
-    this.request = request;
-    this.timeoutMs = timeoutMs;
-  }
-
-  async getActiveCourses(): Promise<CanvasCourse[]> {
-    const rows = await this.getPaginatedList('/api/v1/courses', {
-      enrollment_state: 'active',
-      enrollment_type: 'student',
-      'include[]': ['total_scores', 'favorites'],
-      per_page: 100,
-    });
-    const courses: CanvasCourse[] = [];
-
-    for (const row of rows) {
-      const json = objectFrom(row);
-      if (!json) {
-        continue;
-      }
-      const course = canvasCourseFrom(json);
-      if (course.id) {
-        courses.push(course);
-      }
-    }
-
-    return courses.sort((left, right) => left.name.localeCompare(right.name));
-  }
-
-  async getAnnouncements({
-    courses,
-    daysBack = 30,
-  }: { courses?: CanvasCourse[]; daysBack?: number } = {}): Promise<AnnouncementItem[]> {
-    validateDays(daysBack, 'daysBack');
-    const targetCourses = courses ?? (await this.getActiveCourses());
-    const announcements: AnnouncementItem[] = [];
-
-    for (const course of targetCourses) {
-      announcements.push(...(await this.getAnnouncementsForCourse(course, { daysBack })));
-    }
-
-    return announcements.sort((left, right) => right.postedAt.getTime() - left.postedAt.getTime());
-  }
-
-  async getAnnouncementsForCourse(
-    course: CanvasCourse,
-    { daysBack = 30 }: { daysBack?: number } = {},
-  ): Promise<AnnouncementItem[]> {
-    validateDays(daysBack, 'daysBack');
-    const end = new Date();
-    const start = new Date(end.getTime() - daysBack * 86_400_000);
-    const rows = await this.getPaginatedList('/api/v1/announcements', {
-      active_only: true,
-      'context_codes[]': [`course_${course.id}`],
-      end_date: end.toISOString(),
-      per_page: 100,
-      start_date: start.toISOString(),
-    });
-    const announcements: AnnouncementItem[] = [];
-
-    for (const row of rows) {
-      const json = objectFrom(row);
-      if (!json) {
-        continue;
-      }
-      const announcement = announcementFrom({
-        ...json,
-        course_id: course.id,
-        course_name: course.name,
-      });
-      if (announcement.id) {
-        announcements.push(announcement);
-      }
-    }
-
-    return announcements.sort((left, right) => right.postedAt.getTime() - left.postedAt.getTime());
-  }
-
-  async getGradedSubmissions({
-    courses,
-    daysBack = 120,
-  }: { courses?: CanvasCourse[]; daysBack?: number } = {}): Promise<GradedSubmissionItem[]> {
-    validateDays(daysBack, 'daysBack');
-    const targetCourses = courses ?? (await this.getActiveCourses());
-    const submissions: GradedSubmissionItem[] = [];
-
-    for (const course of targetCourses) {
-      submissions.push(...(await this.getGradedSubmissionsForCourse(course, { daysBack })));
-    }
-
-    return submissions.sort(compareGradedSubmissions);
-  }
-
-  async getGradedSubmissionsForCourse(
-    course: CanvasCourse,
-    { daysBack = 120 }: { daysBack?: number } = {},
-  ): Promise<GradedSubmissionItem[]> {
-    validateDays(daysBack, 'daysBack');
-    const since = new Date(Date.now() - daysBack * 86_400_000);
-    const rows = await this.getPaginatedList(
-      `/api/v1/courses/${encodeURIComponent(course.id)}/students/submissions`,
-      {
-        graded_since: since.toISOString(),
-        'include[]': ['assignment'],
-        order: 'graded_at',
-        order_direction: 'descending',
-        per_page: 100,
-        workflow_state: 'graded',
-      },
-    );
-    const submissions: GradedSubmissionItem[] = [];
-
-    for (const row of rows) {
-      const json = objectFrom(row);
-      if (!json) {
-        continue;
-      }
-      const submission = gradedSubmissionFrom({
-        ...json,
-        course_id: course.id,
-        course_name: course.name,
-      });
-      if (submission.assignmentId && isGradedSubmission(submission)) {
-        submissions.push(submission);
-      }
-    }
-
-    return submissions.sort(compareGradedSubmissions);
-  }
-
-  async getPlannerItems({
-    endDate,
-    filter,
-    startDate,
-  }: { endDate?: Date; filter?: string; startDate?: Date } = {}): Promise<PlannerItem[]> {
-    validateDate(endDate, 'endDate');
-    validateDate(startDate, 'startDate');
-    const rows = await this.getPaginatedList('/api/v1/planner/items', {
-      end_date: endDate?.toISOString(),
-      filter,
-      start_date: startDate?.toISOString(),
-    });
-    const items: PlannerItem[] = [];
-
-    for (const row of rows) {
-      const json = objectFrom(row);
-      if (json) {
-        items.push(plannerItemFrom(json));
-      }
-    }
-    return items;
-  }
-
-  async getSelf(): Promise<CanvasUser> {
-    return canvasUserFrom(await this.getMap('/api/v1/users/self'));
-  }
-
-  async getSelfProfile(): Promise<CanvasUser> {
-    return canvasUserFrom(await this.getMap('/api/v1/users/self/profile'));
-  }
-
-  async getUpcomingLearningItems({
-    daysAhead = 60,
-    from = new Date(),
-  }: { daysAhead?: number; from?: Date } = {}): Promise<LearningItem[]> {
-    validateDays(daysAhead, 'daysAhead');
-    validateDate(from, 'from');
-    const plannerItems = await this.getPlannerItems({
-      endDate: new Date(from.getTime() + daysAhead * 86_400_000),
-      filter: 'incomplete_items',
-      startDate: from,
-    });
-    const items: LearningItem[] = [];
-
-    for (const plannerItem of plannerItems) {
-      const item = learningItemFrom(plannerItem);
-      if (item && !item.isCompleted) {
-        items.push(item);
-      }
-    }
-
-    return items.sort(compareLearningItems);
-  }
-
-  private async getJson(
-    path: string,
-    query?: Query,
-  ): Promise<{ data: unknown; response: Response }> {
-    const url = this.resolveUrl(path, query);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
-
-    try {
-      const response = await this.request(url.toString(), {
-        headers: {
-          Accept: 'application/json+canvas-string-ids',
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-        signal: controller.signal,
-      });
-      const data = await responseBodyFrom(response);
-      if (!response.ok) {
-        throw new CanvasApiError(
-          errorMessageFrom(data) ?? `Canvas API returned ${response.status}.`,
-          response.status,
-          data,
-        );
-      }
-      return { data, response };
-    } catch (error) {
-      if (error instanceof CanvasApiError) {
-        throw error;
-      }
-      const message = controller.signal.aborted
-        ? 'Canvas API request timed out.'
-        : error instanceof Error
-          ? error.message
-          : 'Network request failed.';
-      throw new CanvasApiError(message, undefined, error);
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  private async getMap(path: string): Promise<Record<string, unknown>> {
-    const { data } = await this.getJson(path);
-    const json = objectFrom(data);
-    if (!json) {
-      throw new CanvasApiError('Unexpected Canvas API response.', undefined, data);
-    }
-    return json;
-  }
-
-  private async getPaginatedList(path: string, query?: Query): Promise<unknown[]> {
-    const seenUrls = new Set<string>();
-    const values: unknown[] = [];
-    let nextUrl: null | string = path;
-    let nextQuery = query;
-
-    while (nextUrl) {
-      const pageUrl = this.resolveUrl(nextUrl, nextQuery).toString();
-      if (seenUrls.has(pageUrl)) {
-        throw new CanvasApiError('Canvas pagination returned a repeated URL.', undefined, pageUrl);
-      }
-      seenUrls.add(pageUrl);
-
-      const { data, response } = await this.getJson(pageUrl);
-      if (!Array.isArray(data)) {
-        throw new CanvasApiError('Unexpected paginated Canvas API response.', undefined, data);
-      }
-      values.push(...data);
-      nextUrl = nextLinkFrom(response.headers.get('link'));
-      nextQuery = undefined;
-    }
-
-    return values;
-  }
-
-  private resolveUrl(path: string, query?: Query): URL {
-    let url: URL;
-    try {
-      url = new URL(path, `${this.baseUrl}/`);
-    } catch (error) {
-      throw new CanvasApiError('Canvas API returned an invalid pagination URL.', undefined, error);
-    }
-    if (url.origin !== this.baseOrigin) {
-      throw new CanvasApiError('Canvas pagination returned an untrusted URL.', undefined, url.href);
-    }
-
-    for (const [key, value] of Object.entries(query ?? {})) {
-      if (value === undefined) {
-        continue;
-      }
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          url.searchParams.append(key, item);
-        }
-      } else {
-        url.searchParams.set(key, String(value));
-      }
-    }
-    return url;
-  }
-}
+    baseOrigin: parsedBaseUrl.origin,
+    baseUrl: parsedBaseUrl.toString().replace(/\/$/, ''),
+    request,
+    timeoutMs,
+  };
+};
 
 export const getActiveCourses = async (options: LmsApiRequestOptions) =>
-  new LmsApiClient(options).getActiveCourses();
+  getActiveCoursesFrom(createLmsApiRequestContext(options));
 
-export const getAnnouncements = async ({ courses, daysBack, ...options }: AnnouncementsOptions) =>
-  new LmsApiClient(options).getAnnouncements({ courses, daysBack });
+export const getAnnouncements = async ({
+  courses,
+  daysBack = 30,
+  ...options
+}: AnnouncementsOptions): Promise<AnnouncementItem[]> => {
+  const context = createLmsApiRequestContext(options);
+  validateDays(daysBack, 'daysBack');
+  const targetCourses = courses ?? (await getActiveCoursesFrom(context));
+  const announcements: AnnouncementItem[] = [];
+
+  for (const course of targetCourses) {
+    announcements.push(...(await getAnnouncementsForCourseFrom(context, course, daysBack)));
+  }
+
+  return announcements.sort((left, right) => right.postedAt.getTime() - left.postedAt.getTime());
+};
 
 export const getAnnouncementsForCourse = async ({
   course,
-  daysBack,
+  daysBack = 30,
   ...options
 }: CourseHistoryOptions) =>
-  new LmsApiClient(options).getAnnouncementsForCourse(course, { daysBack });
+  getAnnouncementsForCourseFrom(createLmsApiRequestContext(options), course, daysBack);
 
 export const getGradedSubmissions = async ({
   courses,
-  daysBack,
+  daysBack = 120,
   ...options
-}: GradedSubmissionsOptions) =>
-  new LmsApiClient(options).getGradedSubmissions({ courses, daysBack });
+}: GradedSubmissionsOptions): Promise<GradedSubmissionItem[]> => {
+  const context = createLmsApiRequestContext(options);
+  validateDays(daysBack, 'daysBack');
+  const targetCourses = courses ?? (await getActiveCoursesFrom(context));
+  const submissions: GradedSubmissionItem[] = [];
+
+  for (const course of targetCourses) {
+    submissions.push(...(await getGradedSubmissionsForCourseFrom(context, course, daysBack)));
+  }
+
+  return submissions.sort(compareGradedSubmissions);
+};
 
 export const getGradedSubmissionsForCourse = async ({
   course,
-  daysBack,
+  daysBack = 120,
   ...options
 }: CourseHistoryOptions) =>
-  new LmsApiClient(options).getGradedSubmissionsForCourse(course, { daysBack });
+  getGradedSubmissionsForCourseFrom(createLmsApiRequestContext(options), course, daysBack);
 
 export const getPlannerItems = async ({
   endDate,
   filter,
   startDate,
   ...options
-}: PlannerItemsOptions) =>
-  new LmsApiClient(options).getPlannerItems({ endDate, filter, startDate });
+}: PlannerItemsOptions) => {
+  const context = createLmsApiRequestContext(options);
+  validateDate(endDate, 'endDate');
+  validateDate(startDate, 'startDate');
+  return getPlannerItemsFrom(context, { endDate, filter, startDate });
+};
 
-export const getSelf = async (options: LmsApiRequestOptions) => new LmsApiClient(options).getSelf();
+export const getSelf = async (options: LmsApiRequestOptions) =>
+  canvasUserFrom(await getMap(createLmsApiRequestContext(options), '/api/v1/users/self'));
 
 export const getSelfProfile = async (options: LmsApiRequestOptions) =>
-  new LmsApiClient(options).getSelfProfile();
+  canvasUserFrom(await getMap(createLmsApiRequestContext(options), '/api/v1/users/self/profile'));
 
 export const getUpcomingLearningItems = async ({
-  daysAhead,
-  from,
+  daysAhead = 60,
+  from = new Date(),
   ...options
-}: UpcomingLearningItemsOptions) =>
-  new LmsApiClient(options).getUpcomingLearningItems({ daysAhead, from });
+}: UpcomingLearningItemsOptions): Promise<LearningItem[]> => {
+  const context = createLmsApiRequestContext(options);
+  validateDays(daysAhead, 'daysAhead');
+  validateDate(from, 'from');
+  const plannerItems = await getPlannerItemsFrom(context, {
+    endDate: new Date(from.getTime() + daysAhead * 86_400_000),
+    filter: 'incomplete_items',
+    startDate: from,
+  });
+  const items: LearningItem[] = [];
+
+  for (const plannerItem of plannerItems) {
+    const item = learningItemFrom(plannerItem);
+    if (item && !item.isCompleted) {
+      items.push(item);
+    }
+  }
+
+  return items.sort(compareLearningItems);
+};
+
+const getActiveCoursesFrom = async (context: LmsApiRequestContext): Promise<CanvasCourse[]> => {
+  const rows = await getPaginatedList(context, '/api/v1/courses', {
+    enrollment_state: 'active',
+    enrollment_type: 'student',
+    'include[]': ['total_scores', 'favorites'],
+    per_page: 100,
+  });
+  const courses: CanvasCourse[] = [];
+
+  for (const row of rows) {
+    const json = objectFrom(row);
+    if (!json) {
+      continue;
+    }
+    const course = canvasCourseFrom(json);
+    if (course.id) {
+      courses.push(course);
+    }
+  }
+
+  return courses.sort((left, right) => left.name.localeCompare(right.name));
+};
+
+const getAnnouncementsForCourseFrom = async (
+  context: LmsApiRequestContext,
+  course: CanvasCourse,
+  daysBack: number,
+): Promise<AnnouncementItem[]> => {
+  validateDays(daysBack, 'daysBack');
+  const end = new Date();
+  const start = new Date(end.getTime() - daysBack * 86_400_000);
+  const rows = await getPaginatedList(context, '/api/v1/announcements', {
+    active_only: true,
+    'context_codes[]': [`course_${course.id}`],
+    end_date: end.toISOString(),
+    per_page: 100,
+    start_date: start.toISOString(),
+  });
+  const announcements: AnnouncementItem[] = [];
+
+  for (const row of rows) {
+    const json = objectFrom(row);
+    if (!json) {
+      continue;
+    }
+    const announcement = announcementFrom({
+      ...json,
+      course_id: course.id,
+      course_name: course.name,
+    });
+    if (announcement.id) {
+      announcements.push(announcement);
+    }
+  }
+
+  return announcements.sort((left, right) => right.postedAt.getTime() - left.postedAt.getTime());
+};
+
+const getGradedSubmissionsForCourseFrom = async (
+  context: LmsApiRequestContext,
+  course: CanvasCourse,
+  daysBack: number,
+): Promise<GradedSubmissionItem[]> => {
+  validateDays(daysBack, 'daysBack');
+  const since = new Date(Date.now() - daysBack * 86_400_000);
+  const rows = await getPaginatedList(
+    context,
+    `/api/v1/courses/${encodeURIComponent(course.id)}/students/submissions`,
+    {
+      graded_since: since.toISOString(),
+      'include[]': ['assignment'],
+      order: 'graded_at',
+      order_direction: 'descending',
+      per_page: 100,
+      workflow_state: 'graded',
+    },
+  );
+  const submissions: GradedSubmissionItem[] = [];
+
+  for (const row of rows) {
+    const json = objectFrom(row);
+    if (!json) {
+      continue;
+    }
+    const submission = gradedSubmissionFrom({
+      ...json,
+      course_id: course.id,
+      course_name: course.name,
+    });
+    if (submission.assignmentId && isGradedSubmission(submission)) {
+      submissions.push(submission);
+    }
+  }
+
+  return submissions.sort(compareGradedSubmissions);
+};
+
+const getPlannerItemsFrom = async (
+  context: LmsApiRequestContext,
+  { endDate, filter, startDate }: { endDate?: Date; filter?: string; startDate?: Date },
+): Promise<PlannerItem[]> => {
+  validateDate(endDate, 'endDate');
+  validateDate(startDate, 'startDate');
+  const rows = await getPaginatedList(context, '/api/v1/planner/items', {
+    end_date: endDate?.toISOString(),
+    filter,
+    start_date: startDate?.toISOString(),
+  });
+  const items: PlannerItem[] = [];
+
+  for (const row of rows) {
+    const json = objectFrom(row);
+    if (json) {
+      items.push(plannerItemFrom(json));
+    }
+  }
+  return items;
+};
+
+const getJson = async (
+  context: LmsApiRequestContext,
+  path: string,
+  query?: Query,
+): Promise<{ data: unknown; response: Response }> => {
+  const url = resolveUrl(context, path, query);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), context.timeoutMs);
+
+  try {
+    const response = await context.request(url.toString(), {
+      headers: {
+        Accept: 'application/json+canvas-string-ids',
+        Authorization: `Bearer ${context.accessToken}`,
+      },
+      signal: controller.signal,
+    });
+    const data = await responseBodyFrom(response);
+    if (!response.ok) {
+      throw new CanvasApiError(
+        errorMessageFrom(data) ?? `Canvas API returned ${response.status}.`,
+        response.status,
+        data,
+      );
+    }
+    return { data, response };
+  } catch (error) {
+    if (error instanceof CanvasApiError) {
+      throw error;
+    }
+    const message = controller.signal.aborted
+      ? 'Canvas API request timed out.'
+      : error instanceof Error
+        ? error.message
+        : 'Network request failed.';
+    throw new CanvasApiError(message, undefined, error);
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const getMap = async (
+  context: LmsApiRequestContext,
+  path: string,
+): Promise<Record<string, unknown>> => {
+  const { data } = await getJson(context, path);
+  const json = objectFrom(data);
+  if (!json) {
+    throw new CanvasApiError('Unexpected Canvas API response.', undefined, data);
+  }
+  return json;
+};
+
+const getPaginatedList = async (
+  context: LmsApiRequestContext,
+  path: string,
+  query?: Query,
+): Promise<unknown[]> => {
+  const seenUrls = new Set<string>();
+  const values: unknown[] = [];
+  let nextUrl: null | string = path;
+  let nextQuery = query;
+
+  while (nextUrl) {
+    const pageUrl = resolveUrl(context, nextUrl, nextQuery).toString();
+    if (seenUrls.has(pageUrl)) {
+      throw new CanvasApiError('Canvas pagination returned a repeated URL.', undefined, pageUrl);
+    }
+    seenUrls.add(pageUrl);
+
+    const { data, response } = await getJson(context, pageUrl);
+    if (!Array.isArray(data)) {
+      throw new CanvasApiError('Unexpected paginated Canvas API response.', undefined, data);
+    }
+    values.push(...data);
+    nextUrl = nextLinkFrom(response.headers.get('link'));
+    nextQuery = undefined;
+  }
+
+  return values;
+};
+
+const resolveUrl = (context: LmsApiRequestContext, path: string, query?: Query): URL => {
+  let url: URL;
+  try {
+    url = new URL(path, `${context.baseUrl}/`);
+  } catch (error) {
+    throw new CanvasApiError('Canvas API returned an invalid pagination URL.', undefined, error);
+  }
+  if (url.origin !== context.baseOrigin) {
+    throw new CanvasApiError('Canvas pagination returned an untrusted URL.', undefined, url.href);
+  }
+
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value === undefined) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        url.searchParams.append(key, item);
+      }
+    } else {
+      url.searchParams.set(key, String(value));
+    }
+  }
+  return url;
+};
 
 const announcementFrom = (json: Record<string, unknown>): AnnouncementItem => {
   const contextCode = stringFrom(json.context_code);

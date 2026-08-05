@@ -147,6 +147,9 @@ describe('lmsApi', () => {
     await expect(
       lmsApi.getPlannerItems({ ...requestOptions, startDate: new Date(Number.NaN) }),
     ).rejects.toThrow('startDate must be a valid date.');
+    await expect(
+      lmsApi.getUpcomingLearningItems({ ...requestOptions, daysAhead: 100_000_001 }),
+    ).rejects.toThrow('endDate must be a valid date.');
     expect(requested).toBe(false);
   });
 
