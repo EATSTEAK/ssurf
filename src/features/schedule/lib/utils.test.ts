@@ -17,7 +17,7 @@ describe('isScheduleActive', () => {
 });
 
 describe('buildScheduleSemesters', () => {
-  it('keeps the saved selection and includes the U-Saint default', () => {
+  it('includes every candidate in reverse chronological order', () => {
     expect(
       buildScheduleSemesters(
         semester(2026, 1),
@@ -25,7 +25,7 @@ describe('buildScheduleSemesters', () => {
         semester(2025, 3),
         semester(2026, 0),
       ),
-    ).toEqual([semester(2026, 0), semester(2025, 3), semester(2026, 1), semester(2025, 2)]);
+    ).toEqual([semester(2026, 1), semester(2026, 0), semester(2025, 3), semester(2025, 2)]);
   });
 
   it('does not duplicate the estimated semester', () => {
