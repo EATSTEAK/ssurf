@@ -5,12 +5,13 @@ import * as Notifications from 'expo-notifications';
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles, withUnistyles } from 'react-native-unistyles';
 
 import loadingImage from '@/assets/loading.png';
 import { LmsConnectionView } from '@/features/lms/ui/LmsConnectionView';
 import { enableBackgroundUpdates } from '@/shared/lib/backgroundUpdates';
 import { getCanvasAccessToken, getStoredCredentials } from '@/shared/lib/credentials';
+import { Icon } from '@/shared/ui/icons';
 import { SsurfLined } from '@/shared/ui/icons/SsurfLined';
 import { Button } from '@/shared/ui/primitives/Button';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
@@ -69,6 +70,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   buttonText: {
     ...theme.typography.heading.md,
+  },
+  completedButtonContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.gap(1),
   },
   doneBody: {
     alignItems: 'center',
@@ -160,6 +166,7 @@ export function IntroStep({ onNext }: { onNext: () => void }) {
 }
 
 export function PermissionsStep({ onNext, studentId }: { onNext: () => void; studentId: string }) {
+  const { theme } = useUnistyles();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [lmsConnected, setLmsConnected] = useState(false);
   const [lmsCredentials, setLmsCredentials] = useState<null | StoredCredentials>(null);
@@ -217,6 +224,20 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
     );
   }
 
+  const completedButtonContent = (
+    <View style={styles.completedButtonContent}>
+      <ThemedText color="fgSurfaceMuted" typography="headingMd">
+        완료됨
+      </ThemedText>
+      <Icon
+        color={theme.colorsHex.fgSurfaceMuted}
+        materialName="check"
+        size={20}
+        symbolName="checkmark"
+      />
+    </View>
+  );
+
   return (
     <SurfaceStep>
       <Header
@@ -246,6 +267,7 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
             </View>
           </View>
           <Button
+            accessibilityLabel={lmsConnected ? 'LMS 로그인 완료됨' : undefined}
             accessibilityState={{ disabled: lmsConnected || isOpeningLms }}
             disabled={lmsConnected || isOpeningLms}
             onPress={() => void onPressLmsLogin()}
@@ -253,7 +275,7 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
             textStyle={styles.buttonText}
             variant="success"
           >
-            {lmsConnected ? '완료됨' : isOpeningLms ? '연결 준비 중...' : '로그인'}
+            {lmsConnected ? completedButtonContent : isOpeningLms ? '연결 준비 중...' : '로그인'}
           </Button>
         </View>
         <View style={styles.permissionSection}>
@@ -276,6 +298,7 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
             </View>
           </View>
           <Button
+            accessibilityLabel={notificationsEnabled ? '알림 설정 완료됨' : undefined}
             accessibilityState={{ disabled: notificationsEnabled }}
             disabled={notificationsEnabled}
             onPress={onPressNotifications}
@@ -283,7 +306,7 @@ export function PermissionsStep({ onNext, studentId }: { onNext: () => void; stu
             textStyle={styles.buttonText}
             variant="success"
           >
-            {notificationsEnabled ? '완료됨' : '알림 허용'}
+            {notificationsEnabled ? completedButtonContent : '알림 허용'}
           </Button>
         </View>
       </View>
