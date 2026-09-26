@@ -5,9 +5,13 @@ import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
+import { useCalendars } from '@/entities/calendar/lib/queries';
+import { CalendarEntity } from '@/entities/calendar/model';
 import { useFeedNotices, useFeedSites } from '@/entities/feed/lib/queries';
 import { FeedNoticeListItem } from '@/entities/feed/model';
 import { useSetting } from '@/entities/settings/lib/queries';
+import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
+import { TodayScheduleSection } from '@/features/calendar/ui/TodayScheduleSection';
 import { NoticeCard } from '@/features/feed/ui/NoticeCard';
 import { SafeContainer } from '@/shared/ui/containers/Container';
 import { RefreshableScrollView } from '@/shared/ui/containers/RefreshableScrollView';
@@ -22,7 +26,7 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     paddingBottom: theme.gap(8),
   },
-  headerContainer: {
+  paddedSection: {
     paddingHorizontal: theme.gap(3),
   },
   root: {
@@ -52,6 +56,7 @@ export default function FeedScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
   const [selectedNoticeSlugs, setSelectedNoticeSlugs] = useSetting('feed.selectedNoticeSlugs');
   const [selectedNoticeSlug, setSelectedNoticeSlug] = useSetting('feed.selectedNoticeSlug');
 
@@ -115,6 +120,15 @@ export default function FeedScreen() {
     refresh: refreshNotices,
   } = useFeedNotices(noticeSlugs);
 
+  const {
+    data: calendars,
+    error: calendarError,
+    isSyncing: isCalendarSyncing,
+    refresh: refreshCalendars,
+  } = useCalendars(selectedCalendarSlugs);
+  const now = new Date();
+  const todayCalendars = calendars.filter((item) => isTodayCalendar(item, now));
+
   const noticePreviewItemsBySlug = useMemo(() => {
     return visibleNoticeSites.reduce<Record<string, FeedNoticeListItem[]>>((acc, site) => {
       acc[site.slug] = notices
@@ -127,12 +141,19 @@ export default function FeedScreen() {
   const scrollY = useSharedValue(0);
 
   const handleRefresh = useCallback(() => {
-    if (isNoticeSyncing || isSiteSyncing) {
+    if (isNoticeSyncing || isSiteSyncing || isCalendarSyncing) {
       return;
     }
 
-    void Promise.all([refreshSites(), refreshNotices()]);
-  }, [isNoticeSyncing, isSiteSyncing, refreshNotices, refreshSites]);
+    void Promise.all([refreshSites(), refreshNotices(), refreshCalendars()]);
+  }, [
+    isNoticeSyncing,
+    isSiteSyncing,
+    isCalendarSyncing,
+    refreshNotices,
+    refreshSites,
+    refreshCalendars,
+  ]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -158,6 +179,10 @@ export default function FeedScreen() {
     },
     [handleOpenUrl],
   );
+
+  const handlePressCalendar = (item: CalendarEntity) => {
+    void handleOpenUrl(item.url);
+  };
 
   const handleOpenNoticePage = useCallback(() => {
     router.push('/feed/notice');
@@ -197,14 +222,25 @@ export default function FeedScreen() {
           contentContainerStyle={styles.content}
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isNoticeSyncing || isSiteSyncing}
+          refreshing={isNoticeSyncing || isSiteSyncing || isCalendarSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>
             {Platform.OS === 'ios' && <Space gap={2} />}
             <View style={styles.topView}>
-              <View style={styles.headerContainer}>
+              <View style={styles.paddedSection}>
                 <Header title="피드" />
+              </View>
+
+              <View style={styles.paddedSection}>
+                <TodayScheduleSection
+                  actionLabel="월간 일정 보기"
+                  calendarError={calendarError ?? null}
+                  onPressAction={() => router.push('/feed/calendar')}
+                  onPressCalendar={handlePressCalendar}
+                  selectedCalendarSlugs={selectedCalendarSlugs}
+                  todayCalendars={todayCalendars}
+                />
               </View>
 
               <NoticeCard
@@ -222,7 +258,7 @@ export default function FeedScreen() {
             </View>
           </SafeContainer>
         </RefreshableScrollView>
-        <FloatingHeader label="공지사항" scrollY={scrollY} title="피드" />
+        <FloatingHeader scrollY={scrollY} title="피드" />
       </View>
     </>
   );

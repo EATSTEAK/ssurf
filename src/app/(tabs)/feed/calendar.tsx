@@ -90,7 +90,7 @@ const getPeriodColor = (item: CalendarEntity) => {
   return PERIOD_COLORS[hash % PERIOD_COLORS.length];
 };
 
-export default function ScheduleCalendarScreen() {
+export default function FeedCalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
