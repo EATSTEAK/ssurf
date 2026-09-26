@@ -1,7 +1,5 @@
 import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -9,18 +7,14 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import emptyImage from '@/assets/empty.png';
 import errorImage from '@/assets/error.png';
 import loadingImage from '@/assets/loading.png';
-import { useCalendars } from '@/entities/calendar/lib/queries';
-import { CalendarEntity } from '@/entities/calendar/model';
 import {
   useCourseInformationCandidates,
   useCourseSchedule,
 } from '@/entities/courseSchedule/lib/queries';
 import { useSetting } from '@/entities/settings/lib/queries';
 import { useEnrollmentSemesters } from '@/entities/studentInformation/lib/queries';
-import { isTodayCalendar } from '@/features/calendar/lib/isTodayCalendar';
 import { buildScheduleSemesters } from '@/features/schedule/lib/utils';
 import { ScheduleGrid } from '@/features/schedule/ui/ScheduleGrid';
-import { TodayScheduleSection } from '@/features/schedule/ui/TodayScheduleSection';
 import { getEstimatedCurrentSemester, semesterToSlug } from '@/shared/lib/semester';
 import { useRusaintApplication } from '@/shared/providers/RusaintApplicationProvider';
 import { SafeContainer } from '@/shared/ui/containers/Container';
@@ -85,7 +79,6 @@ export default function Index() {
   const router = useRouter();
   const { theme } = useUnistyles();
   const { defaultScheduleSemester } = useRusaintApplication();
-  const [selectedCalendarSlugs] = useSetting('schedule.selectedCalendarSlugs');
   const [savedSemester, setSavedSemester] = useSetting('schedule.selectedSemester');
   const {
     data: enrollmentSemesters,
@@ -116,46 +109,15 @@ export default function Index() {
     effectiveSelectedSemester.year,
     effectiveSelectedSemester.semester,
   );
-  const {
-    data: calendars,
-    error: calendarError,
-    isSyncing: isCalendarSyncing,
-    refresh: refreshCalendars,
-  } = useCalendars(selectedCalendarSlugs);
-
-  const todayCalendars = useMemo(() => {
-    const now = new Date();
-    return calendars.filter((item) => isTodayCalendar(item, now));
-  }, [calendars]);
 
   const scrollY = useSharedValue(0);
 
-  const handleOpenUrl = useCallback(async (url: null | string) => {
-    if (!url) {
-      return;
-    }
-
-    try {
-      await WebBrowser.openBrowserAsync(url);
-    } catch (openError) {
-      console.error('Failed to open feed URL:', openError);
-    }
-  }, []);
-
-  const handlePressCalendar = useCallback(
-    (item: CalendarEntity) => {
-      void handleOpenUrl(item.url);
-    },
-    [handleOpenUrl],
-  );
-
   const handleRefresh = () => {
-    if (isSyncing || isCourseInformationSyncing || isCalendarSyncing || isEnrollmentSyncing) {
+    if (isSyncing || isCourseInformationSyncing || isEnrollmentSyncing) {
       return;
     }
     void refreshSchedule();
     void refreshCourseInformation();
-    void refreshCalendars();
     void refreshEnrollmentSemesters();
   };
 
@@ -246,7 +208,7 @@ export default function Index() {
         <RefreshableScrollView
           onRefresh={handleRefresh}
           onScroll={scrollHandler}
-          refreshing={isSyncing || isCalendarSyncing || isEnrollmentSyncing}
+          refreshing={isSyncing || isEnrollmentSyncing}
           scrollEventThrottle={16}
         >
           <SafeContainer>
@@ -266,16 +228,6 @@ export default function Index() {
             ) : (
               renderEmptyContent()
             )}
-            <View style={styles.paddedSection}>
-              <TodayScheduleSection
-                actionLabel="월간 일정 보기"
-                calendarError={calendarError ?? null}
-                onPressAction={() => router.push('/(tabs)/schedule/calendar')}
-                onPressCalendar={handlePressCalendar}
-                selectedCalendarSlugs={selectedCalendarSlugs}
-                todayCalendars={todayCalendars}
-              />
-            </View>
             <Space gap={8} />
           </SafeContainer>
         </RefreshableScrollView>
