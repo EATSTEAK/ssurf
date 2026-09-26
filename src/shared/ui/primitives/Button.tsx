@@ -13,41 +13,61 @@ import { StyleSheet, UnistylesVariants } from 'react-native-unistyles';
 import { propagateState } from '@/shared/lib/propagateState';
 
 const styles = StyleSheet.create((theme) => ({
-  container: ({ pressed }) => ({
+  container: ({ pressed }: PressableStateCallbackType, disabled: boolean) => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 30,
     width: '100%',
     height: 40,
+    opacity: disabled ? 0.5 : 1,
     variants: {
       variant: {
         primary: {
-          backgroundColor: pressed ? theme.colors.primaryPressed : theme.colors.primary,
+          backgroundColor: disabled
+            ? theme.colors.primaryContainer
+            : pressed
+              ? theme.colors.primaryPressed
+              : theme.colors.primary,
         },
         secondary: {
-          backgroundColor: pressed ? theme.colors.secondaryPressed : theme.colors.secondary,
+          backgroundColor: disabled
+            ? theme.colors.surface
+            : pressed
+              ? theme.colors.secondaryPressed
+              : theme.colors.secondary,
         },
         error: {
-          backgroundColor: pressed ? theme.colors.errorPressed : theme.colors.error,
+          backgroundColor: disabled
+            ? theme.colors.errorContainer
+            : pressed
+              ? theme.colors.errorPressed
+              : theme.colors.error,
         },
         success: {
-          backgroundColor: pressed ? theme.colors.successPressed : theme.colors.success,
+          backgroundColor: disabled
+            ? theme.colors.successContainer
+            : pressed
+              ? theme.colors.successPressed
+              : theme.colors.success,
         },
         ghost: {
-          backgroundColor: pressed ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+          backgroundColor: pressed && !disabled ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
         },
         outline: {
           borderWidth: 1,
-          borderColor: pressed ? theme.colors.fgSurfaceMuted : theme.colors.fgSurface,
-          backgroundColor: pressed ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+          borderColor: disabled || pressed ? theme.colors.fgSurfaceMuted : theme.colors.fgSurface,
+          backgroundColor: pressed && !disabled ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
         },
         surface: {
-          backgroundColor: pressed ? theme.colors.surfaceDim : theme.colors.surface,
+          backgroundColor: disabled || pressed ? theme.colors.surfaceDim : theme.colors.surface,
         },
       },
     },
   }),
+  textDisabled: {
+    color: theme.colors.fgSurfaceMuted,
+  },
   text: {
     textAlign: 'center',
     fontSize: 16,
@@ -92,13 +112,16 @@ export const Button = ({
   style,
   children,
   textStyle,
+  disabled,
   ...props
 }: ButtonProps) => {
   styles.useVariants({ variant });
 
   return (
     <Pressable
-      style={(state) => [styles.container(state), propagateState(state, style)]}
+      accessibilityRole="button"
+      disabled={disabled}
+      style={(state) => [styles.container(state, !!disabled), propagateState(state, style)]}
       {...props}
     >
       {(state) => {
@@ -108,7 +131,13 @@ export const Button = ({
           return content;
         }
 
-        return <Text style={[styles.text, propagateState(state, textStyle)]}>{content}</Text>;
+        return (
+          <Text
+            style={[styles.text, disabled && styles.textDisabled, propagateState(state, textStyle)]}
+          >
+            {content}
+          </Text>
+        );
       }}
     </Pressable>
   );
