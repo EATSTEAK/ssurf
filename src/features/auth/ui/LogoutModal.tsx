@@ -42,22 +42,22 @@ export type LogoutModalProps = {
 
 export const LogoutModal = ({ visible, onClose, onLogout }: LogoutModalProps) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
       await onLogout();
       onClose();
-    } catch (error) {
-      setError(error as Error);
+    } catch {
+      setError(true);
     } finally {
       setIsLoggingOut(false);
     }
   };
 
   const onCloseWhileError = () => {
-    setError(null);
+    setError(false);
     onClose();
   };
 
@@ -84,7 +84,7 @@ export const LogoutModal = ({ visible, onClose, onLogout }: LogoutModalProps) =>
               오류 발생
             </ThemedText>
             <ThemedText style={styles.message} typography="bodyLg">
-              {error.message}
+              로그아웃하지 못했어요. 다시 시도해주세요.
             </ThemedText>
             <View style={styles.buttonContainer}>
               <Button onPress={onCloseWhileError} variant="primary">

@@ -1,3 +1,4 @@
+import * as SecureStore from 'expo-secure-store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const storage = vi.hoisted(() => new Map<string, string>());
@@ -31,6 +32,19 @@ describe('Canvas access token storage', () => {
     await deleteCanvasAccessToken('20260001');
     await expect(getCanvasAccessToken('20260001')).resolves.toBeNull();
     await expect(getCanvasAccessToken('20260002')).resolves.toBe('second-token');
+  });
+
+  it('deletes the legacy token even when a stored ID cannot form a key', async () => {
+    storage.set('canvas-access-token', 'legacy-token');
+    await expect(deleteCanvasAccessToken('invalid id')).resolves.toBeUndefined();
+    expect(storage.has('canvas-access-token')).toBe(false);
+    await expect(getCanvasAccessToken('invalid id')).rejects.toThrow();
+    await expect(saveCanvasAccessToken('invalid id', 'token')).rejects.toThrow();
+  });
+
+  it('propagates storage deletion failures for invalid IDs', async () => {
+    vi.mocked(SecureStore.deleteItemAsync).mockRejectedValueOnce(new Error('storage failed'));
+    await expect(deleteCanvasAccessToken('invalid id')).rejects.toThrow('storage failed');
   });
 
   it('migrates the previous global token to the current student', async () => {

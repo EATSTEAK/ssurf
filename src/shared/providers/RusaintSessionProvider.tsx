@@ -1,5 +1,4 @@
 import { USaintSessionBuilder, USaintSessionInterface } from '@rusaint/react-native';
-import { useRouter } from 'expo-router';
 import { createContext, useCallback, useContext, useRef, useState } from 'react';
 import { useAsyncEffect } from 'react-simplikit';
 
@@ -45,7 +44,6 @@ const RusaintSessionContext = createContext<RusaintSessionContextProps>({
 const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unknown>) => {
-  const { navigate } = useRouter();
   const [userInfo, setUserInfo, isUserInfoLoading] = useExpoSecureStore({
     defaultValue: EMPTY_USER_INFO,
     key: USER_INFO_KEY,
@@ -103,22 +101,14 @@ export const RusaintSessionProvider = ({ children }: React.PropsWithChildren<unk
   }, [userInfo.id, userInfo.password]);
 
   const logout = async () => {
+    if (userInfo.id !== null) {
+      await deleteCanvasAccessToken(userInfo.id);
+    }
+    await setUserInfo(EMPTY_USER_INFO);
     applications.reset();
-    const results = await Promise.allSettled([
-      setUserInfo({ id: null, password: null }),
-      ...(userInfo.id ? [deleteCanvasAccessToken(userInfo.id)] : []),
-    ]);
     setSession(null);
     sessionCreatedAtRef.current = null;
-
-    const failure = results.find((result) => result.status === 'rejected');
-    if (failure?.status === 'rejected') {
-      const error =
-        failure.reason instanceof Error ? failure.reason : new Error(String(failure.reason));
-      console.error('로그아웃 중 오류 발생:', error);
-      setError(error);
-    }
-    navigate('/');
+    setError(null);
   };
 
   const hasCredential = userInfo.id != null && userInfo.password != null;

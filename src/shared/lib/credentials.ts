@@ -14,9 +14,11 @@ export const USER_INFO_KEY = 'user-info';
 const LEGACY_CANVAS_ACCESS_TOKEN_KEY = 'canvas-access-token';
 export const EMPTY_USER_INFO: StoredUserInfo = { id: null, password: null };
 
+const isValidStudentId = (studentId: string) => /^[A-Za-z0-9._-]+$/.test(studentId.trim());
+
 const getCanvasAccessTokenKey = (studentId: string) => {
   const normalizedStudentId = studentId.trim();
-  if (!/^[A-Za-z0-9._-]+$/.test(normalizedStudentId)) {
+  if (!isValidStudentId(studentId)) {
     throw new Error('올바른 학번이 필요해요.');
   }
   return `${LEGACY_CANVAS_ACCESS_TOKEN_KEY}-${normalizedStudentId}`;
@@ -78,6 +80,8 @@ export const saveCanvasAccessToken = async (studentId: string, token: string) =>
 
 export const deleteCanvasAccessToken = (studentId: string) =>
   Promise.all([
-    SecureStore.deleteItemAsync(getCanvasAccessTokenKey(studentId)),
+    ...(isValidStudentId(studentId)
+      ? [SecureStore.deleteItemAsync(getCanvasAccessTokenKey(studentId))]
+      : []),
     SecureStore.deleteItemAsync(LEGACY_CANVAS_ACCESS_TOKEN_KEY),
   ]).then(() => undefined);

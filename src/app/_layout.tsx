@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles, withUnistyles } from 'react-native-unistyles';
@@ -14,6 +14,7 @@ import { db } from '@/db';
 import migrations from '@/drizzle/migrations';
 import { feedSitesSync } from '@/entities/feed/lib/sync';
 import { studentInformationSync } from '@/entities/studentInformation/lib/sync';
+import { LogoutModal } from '@/features/auth/ui/LogoutModal';
 import {
   disableBackgroundUpdates,
   enableBackgroundUpdates,
@@ -25,6 +26,7 @@ import {
   RusaintSessionProvider,
   useRusaintSession,
 } from '@/shared/providers/RusaintSessionProvider';
+import { Button } from '@/shared/ui/primitives/Button';
 import { ThemedText } from '@/shared/ui/primitives/ThemedText';
 
 const styles = StyleSheet.create((theme) => ({
@@ -46,7 +48,8 @@ function RootLayoutNav() {
   const router = useRouter();
   const notificationResponse = Notifications.useLastNotificationResponse();
   const previousAppState = useRef(AppState.currentState);
-  const { error, hasCompletedOnboarding, hasCredential, isLoading, session, studentId } =
+  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
+  const { error, hasCompletedOnboarding, hasCredential, isLoading, logout, session, studentId } =
     useRusaintSession();
 
   useEffect(() => {
@@ -151,8 +154,22 @@ function RootLayoutNav() {
         <ThemedText color="error" typography="headingLg">
           로그인 중 오류가 발생했어요.
         </ThemedText>
-        <ThemedText color="errorInverted">{error.message}</ThemedText>
-        <ThemedText color="errorInverted">앱을 다시 시작해주세요.</ThemedText>
+        <ThemedText color="errorInverted">
+          앱을 다시 시작하거나 로그아웃 후 다시 로그인해주세요.
+        </ThemedText>
+        <Button
+          accessibilityRole="button"
+          onPress={() => setIsLogoutModalVisible(true)}
+          style={{ marginTop: 16, width: 160 }}
+          variant="secondary"
+        >
+          로그아웃
+        </Button>
+        <LogoutModal
+          onClose={() => setIsLogoutModalVisible(false)}
+          onLogout={logout}
+          visible={isLogoutModalVisible}
+        />
       </UnistylesSafeAreaView>
     );
   }
