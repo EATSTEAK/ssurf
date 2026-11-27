@@ -1,7 +1,7 @@
 {
   "name": "ssurf",
   "main": "src/index.tsx",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
